@@ -7,11 +7,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string) {
-  return format(new Date(date), "dd MMM yyyy")
+  try {
+    return format(new Date(date), "dd MMM yyyy")
+  } catch {
+    return date
+  }
 }
 
 export function timeAgo(date: string) {
-  return formatDistanceToNow(new Date(date), { addSuffix: true })
+  try {
+    return formatDistanceToNow(new Date(date), { addSuffix: true })
+  } catch {
+    return date
+  }
 }
 
 export function categoryLabel(cat: string): string {
@@ -27,16 +35,15 @@ export function categoryLabel(cat: string): string {
 
 export function categoryColor(cat: string): string {
   const map: Record<string, string> = {
-    broker:     "text-blue-400",
-    education:  "text-purple-400",
-    news:       "text-green-400",
-    analysis:   "text-gold",
-    "ea-tools": "text-orange-400",
+    broker:     "text-blue-600",
+    education:  "text-purple-600",
+    news:       "text-green-600",
+    analysis:   "text-amber-600",
+    "ea-tools": "text-pink-600",
   }
-  return map[cat] ?? "text-white/50"
+  return map[cat] ?? "text-gray-500"
 }
 
-// ── สำคัญ: map category → URL route ──
 export function categoryRoute(cat: string): string {
   const map: Record<string, string> = {
     broker:     "broker",
@@ -46,13 +53,6 @@ export function categoryRoute(cat: string): string {
     "ea-tools": "ea-tools",
   }
   return map[cat] ?? cat
-}
-
-export function formatPrice(price: number, decimals = 4): string {
-  return price.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  })
 }
 
 export function slugify(str: string): string {

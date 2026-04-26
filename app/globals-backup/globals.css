@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Noto+Sans+Lao:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --dark: #0A0E1A;
+  --dark2: #111827;
+  --dark3: #1C2333;
+  --blue: #2563EB;
+  --indigo: #4F46E5;
+  --blue-l: #EEF3FF;
+  --blue-m: #BFCFFF;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: #F4F6FB;
+    color: #0D1117;
+    font-family: 'Syne', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { font-family: 'Syne', sans-serif; }
+}
+
+@layer components {
+
+  /* ── Primary button (Blue gradient) ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           font-semibold text-sm text-white
+           px-5 py-2.5 rounded-lg
+           transition-all duration-200
+           cursor-pointer border-none;
+    background: linear-gradient(135deg, #2563EB, #4F46E5);
+    box-shadow: 0 2px 10px rgba(37,99,235,0.30);
+    font-family: 'Syne', sans-serif;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37,99,235,0.45);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ── Ghost / Outline button ── */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           font-semibold text-sm
+           px-5 py-2.5 rounded-lg
+           transition-all duration-200
+           cursor-pointer;
+    color: #2563EB;
+    background: #EEF3FF;
+    border: 1.5px solid #BFCFFF;
+    font-family: 'Syne', sans-serif;
+  }
+  .btn-ghost:hover {
+    background: #BFCFFF;
+    border-color: #2563EB;
+  }
+
+  /* ── Outline Dark button ── */
+  .btn-outline-dark {
+    @apply inline-flex items-center justify-center gap-2
+           font-semibold text-sm
+           px-5 py-2.5 rounded-lg
+           transition-all duration-200
+           cursor-pointer;
+    color: #0D1117;
+    background: #FFFFFF;
+    border: 1.5px solid #C8CFE6;
+    font-family: 'Syne', sans-serif;
+  }
+  .btn-outline-dark:hover {
+    border-color: #2563EB;
+    color: #2563EB;
+    background: #EEF3FF;
+  }
+
+  /* ── Hero large button ── */
+  .btn-hero {
+    @apply inline-flex items-center justify-center gap-2
+           font-bold text-sm text-white
+           px-7 py-3.5 rounded-xl
+           transition-all duration-300
+           cursor-pointer border-none;
+    background: linear-gradient(135deg, #2563EB, #4F46E5);
+    box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    font-family: 'Syne', sans-serif;
+  }
+  .btn-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(37,99,235,0.50);
+  }
+
+  /* ── Outline Gold (เดิมสำหรับ dark theme) ── */
+  .btn-outline-gold {
+    @apply inline-flex items-center justify-center gap-2
+           font-semibold text-sm
+           px-4 py-1.5 rounded-lg
+           transition-all duration-200
+           cursor-pointer;
+    color: #2563EB;
+    background: #EEF3FF;
+    border: 1.5px solid #BFCFFF;
+    font-family: 'Syne', sans-serif;
+  }
+  .btn-outline-gold:hover {
+    background: #BFCFFF;
+    border-color: #2563EB;
+  }
+
+  /* ── Card ── */
+  .card {
+    @apply bg-white border border-gray-100 rounded-xl;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  /* ── Section divider ── */
+  .section-divider {
+    @apply border-t border-gray-100;
+  }
+}
