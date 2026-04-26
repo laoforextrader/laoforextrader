@@ -32,6 +32,20 @@ const config: Config = {
           },
         },
       },
+      keyframes: {
+        ticker: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
+        floatCard: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+        pulseDot: {
+          '0%': { boxShadow: '0 0 0 0 rgba(37,99,235,0.4)' },
+          '70%': { boxShadow: '0 0 0 8px rgba(37,99,235,0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(37,99,235,0)' }
+        }
+      },
+      animation: {
+        ticker: 'ticker 28s linear infinite',
+        float: 'floatCard 5s ease-in-out infinite',
+        'pulse-dot': 'pulse-dot 2s ease-in-out infinite',
+      }
     },
   },
   plugins: [],

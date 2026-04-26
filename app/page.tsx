@@ -18,16 +18,29 @@ const CATEGORY_TABS = [
 ]
 
 export default async function HomePage() {
-  const [articles, featured, brokers, lessons] = await Promise.all([
-    sanityClient.fetch<Article[]>(QUERIES.latestArticles(12)),
-    sanityClient.fetch<Article>(QUERIES.featuredArticle),
-    sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers),
-    sanityClient.fetch<Article[]>(`
-      *[_type == "article" && category == "education"] | order(publishedAt asc) [0...10] {
-        _id, title, slug, readTime
-      }
-    `),
-  ])
+  let articles: Article[] = []
+  let featured: Article | null = null
+  let brokers: Broker[] = []
+  let lessons: Article[] = []
+
+  try {
+    const data = await Promise.all([
+      sanityClient.fetch<Article[]>(QUERIES.latestArticles(12)),
+      sanityClient.fetch<Article>(QUERIES.featuredArticle),
+      sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers),
+      sanityClient.fetch<Article[]>(`
+        *[_type == "article" && category == "education"] | order(publishedAt asc) [0...10] {
+          _id, title, slug, readTime
+        }
+      `),
+    ])
+    articles = data[0] || []
+    featured = data[1] || null
+    brokers = data[2] || []
+    lessons = data[3] || []
+  } catch (err) {
+    console.error("Sanity fetch error:", err)
+  }
 
   return (
     <div>
