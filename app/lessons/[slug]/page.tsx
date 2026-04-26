@@ -47,7 +47,7 @@ export default async function LessonDetailPage({ params }: Props) {
       _id, title, slug
     }
   `)
-  const currentIndex = allLessons.findIndex(l => l.slug.current === slug)
+  const currentIndex = allLessons.findIndex(l => l.slug?.current ?? "" === slug)
   const prev = currentIndex > 0 ? allLessons[currentIndex - 1] : null
   const next = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
   const lessonNum = currentIndex + 1
@@ -104,7 +104,7 @@ export default async function LessonDetailPage({ params }: Props) {
         {/* Prev / Next */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>
           {prev ? (
-            <Link href={`/lessons/${prev.slug.current}`}
+            <Link href={`/lessons/${prev.slug?.current ?? ""}`}
               style={{ display: "flex", flexDirection: "column", gap: 4, padding: 14, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, textDecoration: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#9CA3AF" }}>
                 <ArrowLeft size={10} /> ບົດກ່ອນໜ້າ
@@ -116,7 +116,7 @@ export default async function LessonDetailPage({ params }: Props) {
           ) : <div />}
 
           {next ? (
-            <Link href={`/lessons/${next.slug.current}`}
+            <Link href={`/lessons/${next.slug?.current ?? ""}`}
               style={{ display: "flex", flexDirection: "column", gap: 4, padding: 14, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, textDecoration: "none", textAlign: "right" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, fontSize: 10, color: "#9CA3AF" }}>
                 ບົດຖັດໄປ <ArrowRight size={10} />

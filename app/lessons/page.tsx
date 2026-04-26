@@ -84,7 +84,7 @@ export default async function LessonsPage() {
                   const isLocked = n > 10 && !isLoggedIn
                   return (
                     <Link key={lesson._id}
-                      href={isLocked ? "/login" : `/lessons/${lesson.slug.current}`}
+                      href={isLocked ? "/login" : `/lessons/${lesson.slug?.current ?? ""}`}
                       style={{
                         display: "flex", alignItems: "center", gap: 12,
                         padding: "12px 14px", borderRadius: 10,

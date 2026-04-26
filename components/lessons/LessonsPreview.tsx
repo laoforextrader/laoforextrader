@@ -42,7 +42,7 @@ export function LessonsPreview({ lessons }: Props) {
 
       <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-5">
         {lessons.map((lesson, i) => (
-          <Link key={lesson._id} href={`/lessons/${lesson.slug.current}`}
+          <Link key={lesson._id} href={`/lessons/${lesson.slug?.current ?? ""}`}
             className="lesson-row flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-all group">
             <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center font-mono text-[10px] font-semibold text-blue-600 flex-shrink-0">
               {String(i + 1).padStart(2, "0")}

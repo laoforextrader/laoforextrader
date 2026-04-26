@@ -17,7 +17,7 @@ const CAT_LABEL: Record<string,string> = {
 interface Props { article: Article; variant?: "default"|"featured" }
 
 export function ArticleCard({ article, variant="default" }: Props) {
-  const href = `/${categoryRoute(article.category)}/${article.slug.current}`
+  const href = `/${categoryRoute(article.category)}/${article.slug?.current ?? ""}`
   if (variant === "featured") {
     return (
       <Link href={href} className="block cursor-pointer group">
