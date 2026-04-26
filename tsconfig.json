@@ -39,6 +39,7 @@
     "sanity.cli.ts",
     "sanity/schemaTypes",
     "sanity/structure.ts",
-    "sanity/schemas"
+    "sanity/schemas",
+    "scripts"
   ]
 }
