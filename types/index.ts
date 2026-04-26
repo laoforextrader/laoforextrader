@@ -25,9 +25,26 @@ export interface Broker {
   cons?: string[]
 }
 
+export interface Comment {
+  _id: string
+  name: string
+  content: string
+  createdAt: string
+  approved?: boolean
+}
+
 export interface MarketPrice {
   pair: string
   price: number
   change: number
   changePercent: number
+}
+
+export interface Lesson {
+  _id: string
+  title: string
+  slug: { current: string }
+  readTime?: number
+  order?: number
+  body?: any[]
 }
