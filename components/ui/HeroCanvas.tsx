@@ -9,19 +9,20 @@ export function HeroCanvas() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext("2d")!
-    const wrap = canvas.parentElement!
+    const cv = canvas as HTMLCanvasElement
+    const ctx = cv.getContext("2d")!
+    const wrap = cv.parentElement!
 
     const resize = () => {
-      canvas.width = wrap.offsetWidth
-      canvas.height = wrap.offsetHeight
+      cv.width = wrap.offsetWidth
+      cv.height = wrap.offsetHeight
     }
     resize()
     window.addEventListener("resize", resize)
 
     class Particle {
-      x = Math.random() * canvas.width
-      y = Math.random() * canvas.height
+      x = Math.random() * cv.width
+      y = Math.random() * cv.height
       vy = -(0.5 + Math.random() * 0.7)
       vx = (Math.random() - 0.5) * 0.3
       w = 5 + Math.random() * 7
@@ -35,8 +36,8 @@ export function HeroCanvas() {
       constructor() { this.wh = this.bh + Math.random() * 8 }
 
       reset() {
-        this.x = Math.random() * canvas.width
-        this.y = canvas.height + 20
+        this.x = Math.random() * cv.width
+        this.y = cv.height + 20
         this.vy = -(0.5 + Math.random() * 0.7)
         this.vx = (Math.random() - 0.5) * 0.3
         this.w = 5 + Math.random() * 7
@@ -54,7 +55,7 @@ export function HeroCanvas() {
         if (this.life > this.ml) this.reset()
         this.x += this.vx + mx.current * 0.0006
         this.y += this.vy + my.current * 0.0003
-        if (this.y < -60 || this.x < -30 || this.x > canvas.width + 30) this.reset()
+        if (this.y < -60 || this.x < -30 || this.x > cv.width + 30) this.reset()
       }
 
       draw() {
@@ -77,13 +78,13 @@ export function HeroCanvas() {
 
     const onMove = (e: MouseEvent) => {
       const r = wrap.getBoundingClientRect()
-      mx.current = e.clientX - r.left - canvas.width / 2
-      my.current = e.clientY - r.top - canvas.height / 2
+      mx.current = e.clientX - r.left - cv.width / 2
+      my.current = e.clientY - r.top - cv.height / 2
     }
     wrap.addEventListener("mousemove", onMove)
 
     const anim = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, cv.width, cv.height)
       parts.forEach(p => { p.update(); p.draw() })
       raf = requestAnimationFrame(anim)
     }
