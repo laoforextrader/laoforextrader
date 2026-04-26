@@ -1,3 +1,3 @@
-// Sanity Studio config — รันแยกที่ localhost:3333
-// ไม่ได้ใช้ใน Next.js production build
-export default {}
+// Sanity Studio runs separately at localhost:3333
+// This file is intentionally empty for production builds
+export {}
