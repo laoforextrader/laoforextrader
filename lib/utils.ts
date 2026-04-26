@@ -58,3 +58,11 @@ export function categoryRoute(cat: string): string {
 export function slugify(str: string): string {
   return str.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^\w-]/g, "")
 }
+
+
+export function formatPrice(price: number, decimals?: number): string {
+  if (decimals !== undefined) return price.toFixed(decimals)
+  if (price >= 1000) return price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (price >= 10)   return price.toFixed(4)
+  return price.toFixed(5)
+}
