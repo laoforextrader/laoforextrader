@@ -18,9 +18,11 @@
     "lucide-react": "^0.400.0",
     "next": "15.3.1",
     "next-auth": "^4.24.7",
+    "next-sanity": "^9.8.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^2.5.2"
+    "tailwind-merge": "^2.5.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20",
