@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --dark: #0A0E1A;
+  --dark-2: #111827;
+  --dark-3: #1C2333;
+  --dark-4: #243048;
+  --text: #F0EDE6;
+  --text-muted: #8A9AB5;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-gold: rgba(201, 168, 76, 0.2);
+  --green: #22C55E;
+  --red: #EF4444;
+  --blue: #3B82F6;
+  --purple: #A78BFA;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--dark);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lao text */
+.font-lao {
+  font-family: 'Noto Sans Lao', sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--dark-2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.3);
+  border-radius: 2px;
+}
+
+/* Prose styles สำหรับบทความ */
+.prose-lft {
+  color: var(--text);
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+.prose-lft h1, .prose-lft h2, .prose-lft h3 {
+  font-family: 'Noto Sans Lao', sans-serif;
+  font-weight: 700;
+  color: var(--text);
+  margin: 1.5em 0 0.75em;
+}
+
+.prose-lft h2 {
+  font-size: 1.3em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4em;
+}
+
+.prose-lft p {
+  margin-bottom: 1.25em;
+  font-family: 'Noto Sans Lao', sans-serif;
+}
+
+.prose-lft a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.prose-lft a:hover {
+  text-decoration: underline;
+}
+
+.prose-lft blockquote {
+  border-left: 3px solid var(--gold);
+  padding-left: 1rem;
+  margin: 1.5em 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prose-lft table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.prose-lft th {
+  background: var(--dark-3);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose-lft td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Selection */
+::selection {
+  background: rgba(201, 168, 76, 0.25);
+  color: var(--text);
+}
