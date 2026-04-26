@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const brokerRoutes: MetadataRoute.Sitemap = brokers.map(b => ({
-    url: `${BASE}/broker/${b.slug.current}`,
+    url: `${BASE}/broker/${b?.slug?.current ?? ""}`,
     lastModified: new Date(),
     changeFrequency: "monthly",
     priority: 0.8,
