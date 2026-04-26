@@ -7,7 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [articles, brokers] = await Promise.all([
     sanityClient.fetch<Article[]>(QUERIES.latestArticles(100)),
-    sanityClient.fetch<Broker[]>(QUERIES.allBrokers),
+    sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers),
   ])
 
   const staticRoutes: MetadataRoute.Sitemap = [
