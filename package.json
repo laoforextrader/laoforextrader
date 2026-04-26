@@ -11,6 +11,7 @@
   "dependencies": {
     "@portabletext/react": "^3.1.0",
     "@sanity/client": "^6.22.1",
+    "@sanity/icons": "^3.7.0",
     "@sanity/image-url": "^1.1.0",
     "chart.js": "^4.4.0",
     "clsx": "^2.1.1",
@@ -19,6 +20,7 @@
     "next": "15.3.1",
     "next-auth": "^4.24.7",
     "next-sanity": "^9.8.16",
+    "sanity": "^3.88.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.5.2",
