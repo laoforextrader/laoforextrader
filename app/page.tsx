@@ -17,6 +17,8 @@ const CATEGORY_TABS = [
   { label: "EA / Tools", href: "/?cat=ea-tools" },
 ]
 
+export const revalidate = 3600
+
 export default async function HomePage() {
   let articles: Article[] = []
   let featured: Article | null = null
