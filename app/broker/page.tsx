@@ -1,5 +1,6 @@
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { ArticleCard } from "@/components/article/ArticleCard"
+import { MerchSection } from "@/components/sections/MerchSection"
 import { Article } from "@/types"
 import type { Metadata } from "next"
 
@@ -27,6 +28,7 @@ export default async function Page() {
           )}
         </div>
       </div>
+      <MerchSection />
     </div>
   )
 }

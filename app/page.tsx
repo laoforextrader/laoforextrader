@@ -5,6 +5,8 @@ import { HeroCanvas } from "@/components/ui/HeroCanvas"
 import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
 import { BrokerSection } from "@/components/broker/BrokerSection"
 import { LessonsPreview } from "@/components/lessons/LessonsPreview"
+import { MerchSection } from "@/components/sections/MerchSection"
+import { FounderSection } from "@/components/sections/FounderSection"
 import { Article, Broker } from "@/types"
 import Link from "next/link"
 
@@ -160,6 +162,12 @@ export default async function HomePage() {
 
       {/* ── BROKER SECTION ── */}
       <BrokerSection brokers={brokers} />
+
+      {/* ── MERCH ── */}
+      <MerchSection />
+
+      {/* ── FOUNDER ── */}
+      <FounderSection />
 
       {/* ── CTA ── */}
       <div className="max-w-[1060px] mx-auto px-6 py-12">

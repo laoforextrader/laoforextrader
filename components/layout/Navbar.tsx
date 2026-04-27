@@ -12,6 +12,7 @@ const NAV = [
   { label:"ຂ່າວ",     href:"/news"      },
   { label:"ວິເຄາະ",   href:"/analysis"  },
   { label:"ເຄື່ອງມື", href:"/tools"     },
+  { label:"EA System", href:"/ea-system" },
 ]
 
 function UserMenu() {
