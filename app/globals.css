@@ -4,66 +4,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── FORCE สีข้อความทุก element ให้เข้ม ── */
 @layer base {
-  * { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+
   body {
     background-color: #EDEEF2;
-    color: #111827;
+    color: #111827 !important;
     font-family: 'Noto Sans Lao', sans-serif;
     -webkit-font-smoothing: antialiased;
     font-size: 15px;
     line-height: 1.65;
   }
+
+  /* Force ทุก text element ให้เป็นสีเข้ม */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Noto Sans Lao', sans-serif;
-    color: #111827;
-  }
-  p, span, a, li, td, th, label, input, button, div {
+    color: #111827 !important;
     font-family: 'Noto Sans Lao', sans-serif;
   }
-  /* Force all text to be dark by default */
-  * { color: inherit; }
+
+  p, span, div, li, td, th, label {
+    color: inherit;
+  }
+
+  /* ป้องกัน white text บน white bg */
+  a { color: #2563EB; }
+  button { color: inherit; }
+
+  /* Reset สี white ที่อาจมาจาก dark theme เก่า */
+  :root {
+    --foreground: #111827;
+    --background: #EDEEF2;
+    color-scheme: light;
+  }
 }
 
 @layer components {
-  /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2
-           font-semibold text-sm text-white
-           px-6 py-3 rounded-xl border-none cursor-pointer
-           transition-all duration-300;
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl border-none cursor-pointer transition-all duration-300;
     background: linear-gradient(135deg, #2563EB, #4F46E5);
     box-shadow: 0 4px 14px rgba(37,99,235,0.32);
+    color: #ffffff !important;
     font-family: 'Noto Sans Lao', sans-serif;
-    color: #ffffff !important;
   }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(37,99,235,0.45);
-    color: #ffffff !important;
-  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.45); }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2
-           font-semibold text-sm
-           px-6 py-3 rounded-xl cursor-pointer
-           transition-all duration-200 bg-white;
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl cursor-pointer transition-all duration-200 bg-white;
     color: #1F2937 !important;
     border: 1.5px solid #9CA3AF;
     font-family: 'Noto Sans Lao', sans-serif;
   }
-  .btn-outline:hover {
-    border-color: #2563EB;
-    color: #2563EB !important;
-    background: #EEF3FF;
-  }
+  .btn-outline:hover { border-color: #2563EB; color: #2563EB !important; background: #EEF3FF; }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2
-           font-semibold text-sm
-           px-5 py-2 rounded-lg cursor-pointer
-           transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2 rounded-lg cursor-pointer transition-all duration-200;
     color: #2563EB !important;
     background: #EEF3FF;
     border: 1.5px solid #BFCFFF;
@@ -71,49 +67,12 @@
   }
   .btn-ghost:hover { background: #BFCFFF; }
 
-  .btn-outline-gold {
-    @apply inline-flex items-center justify-center gap-2
-           font-semibold text-sm
-           px-4 py-1.5 rounded-lg cursor-pointer
-           transition-all duration-200;
-    color: #2563EB !important;
-    background: #EEF3FF;
-    border: 1.5px solid #BFCFFF;
-    font-family: 'Noto Sans Lao', sans-serif;
-  }
-  .btn-outline-gold:hover { background: #BFCFFF; }
+  .card { @apply bg-white rounded-xl; border: 1.5px solid #E2E6F0; color: #111827 !important; }
 
-  /* ── Card ── */
-  .card {
-    @apply bg-white rounded-xl;
-    border: 1.5px solid #E2E6F0;
-    color: #111827;
-  }
-
-  /* ── Section helpers ── */
-  .section-eyebrow {
-    @apply text-[11px] font-bold uppercase tracking-widest mb-1.5;
-    color: #2563EB;
-  }
-  .section-title {
-    @apply text-3xl font-extrabold tracking-tight mb-1.5;
-    color: #111827;
-    letter-spacing: -0.025em;
-  }
-  .section-title span {
-    background: linear-gradient(135deg, #2563EB, #4F46E5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .section-sub {
-    @apply text-sm mb-5;
-    color: #374151;
-  }
-
-  /* ── Typography fixes — force dark text everywhere ── */
-  .text-content { color: #111827; }
-  .text-content h1, .text-content h2, .text-content h3 { color: #111827; }
-  .text-content p { color: #374151; }
+  .section-eyebrow { @apply text-[11px] font-bold uppercase tracking-widest mb-1.5; color: #2563EB !important; }
+  .section-title { @apply text-3xl font-extrabold tracking-tight mb-1.5; color: #111827 !important; letter-spacing: -0.025em; }
+  .section-title span { background: linear-gradient(135deg,#2563EB,#4F46E5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .section-sub { @apply text-sm mb-5; color: #374151 !important; }
 }
 
 /* ── Animations ── */
@@ -130,30 +89,17 @@
 }
 .animate-pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
 
-/* ── Portable Text (article body) ── */
+/* ── Prose / Article body ── */
 .prose-lao {
-  color: #1F2937;
+  color: #1F2937 !important;
   font-family: 'Noto Sans Lao', sans-serif;
   font-size: 15px;
   line-height: 1.8;
 }
-.prose-lao h1, .prose-lao h2, .prose-lao h3, .prose-lao h4 {
-  color: #111827 !important;
-  font-weight: 700;
-  margin-top: 1.8rem;
-  margin-bottom: 0.8rem;
-}
-.prose-lao h2 { font-size: 1.4rem; border-bottom: 1px solid #E5E7EB; padding-bottom: 0.5rem; }
-.prose-lao h3 { font-size: 1.15rem; }
-.prose-lao p  { color: #374151 !important; margin-bottom: 1rem; }
-.prose-lao ul, .prose-lao ol { color: #374151 !important; padding-left: 1.5rem; margin-bottom: 1rem; }
-.prose-lao li { margin-bottom: 0.4rem; }
-.prose-lao strong { color: #111827 !important; font-weight: 600; }
-.prose-lao a { color: #2563EB !important; text-decoration: underline; text-underline-offset: 2px; }
-.prose-lao blockquote {
-  border-left: 3px solid #BFCFFF;
-  padding-left: 1rem;
-  color: #6B7280 !important;
-  font-style: italic;
-  margin: 1.5rem 0;
-}
+.prose-lao h1,.prose-lao h2,.prose-lao h3,.prose-lao h4 { color: #111827 !important; font-weight: 700; margin-top:1.8rem; margin-bottom:.8rem; }
+.prose-lao h2 { font-size:1.4rem; border-bottom:1px solid #E5E7EB; padding-bottom:.5rem; }
+.prose-lao p  { color: #374151 !important; margin-bottom:1rem; }
+.prose-lao ul,.prose-lao ol { color: #374151 !important; padding-left:1.5rem; margin-bottom:1rem; }
+.prose-lao strong { color: #111827 !important; font-weight:600; }
+.prose-lao a { color: #2563EB !important; text-decoration:underline; }
+.prose-lao blockquote { border-left:3px solid #BFCFFF; padding-left:1rem; color:#6B7280 !important; font-style:italic; margin:1.5rem 0; }
