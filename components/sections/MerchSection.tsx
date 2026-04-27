@@ -45,7 +45,6 @@ export function MerchSection() {
                 width={140}
                 height={160}
                 style={{ objectFit: "contain" }}
-                onError={() => {}}
               />
             </div>
             <div style={{ background: "#F3F4F6", borderRadius: 16, overflow: "hidden", width: 130, height: 150, display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #E5E7EB", flexShrink: 0 }}>
@@ -55,7 +54,6 @@ export function MerchSection() {
                 width={110}
                 height={130}
                 style={{ objectFit: "contain" }}
-                onError={() => {}}
               />
             </div>
             {/* Badge */}

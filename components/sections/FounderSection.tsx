@@ -21,7 +21,6 @@ export function FounderSection() {
                 alt="Mee Muangsong"
                 fill
                 style={{ objectFit: "cover", filter: "grayscale(100%) contrast(1.05)" }}
-                onError={() => {}}
               />
               {/* Overlay gradient bottom */}
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "35%", background: "linear-gradient(transparent, rgba(0,0,0,0.4))", pointerEvents: "none" }} />
