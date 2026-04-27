@@ -16,6 +16,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+function toStr(val: any): string {
+  if (!val) return "—"
+  if (Array.isArray(val)) return val.join(", ") || "—"
+  return String(val)
+}
+
 function StarBar({ label, value }: { label: string; value?: number }) {
   const v = value ?? 0
   return (
@@ -97,8 +103,8 @@ export default async function BrokerDetailPage({ params }: Props) {
               { label: "ຝາກຂັ້ນຕ່ຳ", value: `$${broker.minDeposit ?? "—"}` },
               { label: "Leverage ສູງສຸດ", value: broker.maxLeverage ?? "—" },
               { label: "ຝາກ BCEL", value: broker.laoDeposit ? "✓ ຮອງຮັບ" : "✗ ບໍ່ຮອງຮັບ", green: broker.laoDeposit },
-              { label: "ໃບອະນຸຍາດ", value: (broker.regulators ?? []).join(", ") || "—" },
-              { label: "Platforms", value: (broker.platforms ?? []).join(", ") || "—" },
+              { label: "ໃບອະນຸຍາດ", value: toStr(broker.regulators ?? broker.regulation) },
+              { label: "Platforms", value: toStr(broker.platforms) },
             ].map(row => (
               <div key={row.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, paddingBottom: 10, marginBottom: 10, borderBottom: "1px solid #F3F4F6" }}>
                 <span style={{ color: "#6B7280" }}>{row.label}</span>
