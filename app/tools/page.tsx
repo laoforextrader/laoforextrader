@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import { Calculator, TrendingUp, BarChart2 } from "lucide-react"
 
