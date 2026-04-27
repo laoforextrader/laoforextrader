@@ -14,11 +14,11 @@ export default async function LoginPage() {
           LFT
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em" }}>ເຂົ້າສູ່ລະບົບ</h1>
-        <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 28, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+        <p style={{ fontSize: 13, color: "#111827", marginBottom: 28, fontFamily: "'Noto Sans Lao', sans-serif" }}>
           ເຂົ້າຮຽນ 50 ບົດ · ຕິດຕາມ Broker · ຕั้ງການແຈ້ງເຕືອນ
         </p>
         <LoginButton />
-        <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 20, fontFamily: "'Noto Sans Lao', sans-serif", lineHeight: 1.6 }}>
+        <p style={{ fontSize: 11, color: "#111827", marginTop: 20, fontFamily: "'Noto Sans Lao', sans-serif", lineHeight: 1.6 }}>
           ການ Login ຖືວ່າທ່ານຍອມຮັບ<br />ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວຂອງເຮົາ
         </p>
       </div>

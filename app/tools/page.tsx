@@ -36,7 +36,7 @@ export default function ToolsPage() {
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em" }}>
             ເຄື່ອງມືຄຳນວນ
           </h1>
-          <p style={{ fontSize: 14, color: "#374151", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+          <p style={{ fontSize: 14, color: "#111827", fontFamily: "'Noto Sans Lao', sans-serif" }}>
             ເຄື່ອງມືຊ່ວຍ Trade ຟຣີ · ຄຳນວນໄດ້ທັນທີ
           </p>
         </div>
@@ -52,9 +52,9 @@ export default function ToolsPage() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 3 }}>{tool.title}</div>
-                <div style={{ fontSize: 13, color: "#6B7280", fontFamily: "'Noto Sans Lao', sans-serif" }}>{tool.desc}</div>
+                <div style={{ fontSize: 13, color: "#111827", fontFamily: "'Noto Sans Lao', sans-serif" }}>{tool.desc}</div>
               </div>
-              <div style={{ fontSize: 18, color: "#D1D5DB" }}>→</div>
+              <div style={{ fontSize: 18, color: "#111827" }}>→</div>
             </Link>
           ))}
         </div>
