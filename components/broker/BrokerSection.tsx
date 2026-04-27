@@ -96,10 +96,25 @@ export function BrokerSection({ brokers }: Props) {
                   </div>
                 </div>
 
-                <Link href={`/broker/${broker.slug?.current ?? ""}`}
-                  className="btn-primary w-full mt-3.5 text-[12px] py-2">
-                  ເບິ່ງລີວິວ {broker.name.split(" ")[0]} →
-                </Link>
+                <div className="flex gap-2 mt-3.5">
+                  {broker.registerUrl ? (
+                    <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
+                      className="btn-primary flex-1 text-[12px] py-2 text-center">
+                      ເປີດບັນຊີ →
+                    </a>
+                  ) : (
+                    <Link href={`/broker/${broker.slug?.current ?? ""}`}
+                      className="btn-primary flex-1 text-[12px] py-2 text-center">
+                      ເບິ່ງລີວິວ →
+                    </Link>
+                  )}
+                  {broker.homepageUrl && (
+                    <a href={broker.homepageUrl} target="_blank" rel="noopener noreferrer"
+                      className="btn-outline text-[12px] py-2 px-3">
+                      ເວັບໄຊທ໌
+                    </a>
+                  )}
+                </div>
               </div>
             )
           })}

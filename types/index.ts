@@ -23,6 +23,8 @@ export interface Broker {
   laoDeposit?: boolean
   pros?: string[]
   cons?: string[]
+  homepageUrl?: string
+  registerUrl?: string
 }
 
 export interface MarketPrice {

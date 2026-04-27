@@ -6,7 +6,9 @@ export const brokerSchema = {
     { name: "name",        title: "ຊື່ Broker",   type: "string",   validation: (R: any) => R.required() },
     { name: "slug",        title: "Slug",         type: "slug",     options: { source: "name" } },
     { name: "logo",        title: "Logo",         type: "image" },
-    { name: "website",     title: "ເວັບໄຊທ໌",     type: "url" },
+    { name: "website",      title: "ເວັບໄຊທ໌",          type: "url" },
+    { name: "homepageUrl",  title: "Homepage URL (Affiliate)", type: "url" },
+    { name: "registerUrl",  title: "Register URL (Affiliate)",  type: "url" },
     { name: "rating",      title: "ຄະແນນລວມ (1-5)", type: "number" },
     { name: "ratingBreakdown", title: "ຄະແນນລາຍດ້ານ", type: "object",
       fields: [

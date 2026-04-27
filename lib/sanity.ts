@@ -37,6 +37,6 @@ export const QUERIES = {
     }
   `,
   featuredBrokers: `*[_type == "broker"] | order(rating desc) [0...6] {
-    _id, name, slug, rating, logo, minDeposit, maxLeverage, laoDeposit
+    _id, name, slug, rating, logo, minDeposit, maxLeverage, laoDeposit, homepageUrl, registerUrl
   }`,
 }
