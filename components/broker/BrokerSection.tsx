@@ -45,7 +45,7 @@ export function BrokerSection({ brokers }: Props) {
       `}</style>
       <div className="max-w-[1060px] mx-auto px-6 py-12">
         <div className="section-eyebrow">ລີວິວ Broker ທີ່ໄວ້ໃຈໄດ້</div>
-        <h2 className="section-title">Broker <span>ແນະນຳ</span> 2025</h2>
+        <h2 className="section-title">Broker <span>ແນະນຳ</span> 2026</h2>
         <p className="section-sub">ທົດສອບຈິງ · ຝາກ-ຖອນ BCEL · ທຽບ Spread · Support ພາສາລາວ</p>
 
         <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
