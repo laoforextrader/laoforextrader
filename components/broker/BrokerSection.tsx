@@ -1,14 +1,15 @@
 "use client"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import { Broker } from "@/types"
 
 interface Props { brokers: Broker[] }
 
 const BROKER_META: Record<string, { tag: string; tagClass: string; highlight?: boolean }> = {
-  "xm-global": { tag: "#1 ທາງເລືອກ Trader ລາວ", tagClass: "bg-amber-50 text-amber-600", highlight: true },
-  "exness":    { tag: "ຖອນ Instant 24/7",        tagClass: "bg-blue-50 text-blue-600" },
-  "ic-markets":{ tag: "ດີທີ່ສຸດ ສຳລັບ EA",       tagClass: "bg-green-50 text-green-600" },
+  "xm-global":   { tag: "#1 ທາງເລືອກ Trader ລາວ", tagClass: "bg-amber-50 text-amber-600", highlight: true },
+  "exness":       { tag: "ຖອນ Instant 24/7",        tagClass: "bg-blue-50 text-blue-600" },
+  "ic-markets":   { tag: "ດີທີ່ສຸດ ສຳລັບ EA",       tagClass: "bg-green-50 text-green-600" },
 }
 
 function getLogoStyle(name: string) {
@@ -19,7 +20,8 @@ function getLogoStyle(name: string) {
 }
 
 export function BrokerSection({ brokers }: Props) {
-  const gridRef = useRef<HTMLDivElement>(null)
+  const router   = useRouter()
+  const gridRef  = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const obs = new IntersectionObserver(entries => {
@@ -37,7 +39,7 @@ export function BrokerSection({ brokers }: Props) {
   return (
     <section className="border-t border-gray-200" style={{ background: "#EDEEF2" }}>
       <style>{`
-        .bk-card { opacity:0; transform:translateY(16px) scale(.97); transition:opacity .3s, transform .3s, border-color .2s, box-shadow .3s; }
+        .bk-card { opacity:0; transform:translateY(16px) scale(.97); transition:opacity .3s, transform .3s, border-color .2s, box-shadow .3s; cursor:pointer; }
         .bk-card.in { opacity:1; transform:translateY(0) scale(1); }
         .bk-card:hover { border-color:#93C5FD!important; box-shadow:0 6px 24px rgba(37,99,235,.09); transform:translateY(-4px)!important; }
       `}</style>
@@ -51,11 +53,13 @@ export function BrokerSection({ brokers }: Props) {
             const meta = BROKER_META[broker.slug?.current ?? ""] ?? { tag: "", tagClass: "bg-gray-100 text-gray-500" }
             const logo = getLogoStyle(broker.name)
             const isFirst = i === 0
+            const slug = broker.slug?.current ?? ""
 
             return (
               <div key={broker._id}
-                className={`bk-card bg-white rounded-2xl p-5 cursor-pointer relative overflow-hidden
-                  ${isFirst ? "border-[1.5px] border-blue-200" : "border-[1.5px] border-gray-200"}`}>
+                className={`bk-card bg-white rounded-2xl p-5 relative overflow-hidden
+                  ${isFirst ? "border-[1.5px] border-blue-200" : "border-[1.5px] border-gray-200"}`}
+                onClick={() => router.push(`/broker/${slug}`)}>
 
                 {isFirst && (
                   <div className="absolute top-0 right-3.5 text-[9px] font-extrabold tracking-wide text-amber-800 px-2.5 py-1 rounded-b-lg" style={{ background: "linear-gradient(135deg,#F59E0B,#FCD34D)" }}>
@@ -96,20 +100,15 @@ export function BrokerSection({ brokers }: Props) {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-3.5">
-                  {broker.registerUrl ? (
+                <div className="flex gap-2 mt-3.5" onClick={e => e.stopPropagation()}>
+                  {broker.registerUrl && (
                     <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
                       className="btn-primary flex-1 text-[12px] py-2 text-center">
-                      ເປີດບັນຊີ →
+                      ສະໝັກເປີດບັນຊີ →
                     </a>
-                  ) : (
-                    <Link href={`/broker/${broker.slug?.current ?? ""}`}
-                      className="btn-primary flex-1 text-[12px] py-2 text-center">
-                      ເບິ່ງລີວິວ →
-                    </Link>
                   )}
-                  {broker.homepageUrl && (
-                    <a href={broker.homepageUrl} target="_blank" rel="noopener noreferrer"
+                  {broker.affiliateUrl && (
+                    <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
                       className="btn-outline text-[12px] py-2 px-3">
                       ເວັບໄຊທ໌
                     </a>

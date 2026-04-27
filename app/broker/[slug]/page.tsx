@@ -82,13 +82,13 @@ export default async function BrokerDetailPage({ params }: Props) {
             {broker.registerUrl && (
               <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "11px 28px", background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff", fontSize: 14, fontWeight: 700, borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }}>
-                ເປີດບັນຊີ {broker.name.split(" ")[0]} →
+                ສະໝັກເປີດບັນຊີ {broker.name.split(" ")[0]} →
               </a>
             )}
-            {broker.homepageUrl && (
-              <a href={broker.homepageUrl} target="_blank" rel="noopener noreferrer"
+            {broker.affiliateUrl && (
+              <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "11px 20px", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, borderRadius: 10, textDecoration: "none", border: "1.5px solid #D1D5DB" }}>
-                ເວັບໄຊທ໌ຫຼັກ
+                ເຂົ້າເວັບໂບຣກເກີ
               </a>
             )}
           </div>
@@ -159,10 +159,10 @@ export default async function BrokerDetailPage({ params }: Props) {
                 ສະໝັກດຽວນີ້ →
               </a>
             )}
-            {broker.homepageUrl && (
-              <a href={broker.homepageUrl} target="_blank" rel="noopener noreferrer"
+            {broker.affiliateUrl && (
+              <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", padding: "11px 20px", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, borderRadius: 10, textDecoration: "none", border: "1.5px solid #D1D5DB" }}>
-                ເວັບໄຊທ໌ຫຼັກ
+                ເຂົ້າເວັບໂບຣກເກີ
               </a>
             )}
           </div>

@@ -37,13 +37,13 @@ export const QUERIES = {
     }
   `,
   featuredBrokers: `*[_type == "broker"] | order(rating desc) [0...6] {
-    _id, name, slug, rating, logo, minDeposit, maxLeverage, laoDeposit, homepageUrl, registerUrl
+    _id, name, slug, rating, logo, minDeposit, maxLeverage, laoDeposit, affiliateUrl, registerUrl
   }`,
   brokerBySlug: (slug: string) => `
     *[_type == "broker" && slug.current == "${slug}"] [0] {
       _id, name, slug, rating, ratingBreakdown, logo, minDeposit, maxLeverage,
       laoDeposit, pros, cons, regulators, platforms, badge, excerpt, body,
-      homepageUrl, registerUrl
+      affiliateUrl, registerUrl
     }
   `,
 }

@@ -7,7 +7,7 @@ export const brokerSchema = {
     { name: "slug",        title: "Slug",         type: "slug",     options: { source: "name" } },
     { name: "logo",        title: "Logo",         type: "image" },
     { name: "website",      title: "ເວັບໄຊທ໌",          type: "url" },
-    { name: "homepageUrl",  title: "Homepage URL (Affiliate)", type: "url" },
+    { name: "affiliateUrl",  title: "Affiliate URL (Homepage)", type: "url" },
     { name: "registerUrl",  title: "Register URL (Affiliate)",  type: "url" },
     { name: "rating",      title: "ຄະແນນລວມ (1-5)", type: "number" },
     { name: "ratingBreakdown", title: "ຄະແນນລາຍດ້ານ", type: "object",

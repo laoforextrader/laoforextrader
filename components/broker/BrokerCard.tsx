@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Broker } from "@/types"
-import { Star } from "lucide-react"
 
 interface Props {
   broker: Broker
@@ -17,13 +17,14 @@ function LogoStyle(name: string) {
 }
 
 export function BrokerCard({ broker, variant = "default", rank }: Props) {
-  const logo = LogoStyle(broker.name)
-  const slug = broker.slug?.current ?? ""
+  const router = useRouter()
+  const logo   = LogoStyle(broker.name)
+  const slug   = broker.slug?.current ?? ""
 
   if (variant === "sidebar") {
     return (
       <Link href={`/broker/${slug}`}
-        className="flex items-center gap-2.5 py-2.5 border-b border-gray-50 last:border-0 group cursor-pointer"
+        className="flex items-center gap-2.5 py-2.5 border-b border-gray-50 last:border-0 cursor-pointer"
         style={{ textDecoration:"none" }}>
         {rank && <span style={{ width:16, textAlign:"center", fontFamily:"monospace", fontSize:11, fontWeight:700, color:"#9CA3AF" }}>{rank}</span>}
         <div style={{ width:30, height:30, borderRadius:8, background:logo.bg, color:logo.color, border:"1px solid #E5E7EB", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"monospace", fontSize:10, fontWeight:700, flexShrink:0 }}>
@@ -38,8 +39,9 @@ export function BrokerCard({ broker, variant = "default", rank }: Props) {
   }
 
   return (
-    <Link href={`/broker/${slug}`}
-      style={{ display:"block", background:"#fff", border:"1.5px solid #E2E6F0", borderRadius:16, padding:20, textDecoration:"none", transition:"all .25s" }}
+    <div
+      onClick={() => router.push(`/broker/${slug}`)}
+      style={{ display:"block", background:"#fff", border:"1.5px solid #E2E6F0", borderRadius:16, padding:20, cursor:"pointer", transition:"all .25s" }}
       onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor="#93C5FD"; (e.currentTarget as HTMLElement).style.transform="translateY(-4px)"; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor="#E2E6F0"; (e.currentTarget as HTMLElement).style.transform="translateY(0)"; }}>
       <div style={{ width:42, height:42, borderRadius:10, background:logo.bg, color:logo.color, border:"1px solid #E5E7EB", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"monospace", fontSize:13, fontWeight:700, marginBottom:12 }}>
@@ -65,22 +67,22 @@ export function BrokerCard({ broker, variant = "default", rank }: Props) {
           </span>
         </div>
       </div>
-      {(broker.registerUrl || broker.homepageUrl) && (
-        <div style={{ display:"flex", gap:8, marginTop:12 }} onClick={e => e.preventDefault()}>
+      {(broker.registerUrl || broker.affiliateUrl) && (
+        <div style={{ display:"flex", gap:8, marginTop:12 }} onClick={e => e.stopPropagation()}>
           {broker.registerUrl && (
             <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
               style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:"7px 0", background:"linear-gradient(135deg,#2563EB,#4F46E5)", color:"#fff", fontSize:11, fontWeight:700, borderRadius:8, textDecoration:"none" }}>
-              ເປີດບັນຊີ →
+              ສະໝັກເປີດບັນຊີ →
             </a>
           )}
-          {broker.homepageUrl && (
-            <a href={broker.homepageUrl} target="_blank" rel="noopener noreferrer"
+          {broker.affiliateUrl && (
+            <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
               style={{ padding:"7px 10px", background:"#F3F4F6", color:"#374151", fontSize:11, fontWeight:600, borderRadius:8, textDecoration:"none", border:"1px solid #E5E7EB" }}>
               ເວັບໄຊທ໌
             </a>
           )}
         </div>
       )}
-    </Link>
+    </div>
   )
 }

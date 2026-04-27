@@ -23,7 +23,7 @@ export interface Broker {
   laoDeposit?: boolean
   pros?: string[]
   cons?: string[]
-  homepageUrl?: string
+  affiliateUrl?: string
   registerUrl?: string
 }
 
