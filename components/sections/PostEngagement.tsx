@@ -110,6 +110,29 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
   const shareUrl  = encodeURIComponent(postUrl)
   const shareText = encodeURIComponent(postTitle)
 
+  const handleFacebookShare = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    // Mobile-first: native share sheet handles FB app properly (sharer.php breaks in FB native app)
+    if (typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+      try {
+        await (navigator as any).share({ title: postTitle, text: postTitle, url: postUrl })
+        return
+      } catch {
+        // user cancelled or share failed — fall through to web sharer
+      }
+    }
+    // Desktop / no Web Share API: open FB web sharer in popup
+    const popup = window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
+      'fbshare',
+      'width=600,height=600,noopener,noreferrer'
+    )
+    if (!popup) {
+      // popup blocked — full navigation as last resort
+      window.location.href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`
+    }
+  }
+
   const AuthBanner = ({ msg }: { msg: string }) => (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
@@ -154,14 +177,14 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
             {liked ? '❤️' : '🤍'} ຖືກໃຈ {likeCount > 0 && `(${likeCount})`}
           </button>
 
-          <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
-            target="_blank" rel="noopener noreferrer"
+          <button
+            onClick={handleFacebookShare}
+            type="button"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: '#1877F2', color: '#fff',
               border: 'none', borderRadius: 8, padding: '8px 16px',
-              fontSize: 13, fontWeight: 700, textDecoration: 'none',
+              fontSize: 13, fontWeight: 700, cursor: 'pointer',
               fontFamily: 'Noto Sans Lao, sans-serif',
             }}
           >
@@ -169,7 +192,7 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
             ແຊຣ໌ Facebook
-          </a>
+          </button>
 
           <a
             href={`https://line.me/R/msg/text/?${shareText}%20${shareUrl}`}

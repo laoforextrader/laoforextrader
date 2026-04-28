@@ -7,6 +7,7 @@ import { Article } from "@/types"
 import { ArrowLeft, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
+import { buildArticleMetadata } from "@/lib/articleMetadata"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
   if (!article) return { title: "Not found" }
-  return { title: article.title, description: article.excerpt }
+  return buildArticleMetadata(article, `/ea-tools/${article.slug?.current ?? ""}`)
 }
 
 const ptComponents = {

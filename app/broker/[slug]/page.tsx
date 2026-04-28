@@ -7,18 +7,16 @@ import { Article } from "@/types"
 import { ArrowLeft, CheckCircle, XCircle, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
+import { buildArticleMetadata, buildBrokerMetadata } from "@/lib/articleMetadata"
 
 interface Props { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const broker = await sanityClient.fetch(QUERIES.brokerBySlug(slug))
-  if (broker) return {
-    title: `ລີວິວ ${broker.name} | LaoForexTrader`,
-    description: broker.excerpt ?? `ລີວິວ ${broker.name} ຝາກຂັ້ນຕ່ຳ $${broker.minDeposit}`,
-  }
+  if (broker) return buildBrokerMetadata(broker, `/broker/${broker.slug?.current ?? slug}`)
   const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
-  if (article) return { title: article.title, description: article.excerpt }
+  if (article) return buildArticleMetadata(article, `/broker/${article.slug?.current ?? ""}`)
   return { title: "Not found" }
 }
 

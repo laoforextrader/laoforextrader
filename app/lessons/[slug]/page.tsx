@@ -6,6 +6,7 @@ import { PortableText } from "@portabletext/react"
 import { Article } from "@/types"
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from "lucide-react"
 import PostEngagement from "@/components/sections/PostEngagement"
+import { buildArticleMetadata } from "@/lib/articleMetadata"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
   if (!article) return { title: "Not found" }
-  return { title: article.title, description: article.excerpt }
+  return buildArticleMetadata(article, `/lessons/${article.slug?.current ?? ""}`)
 }
 
 const ptComponents = {
