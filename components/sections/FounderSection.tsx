@@ -35,8 +35,8 @@ export default function FounderSection() {
 
           <span className={styles.founderQuoteMark}>&ldquo;</span>
           <p className={styles.founderQuote}>
-            ຈຶ່ງທໍາກ້າວລ້ຳຜ່ານທີດຈຳກັດ ເພື່ອພິສູດສາກທະພາບຂອງທ່ານ
-            ໂອກາດ ແລະ ທາງເລືອກ ຢູ່ໃນມືທ່ານ
+            ຈົ່ງກ້າວຂ້າມຂີດຈຳກັດ ເພື່ອພິສູດສາກະຍະພາບຂອງທ່ານ
+            ໂອກາດ ແລະ ທາງເລືອກຢູ່ໃນມືທ່ານ
           </p>
 
           <div className={styles.founderStats}>

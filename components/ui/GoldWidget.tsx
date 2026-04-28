@@ -8,26 +8,42 @@ interface GoldData {
   changePct: number
 }
 
-const FALLBACK: GoldData = { xauusd: 2318.40, goldLakPerBaht: 24_870_000, change: 7.80, changePct: 0.34 }
-const G_PER_OZ   = 31.1035
-const G_PER_BAHT = 15.244
-const USD_LAK    = 22000
+const GRAMS_PER_TROY_OZ    = 31.1035
+const GRAMS_PER_LAO_BAHT   = 15.244
+const LAO_BAHT_PER_TROY_OZ = GRAMS_PER_TROY_OZ / GRAMS_PER_LAO_BAHT // ≈ 2.0405
+const FALLBACK_USD_LAK     = 22000
+
+const FALLBACK: GoldData = {
+  xauusd: 2318.40,
+  goldLakPerBaht: Math.round((2318.40 / LAO_BAHT_PER_TROY_OZ) * FALLBACK_USD_LAK),
+  change: 7.80,
+  changePct: 0.34,
+}
 
 export function GoldWidget() {
-  const [d, setD]       = useState<GoldData>(FALLBACK)
+  const [d, setD]         = useState<GoldData>(FALLBACK)
   const [isLive, setLive] = useState(false)
 
   const refresh = async () => {
     try {
-      const res = await fetch('/api/gold')
-      if (!res.ok) return
-      const j = await res.json()
-      const price = Number(j.price)
-      const prev  = Number(j.prev)
+      const [goldJson, fxJson] = await Promise.all([
+        fetch('/api/gold').then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('https://api.exchangerate-api.com/v4/latest/USD')
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null),
+      ])
+      if (!goldJson) return
+
+      const price = Number(goldJson.price)
+      const prev  = Number(goldJson.prev)
       if (!price) return
-      const change       = price - prev
-      const changePct    = prev ? (change / prev) * 100 : 0
-      const goldLakPerBaht = (price / G_PER_OZ) * G_PER_BAHT * USD_LAK
+
+      const usdLakRate     = Number(fxJson?.rates?.LAK) || FALLBACK_USD_LAK
+      const change         = price - prev
+      const changePct      = prev ? (change / prev) * 100 : 0
+      const pricePerBahtUSD = price / LAO_BAHT_PER_TROY_OZ
+      const goldLakPerBaht  = Math.round(pricePerBahtUSD * usdLakRate)
+
       setD({ xauusd: price, goldLakPerBaht, change, changePct })
       setLive(true)
     } catch {}
@@ -64,9 +80,11 @@ export function GoldWidget() {
       <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg mb-2.5" style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}>
         <span style={{ fontSize: 18, lineHeight: 1 }}>🪙</span>
         <div>
-          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D97706' }}>ທອງລາວ / ບາດ</div>
+          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D97706' }}>
+            ລາຄາຄຳລາວ / ບາດ
+          </div>
           <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#92400E' }}>
-            {Math.round(d.goldLakPerBaht).toLocaleString()} ກີບ
+            {d.goldLakPerBaht.toLocaleString('en-US')} ກີບ
           </div>
         </div>
       </div>
