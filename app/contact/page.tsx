@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 }
 
 const CONTACTS = [
-  { label: "Facebook", value: "facebook.com/lassame",          href: "https://www.facebook.com/lassame" },
+  { label: "Facebook", value: "facebook.com/lassamee",         href: "https://www.facebook.com/lassamee" },
   { label: "Email",    value: "laoforextrader@gmail.com",       href: "mailto:laoforextrader@gmail.com" },
   { label: "Group",    value: "Facebook Group Laoforextrader",  href: "https://www.facebook.com/groups/Laoforextrader" },
 ]
