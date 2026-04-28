@@ -1,368 +1,649 @@
-"use client"
-import { useEffect, useRef } from "react"
-import Link from "next/link"
+'use client'
 
-/* ── Particle Canvas ─────────────────────────────────────── */
-function ParticleCanvas() {
+import { useEffect, useRef } from 'react'
+
+export default function EASystemPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const mouse = useRef({ x: -999, y: -999 })
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext("2d")!
-    let raf: number
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
-    const resize = () => {
-      canvas.width  = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-    }
-    resize()
-    window.addEventListener("resize", resize)
+    let W: number, H: number
+    let particles: any[] = []
+    let frame = 0
+    const mouse = { x: 0.7, y: 0.5 }
+    let animId: number
 
-    const onMove = (e: MouseEvent) => {
-      const r = canvas.getBoundingClientRect()
-      mouse.current = { x: e.clientX - r.left, y: e.clientY - r.top }
-    }
-    canvas.addEventListener("mousemove", onMove)
-
-    // Particles
-    const N = 90
-    type P = { x: number; y: number; vx: number; vy: number; r: number; hue: number; alpha: number }
-    const pts: P[] = Array.from({ length: N }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 2 + 1,
-      hue: Math.random() > 0.5 ? 195 : 270, // cyan or purple
-      alpha: Math.random() * 0.6 + 0.3,
-    }))
-
-    // Robot head path (centered)
-    function drawRobot(cx: number, cy: number) {
-      const s = Math.min(canvas.width, canvas.height) * 0.22
-      ctx.save()
-      ctx.strokeStyle = "rgba(0,212,255,0.12)"
-      ctx.lineWidth = 1.5
-
-      // Head body
-      const hw = s * 0.7, hh = s * 0.6
-      ctx.strokeRect(cx - hw / 2, cy - hh / 2, hw, hh)
-
-      // Antenna
-      ctx.beginPath()
-      ctx.moveTo(cx, cy - hh / 2)
-      ctx.lineTo(cx, cy - hh / 2 - s * 0.25)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(cx, cy - hh / 2 - s * 0.25, s * 0.04, 0, Math.PI * 2)
-      ctx.strokeStyle = "rgba(0,212,255,0.3)"
-      ctx.stroke()
-
-      // Eyes
-      const ey = cy - hh * 0.08
-      const ex = hw * 0.22
-      ;[cx - ex, cx + ex].forEach(x => {
-        ctx.beginPath()
-        ctx.arc(x, ey, s * 0.09, 0, Math.PI * 2)
-        ctx.strokeStyle = "rgba(0,212,255,0.35)"
-        ctx.stroke()
-        // glow dot
-        ctx.beginPath()
-        ctx.arc(x, ey, s * 0.035, 0, Math.PI * 2)
-        ctx.fillStyle = "rgba(0,212,255,0.5)"
-        ctx.fill()
-      })
-
-      // Mouth bar
-      ctx.strokeStyle = "rgba(0,212,255,0.2)"
-      ctx.strokeRect(cx - hw * 0.3, cy + hh * 0.18, hw * 0.6, hh * 0.12)
-      ;[-0.15, 0, 0.15].forEach(offset => {
-        ctx.beginPath()
-        ctx.moveTo(cx + offset * hw, cy + hh * 0.18)
-        ctx.lineTo(cx + offset * hw, cy + hh * 0.3)
-        ctx.stroke()
-      })
-
-      // Neck + shoulders
-      ctx.strokeStyle = "rgba(0,212,255,0.1)"
-      ctx.beginPath()
-      ctx.moveTo(cx - hw * 0.15, cy + hh / 2)
-      ctx.lineTo(cx - hw * 0.15, cy + hh / 2 + s * 0.12)
-      ctx.lineTo(cx - hw * 0.55, cy + hh / 2 + s * 0.12)
-      ctx.moveTo(cx + hw * 0.15, cy + hh / 2)
-      ctx.lineTo(cx + hw * 0.15, cy + hh / 2 + s * 0.12)
-      ctx.lineTo(cx + hw * 0.55, cy + hh / 2 + s * 0.12)
-      ctx.stroke()
-
-      ctx.restore()
+    function resize() {
+      if (!canvas) return
+      W = canvas.width = canvas.offsetWidth
+      H = canvas.height = canvas.offsetHeight
+      buildParticles()
     }
 
-    const tick = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    function buildParticles() {
+      particles = []
+      const cx = W * 0.72, cy = H * 0.5
+      const rx = W * 0.17, ry = H * 0.38
 
-      const cx = canvas.width / 2
-      const cy = canvas.height / 2
-      drawRobot(cx, cy)
-
-      // Move & draw particles
-      pts.forEach(p => {
-        // Mouse repulsion
-        const dx = p.x - mouse.current.x
-        const dy = p.y - mouse.current.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 100) {
-          p.vx += (dx / dist) * 0.18
-          p.vy += (dy / dist) * 0.18
+      for (let i = 0; i < 900; i++) {
+        const a = (i / 900) * Math.PI * 2
+        const jitter = 0.9 + Math.random() * 0.2
+        const x = cx + Math.cos(a) * rx * jitter
+        const y = cy + Math.sin(a) * ry * jitter - ry * 0.08
+        particles.push({ ox: x, oy: y, x, y, vx: 0, vy: 0, hue: 185 + Math.random() * 50, size: 0.6 + Math.random() * 1.2, phase: Math.random() * Math.PI * 2, eye: false })
+      }
+      for (let i = 0; i < 700; i++) {
+        const a = Math.random() * Math.PI * 2
+        const r = Math.sqrt(Math.random())
+        const x = cx + Math.cos(a) * rx * 0.82 * r
+        const y = cy + Math.sin(a) * ry * 0.82 * r - ry * 0.06
+        particles.push({ ox: x, oy: y, x, y, vx: 0, vy: 0, hue: 200 + Math.random() * 60, size: 0.4 + Math.random() * 0.8, phase: Math.random() * Math.PI * 2, eye: false })
+      }
+      ;[[-.28, -.12], [.28, -.12]].forEach(([ex, ey]) => {
+        for (let i = 0; i < 80; i++) {
+          const a = Math.random() * Math.PI * 2
+          const r = Math.random() * 0.1
+          const x = cx + ex * rx + Math.cos(a) * rx * r
+          const y = cy + ey * ry + Math.sin(a) * ry * r
+          particles.push({ ox: x, oy: y, x, y, vx: 0, vy: 0, hue: 270 + Math.random() * 40, size: 0.8 + Math.random() * 1.4, phase: Math.random() * Math.PI * 2, eye: true })
         }
-        // Damping
-        p.vx *= 0.98
-        p.vy *= 0.98
-        p.x += p.vx
-        p.y += p.vy
-        if (p.x < 0) p.x = canvas.width
-        if (p.x > canvas.width) p.x = 0
-        if (p.y < 0) p.y = canvas.height
-        if (p.y > canvas.height) p.y = 0
-
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `hsla(${p.hue},100%,65%,${p.alpha})`
-        ctx.fill()
       })
+    }
 
-      // Lines between nearby particles
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x
-          const dy = pts[i].y - pts[j].y
-          const d = Math.sqrt(dx * dx + dy * dy)
-          if (d < 90) {
-            ctx.beginPath()
-            ctx.moveTo(pts[i].x, pts[i].y)
-            ctx.lineTo(pts[j].x, pts[j].y)
-            ctx.strokeStyle = `rgba(0,212,255,${0.12 * (1 - d / 90)})`
-            ctx.lineWidth = 0.8
-            ctx.stroke()
+    function draw() {
+      if (!canvas || !ctx) return
+      frame++
+      ctx.clearRect(0, 0, W, H)
+      const bg = ctx.createRadialGradient(W * 0.72, H * 0.5, 0, W * 0.72, H * 0.5, W * 0.5)
+      bg.addColorStop(0, 'rgba(0,4,24,1)')
+      bg.addColorStop(1, 'rgba(0,0,0,1)')
+      ctx.fillStyle = bg
+      ctx.fillRect(0, 0, W, H)
+
+      const mx = mouse.x * W, my = mouse.y * H
+
+      for (let i = 0; i < particles.length; i += 2) {
+        const p = particles[i]
+        for (let j = i + 2; j < Math.min(i + 10, particles.length); j += 2) {
+          const q = particles[j]
+          const d = Math.hypot(p.x - q.x, p.y - q.y)
+          if (d < 14) {
+            ctx.strokeStyle = `rgba(96,165,250,${(1 - d / 14) * 0.18})`
+            ctx.lineWidth = 0.35
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke()
           }
         }
       }
 
-      raf = requestAnimationFrame(tick)
+      particles.forEach(p => {
+        p.phase += 0.012
+        const wave = Math.sin(p.phase) * 1.5
+        const dx = mx - p.ox, dy = my - p.oy
+        const dist = Math.hypot(dx, dy)
+        const force = Math.max(0, 1 - dist / (W * 0.18))
+        p.vx += (force > 0 ? (dx / dist) * force * 0.5 : 0) - (p.x - p.ox) * 0.1
+        p.vy += (force > 0 ? (dy / dist) * force * 0.5 : 0) - (p.y - p.oy) * 0.1
+        p.vx *= 0.82; p.vy *= 0.82
+        p.x = p.ox + wave + p.vx
+        p.y = p.oy + wave * 0.4 + p.vy
+        const t = (Math.sin(frame * 0.004 + p.phase) + 1) * 0.5
+        const h = p.eye ? 270 + Math.sin(frame * 0.03) * 25 : p.hue + t * 30
+        const s = p.eye ? 90 : 65 + t * 20
+        const l = p.eye ? 65 + force * 20 : 35 + t * 25 + force * 20
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size * (1 + force * 0.6), 0, Math.PI * 2)
+        ctx.fillStyle = `hsla(${h},${s}%,${l}%,.9)`
+        ctx.fill()
+      })
+
+      const sy = ((frame * 1.2) % (H + 30)) - 15
+      const sg = ctx.createLinearGradient(0, sy - 6, 0, sy + 6)
+      sg.addColorStop(0, 'rgba(96,165,250,0)')
+      sg.addColorStop(0.5, 'rgba(96,165,250,.05)')
+      sg.addColorStop(1, 'rgba(96,165,250,0)')
+      ctx.fillStyle = sg
+      ctx.fillRect(0, sy - 6, W, 12)
+
+      animId = requestAnimationFrame(draw)
     }
-    tick()
+
+    const handleResize = () => resize()
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!canvas) return
+      const r = canvas.getBoundingClientRect()
+      mouse.x = (e.clientX - r.left) / W
+      mouse.y = (e.clientY - r.top) / H
+    }
+
+    window.addEventListener('resize', handleResize)
+    canvas.parentElement?.addEventListener('mousemove', handleMouseMove as any)
+
+    resize()
+    draw()
 
     return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener("resize", resize)
-      canvas.removeEventListener("mousemove", onMove)
+      window.removeEventListener('resize', handleResize)
+      canvas.parentElement?.removeEventListener('mousemove', handleMouseMove as any)
+      cancelAnimationFrame(animId)
     }
   }, [])
 
-  return <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-}
-
-/* ── Stat Card ───────────────────────────────────────────── */
-function StatCard() {
   return (
-    <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 16, padding: "20px 22px", backdropFilter: "blur(12px)", minWidth: 220 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#00D4FF", marginBottom: 14 }}>
-        TheRocket EA SGride
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {[
-          { label: "Today",       value: "+2.4%",  color: "#4ADE80" },
-          { label: "This Month",  value: "+18.7%", color: "#4ADE80" },
-          { label: "All Time",    value: "+500%",  color: "#00D4FF" },
-        ].map(row => (
-          <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{row.label}</span>
-            <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, color: row.color }}>{row.value}</span>
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+        .ea-hero {
+          position: relative;
+          background: #000;
+          overflow: hidden;
+          min-height: 440px;
+          display: flex;
+          align-items: center;
+        }
+        .ea-hero-inner {
+          position: relative;
+          z-index: 2;
+          max-width: 1060px;
+          margin: 0 auto;
+          padding: 52px 24px;
+          display: grid;
+          grid-template-columns: 340px 1fr;
+          gap: 48px;
+          align-items: center;
+          width: 100%;
+        }
+        .live-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(74, 222, 128, 0.12);
+          border: 0.5px solid rgba(74, 222, 128, 0.35);
+          border-radius: 100px;
+          padding: 4px 12px;
+          font-size: 11px;
+          color: #4ADE80;
+          font-weight: 600;
+          margin-bottom: 14px;
+        }
+        .live-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #4ADE80;
+          animation: ldot 1.5s infinite;
+        }
+        @keyframes ldot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.4); }
+        }
+        .ea-stat-card {
+          background: rgba(255, 255, 255, 0.08);
+          border: 0.5px solid rgba(255, 255, 255, 0.14);
+          border-radius: 16px;
+          padding: 22px;
+          backdrop-filter: blur(10px);
+        }
+        .ea-sname {
+          font-size: 14px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.65);
+          margin-bottom: 4px;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .ea-slabel {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.35);
+          margin-bottom: 14px;
+        }
+        .ea-bigval {
+          font-size: 44px;
+          font-weight: 700;
+          color: #4ADE80;
+          line-height: 1;
+          font-family: 'JetBrains Mono', monospace;
+          margin-bottom: 3px;
+        }
+        .ea-bigsub {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.4);
+          margin-bottom: 18px;
+        }
+        .ea-minigrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .ea-mini {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 8px;
+          padding: 10px;
+        }
+        .ea-minilabel {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.35);
+          margin-bottom: 4px;
+        }
+        .ea-minival {
+          font-size: 17px;
+          font-weight: 600;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .ea-minival.blue { color: #60A5FA; }
+        .ea-minival.amber { color: #FCD34D; }
+        .ea-minisub {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.3);
+          margin-top: 2px;
+        }
+        .ea-eyebrow {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #60A5FA;
+          margin-bottom: 6px;
+        }
+        .ea-h1 {
+          font-size: 28px;
+          font-weight: 800;
+          color: #fff;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          margin-bottom: 2px;
+        }
+        .ea-h2 {
+          font-size: 28px;
+          font-weight: 800;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          margin-bottom: 10px;
+          background: linear-gradient(135deg, #60A5FA, #A78BFA);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .ea-sub {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.5);
+          line-height: 1.65;
+        }
+
+        /* EA Cards white section */
+        .ea-cards-section {
+          background: #fff;
+          border-top: 1px solid #D4D8E5;
+          border-bottom: 1px solid #D4D8E5;
+        }
+        .ea-cards-inner {
+          max-width: 1060px;
+          margin: 0 auto;
+          padding: 48px 24px;
+        }
+        .section-eyebrow {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #2563EB;
+          margin-bottom: 5px;
+        }
+        .section-title {
+          font-size: 26px;
+          font-weight: 800;
+          color: #111827;
+          margin-bottom: 4px;
+          letter-spacing: -0.025em;
+        }
+        .section-title span {
+          background: linear-gradient(135deg, #2563EB, #4F46E5);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .section-subtitle {
+          font-size: 14px;
+          color: #374151;
+          margin-bottom: 24px;
+        }
+        .ea-cards-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          margin-bottom: 24px;
+        }
+        .ea-card {
+          background: #fff;
+          border: 1.5px solid #E2E6F0;
+          border-radius: 16px;
+          padding: 20px;
+          cursor: pointer;
+          transition: all 0.25s;
+          position: relative;
+          overflow: hidden;
+        }
+        .ea-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+        }
+        .ea-card.blue::before { background: linear-gradient(90deg, #2563EB, #4F46E5); }
+        .ea-card.purple::before { background: linear-gradient(90deg, #7C3AED, #EC4899); }
+        .ea-card:hover {
+          border-color: #2563EB;
+          box-shadow: 0 6px 24px rgba(37, 99, 235, 0.09);
+          transform: translateY(-3px);
+        }
+        .ea-tag {
+          display: inline-block;
+          font-size: 9px;
+          font-weight: 700;
+          padding: 3px 9px;
+          border-radius: 100px;
+          margin-bottom: 12px;
+        }
+        .ea-tag.blue { background: #EEF3FF; color: #2563EB; }
+        .ea-tag.purple { background: #F5F3FF; color: #7C3AED; }
+        .ea-card-name {
+          font-size: 15px;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 3px;
+        }
+        .ea-card-desc {
+          font-size: 12px;
+          color: #6B7280;
+          margin-bottom: 14px;
+        }
+        .ea-rows {
+          border-top: 1px solid #F3F4F6;
+          padding-top: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          margin-bottom: 14px;
+        }
+        .ea-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+        }
+        .ea-k { color: #6B7280; }
+        .ea-v { font-weight: 600; color: #111827; }
+        .ea-v.ok { color: #059669; }
+        .ea-v.am { color: #D97706; }
+        .ea-v.rd { color: #DC2626; }
+        .btn-blue-full {
+          width: 100%;
+          background: linear-gradient(135deg, #2563EB, #4F46E5);
+          color: #fff;
+          border: none;
+          padding: 10px;
+          border-radius: 9px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          font-family: 'Noto Sans Lao', sans-serif;
+        }
+        .btn-purple-full {
+          width: 100%;
+          background: linear-gradient(135deg, #7C3AED, #4F46E5);
+          color: #fff;
+          border: none;
+          padding: 10px;
+          border-radius: 9px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          font-family: 'Noto Sans Lao', sans-serif;
+        }
+        .steps-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .step-card {
+          background: #F9FAFB;
+          border: 1px solid #E2E6F0;
+          border-radius: 12px;
+          padding: 18px;
+          text-align: center;
+        }
+        .step-num {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #EEF3FF;
+          border: 1.5px solid #BFCFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13px;
+          font-weight: 700;
+          color: #2563EB;
+          margin: 0 auto 10px;
+        }
+        .step-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 3px;
+        }
+        .step-sub {
+          font-size: 11px;
+          color: #6B7280;
+        }
+        .risk-banner {
+          background: #FFFBEB;
+          border: 1px solid #FDE68A;
+          border-radius: 8px;
+          padding: 10px 16px;
+          margin-bottom: 20px;
+          font-size: 11px;
+          color: #92400E;
+          line-height: 1.6;
+        }
+        .cta-row {
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        .btn-primary {
+          font-family: 'Noto Sans Lao', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          background: linear-gradient(135deg, #2563EB, #4F46E5);
+          border: none;
+          padding: 12px 28px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+        .btn-telegram {
+          font-family: 'Noto Sans Lao', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          background: #229ED9;
+          border: none;
+          padding: 12px 22px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+        .btn-ghost {
+          font-family: 'Noto Sans Lao', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: #1F2937;
+          background: #fff;
+          border: 1.5px solid #9CA3AF;
+          padding: 12px 22px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+        @media (max-width: 768px) {
+          .ea-hero-inner {
+            grid-template-columns: 1fr;
+          }
+          .ea-cards-grid {
+            grid-template-columns: 1fr;
+          }
+          .steps-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      {/* EA Dark Hero with Particle Canvas */}
+      <div className="ea-hero">
+        <canvas
+          ref={canvasRef}
+          id="ea-canvas"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+        />
+        <div className="ea-hero-inner">
+          {/* Stat Card */}
+          <div className="ea-stat-card">
+            <div className="live-badge">
+              <div className="live-dot" />
+              Live Account Running
+            </div>
+            <div className="ea-sname">TheRocket EA SGride</div>
+            <div className="ea-slabel">ກຳໄລມື້ນີ້</div>
+            <div className="ea-bigval">+2.4%</div>
+            <div className="ea-bigsub">Live realtime</div>
+            <div className="ea-minigrid">
+              <div className="ea-mini">
+                <div className="ea-minilabel">ເດືອນນີ້</div>
+                <div className="ea-minival blue">+18.7%</div>
+                <div className="ea-minisub">April 2025</div>
+              </div>
+              <div className="ea-mini">
+                <div className="ea-minilabel">TOTAL GROWTH</div>
+                <div className="ea-minival amber">+500%</div>
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-      <div style={{ marginTop: 14, height: 36, display: "flex", alignItems: "flex-end", gap: 3 }}>
-        {[60,45,70,55,80,65,90,75,85,100,88,95].map((h, i) => (
-          <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 3, background: `rgba(0,212,255,${0.2 + h / 200})` }} />
-        ))}
-      </div>
-    </div>
-  )
-}
 
-/* ── EA Card ─────────────────────────────────────────────── */
-function EACard({ name, tag, desc, stats, color, href }: {
-  name: string; tag: string; desc: string
-  stats: { label: string; value: string }[]
-  color: string; href: string
-}) {
-  const light = color === "blue" ? "#EEF3FF" : "#F5F3FF"
-  const mid   = color === "blue" ? "#2563EB" : "#7C3AED"
-  const border= color === "blue" ? "#BFCFFF" : "#DDD6FE"
-  return (
-    <div style={{ background: "#fff", border: `1.5px solid ${border}`, borderRadius: 18, padding: "28px 26px", flex: 1 }}>
-      <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: mid, background: light, padding: "4px 12px", borderRadius: 99, marginBottom: 14 }}>
-        {tag}
-      </div>
-      <h3 style={{ fontSize: 20, fontWeight: 800, color: "#111827", marginBottom: 8, letterSpacing: "-0.02em" }}>{name}</h3>
-      <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.65, marginBottom: 20 }}>{desc}</p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
-        {stats.map(s => (
-          <div key={s.label} style={{ background: light, borderRadius: 10, padding: "12px 14px" }}>
-            <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 4 }}>{s.label}</div>
-            <div style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 800, color: mid }}>{s.value}</div>
-          </div>
-        ))}
-      </div>
-      <a href={href} target="_blank" rel="noopener noreferrer"
-        style={{ display: "block", textAlign: "center", padding: "11px 0", background: `linear-gradient(135deg,${mid},${color === "blue" ? "#4F46E5" : "#6D28D9"})`, color: "#fff", fontSize: 13, fontWeight: 700, borderRadius: 10, textDecoration: "none" }}>
-        ສັ່ງຊື້ / ຮຽນຮູ້ເພີ່ມ →
-      </a>
-    </div>
-  )
-}
-
-/* ── Step ────────────────────────────────────────────────── */
-function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
-  return (
-    <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-      <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff", fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        {n}
-      </div>
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{desc}</div>
-      </div>
-    </div>
-  )
-}
-
-/* ── Page ────────────────────────────────────────────────── */
-export default function EASystemPage() {
-  return (
-    <div>
-      {/* ── DARK HERO ── */}
-      <section style={{ background: "#0B0F1A", minHeight: "60vh", position: "relative", overflow: "hidden", display: "flex", alignItems: "center" }}>
-        <ParticleCanvas />
-
-        {/* Gradient overlays */}
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 50% 60% at 70% 50%, rgba(124,58,237,0.12), transparent)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 40% 50% at 30% 50%, rgba(0,212,255,0.07), transparent)", pointerEvents: "none" }} />
-
-        <div style={{ position: "relative", zIndex: 10, maxWidth: 1060, margin: "0 auto", padding: "60px 24px", display: "grid", gridTemplateColumns: "auto 1fr", gap: 48, alignItems: "center", width: "100%" }}>
-          <StatCard />
+          {/* Hero Text */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#00D4FF", marginBottom: 14 }}>
-              ⚡ LaoForexTrader — Automated Trading
-            </div>
-            <h1 style={{ fontSize: 44, fontWeight: 900, color: "#fff", lineHeight: 1.08, letterSpacing: "-0.03em", marginBottom: 16 }}>
-              TheRocket<br />
-              <span style={{ background: "linear-gradient(135deg,#00D4FF,#7C3AED)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                EA System
-              </span>
-            </h1>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, maxWidth: 420, marginBottom: 28 }}>
-              ລະບົບ Expert Advisor ທີ່ອອກແບບສຳລັບ Trader ລາວ<br />
-              Trade ອັດຕະໂນມັດ 24/5 · Risk Management ລະດັບ Pro
-            </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="#ea-cards" style={{ padding: "12px 28px", background: "linear-gradient(135deg,#00D4FF,#2563EB)", color: "#fff", fontSize: 13, fontWeight: 700, borderRadius: 10, textDecoration: "none" }}>
-                ເບິ່ງ EA ທັງໝົດ →
-              </a>
-              <Link href="/broker" style={{ padding: "12px 22px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: 600, borderRadius: 10, textDecoration: "none", border: "1px solid rgba(255,255,255,0.15)" }}>
-                ເລືອກ Broker
-              </Link>
+            <div className="ea-eyebrow">TheRocket EA System</div>
+            <div className="ea-h1">ລະບົບ Trade ອັດຕະໂນມັດ</div>
+            <div className="ea-h2">ຜົນງານຈິງ ທຸກວັນ</div>
+            <div className="ea-sub">
+              ກຳໄລຈາກ Live Account · ບໍ່ແມ່ນ Backtest · ກ໊ອບ Trade ໄດ້ທັນທີ
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── WHITE SECTION ── */}
-      <div style={{ background: "#EDEEF2" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "56px 24px" }}>
-
-          {/* EA Cards */}
-          <div id="ea-cards" style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563EB", marginBottom: 8 }}>EA Products</div>
-            <h2 style={{ fontSize: 28, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em" }}>
-              ເລືອກ EA ທີ່ໃຊ່ທ່ານ
-            </h2>
-            <p style={{ fontSize: 14, color: "#374151", marginBottom: 32 }}>
-              ທົດສອບຈາກ Live Account · Verified · Myfxbook Ready
-            </p>
-            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-              <EACard
-                name="TheRocket EA SGride"
-                tag="Trend Following"
-                desc="ລະບົບຕິດຕາມ Trend ດ້ວຍ Smart Grid ທີ່ປ້ອງກັນ Drawdown ດ້ວຍ Dynamic SL/TP ອັດຕະໂນມັດ"
-                stats={[
-                  { label: "All-time Return", value: "+500%" },
-                  { label: "Max DD",           value: "12.4%" },
-                  { label: "Win Rate",         value: "68%" },
-                  { label: "Monthly Avg",      value: "+8.2%" },
-                ]}
-                color="blue"
-                href="#"
-              />
-              <EACard
-                name="TheRocket EA MegiHedge"
-                tag="Hedging Strategy"
-                desc="ລະບົບ Hedge 2 ທາງ ປ້ອງກັນການຂາດທຶນໃນຕະຫຼາດ Sideways ດ້ວຍ Algorithm ການ Balance Position"
-                stats={[
-                  { label: "All-time Return", value: "+320%" },
-                  { label: "Max DD",           value: "8.1%" },
-                  { label: "Win Rate",         value: "74%" },
-                  { label: "Monthly Avg",      value: "+6.5%" },
-                ]}
-                color="purple"
-                href="#"
-              />
-            </div>
-          </div>
-
-          {/* How to start */}
-          <div style={{ background: "#fff", border: "1.5px solid #E2E6F0", borderRadius: 18, padding: "32px 36px", marginBottom: 24 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563EB", marginBottom: 8 }}>ເລີ່ມຕົ້ນງ່າຍ</div>
-            <h3 style={{ fontSize: 22, fontWeight: 800, color: "#111827", marginBottom: 28, letterSpacing: "-0.02em" }}>3 ຂັ້ນຕອນ ເລີ່ມ Trade ອັດຕະໂນມັດ</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-              <Step n={1} title="ເປີດບັນຊີ Broker ທີ່ຮອງຮັບ"
-                desc="ສະໝັກ XM Global ຫຼື Exness ຜ່ານລິ້ງຂອງເຮົາ ເພື່ອຮັບການ Support ຈາກທີມ LFT ໂດຍກົງ" />
-              <Step n={2} title="ດາວໂຫຼດ MT5 ແລະ ຕິດຕັ້ງ EA"
-                desc="ຮັບໄຟລ໌ .ex5 ຫຼັງຊຳລະ · Import ເຂົ້າ MetaTrader 5 · ຕັ້ງຄ່ານ Lot Size ຕາມທຶນ" />
-              <Step n={3} title="ເປີດ EA ແລະ Trade ອັດຕະໂນມັດ"
-                desc="VPS Hosting ຫຼື ເປີດ PC 24/5 · EA ຈະ Trade ແທນທ່ານ · ຕິດຕາມຜ່ານ Phone ໄດ້ທຸກທີ່" />
-            </div>
-          </div>
-
-          {/* Risk disclosure */}
-          <div style={{ background: "#FFF7ED", border: "1.5px solid #FED7AA", borderRadius: 12, padding: "16px 20px", marginBottom: 32, fontSize: 12, color: "#92400E", lineHeight: 1.7 }}>
-            <strong>⚠ Risk Disclosure:</strong> ການ Trade Forex ມີຄວາມສ່ຽງສູງ ທ່ານອາດສູນເສຍທຶນທັງໝົດ. EA ຜ່ານການທົດສອບ Backtest ແລະ Live Test ແຕ່ Past Performance ບໍ່ໄດ້ຮັບປະກັນ Future Results. ຄວນ Trade ດ້ວຍທຶນທີ່ພ້ອມສູນເສຍໄດ້ເທົ່ານັ້ນ.
-          </div>
-
-          {/* CTA */}
-          <div style={{ background: "linear-gradient(135deg,#0B0F1A,#1E1B4B)", borderRadius: 18, padding: "40px 36px", textAlign: "center" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#00D4FF", marginBottom: 10 }}>
-              ພ້ອມ Automate ການ Trade ແລ້ວບໍ?
-            </div>
-            <h3 style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 8 }}>ຕິດຕໍ່ທີມ LFT ວັນນີ້</h3>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 24 }}>
-              ສອບຖາມ ຟຣີ · Line / Telegram / Facebook
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/broker"
-                style={{ padding: "12px 32px", background: "linear-gradient(135deg,#00D4FF,#2563EB)", color: "#fff", fontSize: 13, fontWeight: 700, borderRadius: 10, textDecoration: "none" }}>
-                ສະໝັກ Broker ແລ້ວຕິດຕໍ່ →
-              </Link>
-              <Link href="/lessons"
-                style={{ padding: "12px 22px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: 600, borderRadius: 10, textDecoration: "none", border: "1px solid rgba(255,255,255,0.15)" }}>
-                ຮຽນຮູ້ EA ເພີ່ມ
-              </Link>
-            </div>
-          </div>
-
         </div>
       </div>
-    </div>
+
+      {/* EA Cards — White Section */}
+      <div className="ea-cards-section">
+        <div className="ea-cards-inner">
+          <div className="section-eyebrow">EA Products</div>
+          <div className="section-title">
+            ເລືອກ EA <span>ທີ່ເໝາະກັບທ່ານ</span>
+          </div>
+          <div className="section-subtitle">
+            ທັງ 2 EA ທຳງານໃນ Live Account ຈິງ
+          </div>
+
+          {/* Cards */}
+          <div className="ea-cards-grid">
+            {/* SGride */}
+            <div className="ea-card blue">
+              <div className="ea-tag blue">Portfolio Builder</div>
+              <div className="ea-card-name">TheRocket EA SGride</div>
+              <div className="ea-card-desc">Grid Trading · ກຳໄລຍາວ · ໝັ້ນຄົງ</div>
+              <div className="ea-rows">
+                <div className="ea-row">
+                  <span className="ea-k">Strategy</span>
+                  <span className="ea-v">Grid Trading</span>
+                </div>
+                <div className="ea-row">
+                  <span className="ea-k">Risk Level</span>
+                  <span className="ea-v am">Medium</span>
+                </div>
+                <div className="ea-row">
+                  <span className="ea-k">Profit Style</span>
+                  <span className="ea-v ok">Long-term</span>
+                </div>
+                <div className="ea-row">
+                  <span className="ea-k">Best For</span>
+                  <span className="ea-v">Portfolio Growth</span>
+                </div>
+              </div>
+              <button className="btn-blue-full">ໃຊ້ SGride →</button>
+            </div>
+
+            {/* MegiHedge */}
+            <div className="ea-card purple">
+              <div className="ea-tag purple">Aggressive Growth</div>
+              <div className="ea-card-name">TheRocket EA MegiHedge</div>
+              <div className="ea-card-desc">Hedge · ກຳໄລໄວ · Short-term</div>
+              <div className="ea-rows">
+                <div className="ea-row">
+                  <span className="ea-k">Strategy</span>
+                  <span className="ea-v">Hedging</span>
+                </div>
+                <div className="ea-row">
+                  <span className="ea-k">Risk Level</span>
+                  <span className="ea-v rd">Higher</span>
+                </div>
+                <div className="ea-row">
+                  <span className="ea-k">Profit Style</span>
+                  <span className="ea-v ok">Short-term</span>
+                </div>
+                <div className="ea-row">
+                  <span className="ea-k">Best For</span>
+                  <span className="ea-v">Active Growth</span>
+                </div>
+              </div>
+              <button className="btn-purple-full">ໃຊ້ MegiHedge →</button>
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div className="steps-grid">
+            <div className="step-card">
+              <div className="step-num">1</div>
+              <div className="step-title">ເປີດບັນຊີ Broker</div>
+              <div className="step-sub">ສະໝັກຜ່ານ Link LFT</div>
+            </div>
+            <div className="step-card">
+              <div className="step-num">2</div>
+              <div className="step-title">ເຊື່ອມ EA System</div>
+              <div className="step-sub">Connect TheRocket EA</div>
+            </div>
+            <div className="step-card">
+              <div className="step-num">3</div>
+              <div className="step-title">Trade ອັດຕະໂນມັດ</div>
+              <div className="step-sub">ບໍ່ຕ້ອງເຝົ້ານຳ</div>
+            </div>
+          </div>
+
+          {/* Risk Disclosure */}
+          <div className="risk-banner">
+            ⚠ Risk Disclosure: ການລົງທຶນໃນ Forex ມີຄວາມສ່ຽງ · ຜົນງານໃນອະດີດບໍ່ຮັບປະກັນຜົນໃນອະນາຄົດ
+          </div>
+
+          {/* CTA Row */}
+          <div className="cta-row">
+            <button className="btn-primary">ເລີ່ມ Copy Trade</button>
+            <button className="btn-telegram">Join Telegram</button>
+            <button className="btn-ghost">ດູ Live Results</button>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }

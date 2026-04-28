@@ -19,8 +19,15 @@ export function Footer() {
             </div>
             <p className="font-lao text-[11px] text-gray-400 leading-relaxed mb-4">ແຫຼ່ງຂໍ້ມູນ Forex #1<br/>ສຳລັບ Trader ລາວ</p>
             <div className="flex gap-2">
-              {["FB","YT","TG"].map(s=>(
-                <div key={s} className="w-7 h-7 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center font-mono text-[9px] text-gray-400 hover:text-blue-600 hover:border-blue-200 cursor-pointer transition-colors">{s}</div>
+              {[
+                { label: "FB", href: "https://www.facebook.com/groups/Laoforextrader" },
+                { label: "YT", href: "https://www.youtube.com/@MeeMuangsong" },
+                { label: "TK", href: "https://www.tiktok.com/@meemuangsong" },
+              ].map(s => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                  className="w-7 h-7 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center font-mono text-[9px] text-gray-400 hover:text-blue-600 hover:border-blue-200 transition-colors">
+                  {s.label}
+                </a>
               ))}
             </div>
           </div>

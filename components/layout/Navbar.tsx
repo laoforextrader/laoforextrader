@@ -7,12 +7,12 @@ import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from "lucide-reac
 
 const NAV = [
   { label:"ໂບຣກເກີ",  href:"/broker"    },
+  { label:"EA System", href:"/ea-system" },
   { label:"ບົດຮຽນ",   href:"/lessons"   },
   { label:"ການສຶກສາ", href:"/education"  },
   { label:"ຂ່າວ",     href:"/news"      },
   { label:"ວິເຄາະ",   href:"/analysis"  },
   { label:"ເຄື່ອງມື", href:"/tools"     },
-  { label:"EA System", href:"/ea-system" },
 ]
 
 function UserMenu() {

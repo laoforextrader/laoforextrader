@@ -1,63 +1,187 @@
-import Image from "next/image"
+'use client'
 
-export function FounderSection() {
-  const stats = [
-    { value: "2014", label: "เริ่ม Trade" },
-    { value: "+500%", label: "Best Year Return" },
-    { value: "12K+", label: "ສະມາຊິກ" },
-    { value: "10+", label: "ປີ ປະສົບການ" },
-  ]
+import Image from 'next/image'
 
+export default function FounderSection() {
   return (
-    <section style={{ background: "#EDEEF2", borderTop: "1px solid #E5E7EB" }}>
-      <div style={{ maxWidth: 1060, margin: "0 auto", padding: "56px 24px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 56, alignItems: "center" }}>
+    <section className="founder-section">
+      <style jsx>{`
+        .founder-section {
+          background: #fff;
+          border-top: 1px solid #D4D8E5;
+        }
+        .founder-inner {
+          max-width: 1060px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 480px 1fr;
+          min-height: 500px;
+          align-items: stretch;
+        }
+        .founder-img-side {
+          background: #fff;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          overflow: hidden;
+          min-height: 500px;
+          padding-bottom: 0;
+          position: relative;
+        }
+        .founder-right {
+          padding: 56px 52px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .founder-eyebrow {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .founder-eyebrow-line {
+          width: 28px;
+          height: 1.5px;
+          background: #111827;
+        }
+        .founder-eyebrow-text {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #374151;
+        }
+        .founder-name {
+          font-size: 42px;
+          font-weight: 800;
+          color: #111827;
+          line-height: 1.0;
+          letter-spacing: -0.04em;
+          margin-bottom: 6px;
+        }
+        .founder-role {
+          font-size: 14px;
+          color: #9CA3AF;
+          margin-bottom: 22px;
+        }
+        .founder-divider {
+          width: 40px;
+          height: 2px;
+          background: #111827;
+          margin-bottom: 20px;
+        }
+        .founder-quote-mark {
+          font-size: 52px;
+          color: #D1D5DB;
+          line-height: 0.8;
+          font-family: Georgia, serif;
+          display: block;
+          margin-bottom: 6px;
+        }
+        .founder-quote {
+          font-size: 18px;
+          color: #374151;
+          line-height: 1.75;
+          font-style: italic;
+          margin-bottom: 28px;
+        }
+        .founder-stats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px 28px;
+        }
+        .stat-number {
+          font-size: 26px;
+          font-weight: 800;
+          color: #111827;
+          letter-spacing: -0.02em;
+        }
+        .stat-number.blue {
+          background: linear-gradient(135deg, #2563EB, #4F46E5);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .stat-label {
+          font-size: 10px;
+          font-weight: 600;
+          color: #9CA3AF;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          margin-top: 3px;
+        }
+        @media (max-width: 768px) {
+          .founder-inner {
+            grid-template-columns: 1fr;
+          }
+          .founder-img-side {
+            min-height: 320px;
+          }
+          .founder-right {
+            padding: 32px 24px;
+          }
+          .founder-name {
+            font-size: 32px;
+          }
+          .founder-quote {
+            font-size: 16px;
+          }
+        }
+      `}</style>
 
-          {/* Left — photo */}
-          <div style={{ position: "relative" }}>
-            <div style={{ borderRadius: 20, overflow: "hidden", background: "#E5E7EB", aspectRatio: "4/5", position: "relative" }}>
-              <Image
-                src="/images/founder.png"
-                alt="Mee Muangsong"
-                fill
-                style={{ objectFit: "cover", filter: "grayscale(100%) contrast(1.05)" }}
-              />
-              {/* Overlay gradient bottom */}
-              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "35%", background: "linear-gradient(transparent, rgba(0,0,0,0.4))", pointerEvents: "none" }} />
-            </div>
-            {/* Accent border */}
-            <div style={{ position: "absolute", inset: -6, borderRadius: 26, border: "2px solid transparent", background: "linear-gradient(135deg,#2563EB22,#4F46E522) border-box", pointerEvents: "none", zIndex: -1 }} />
+      <div className="founder-inner">
+        {/* Left: Founder photo */}
+        <div className="founder-img-side">
+          <Image
+            src="/images/founder.png"
+            alt="Mee Muangsong"
+            fill
+            style={{ objectFit: 'contain', objectPosition: 'bottom center' }}
+            priority
+          />
+        </div>
+
+        {/* Right: Content */}
+        <div className="founder-right">
+          <div className="founder-eyebrow">
+            <div className="founder-eyebrow-line" />
+            <div className="founder-eyebrow-text">Founder &amp; Lead Trader</div>
           </div>
 
-          {/* Right — content */}
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: "#6B7280", marginBottom: 12, textTransform: "uppercase" }}>
-              — Founder &amp; Lead Trader
+          <h2 className="founder-name">
+            Mee<br />Muangsong
+          </h2>
+          <p className="founder-role">
+            Forex Trader since 2014 · Founder of Laos Forex Community
+          </p>
+
+          <div className="founder-divider" />
+
+          <span className="founder-quote-mark">&ldquo;</span>
+          <p className="founder-quote">
+            ຈຶ່ງທໍາກ້າວລ້ຳຜ່ານທີດຈຳກັດ ເພື່ອພິສູດສາກທະພາບຂອງທ່ານ
+            ໂອກາດ ແລະ ທາງເລືອກ ຢູ່ໃນມືທ່ານ
+          </p>
+
+          <div className="founder-stats">
+            <div>
+              <div className="stat-number">2014</div>
+              <div className="stat-label">Started Trading</div>
             </div>
-            <h2 style={{ fontSize: 40, fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 18 }}>
-              Mee<br />
-              <span style={{ background: "linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                Muangsong
-              </span>
-            </h2>
-
-            <blockquote style={{ borderLeft: "3px solid #BFCFFF", paddingLeft: 16, marginBottom: 28, fontSize: 14, color: "#374151", lineHeight: 1.75, fontStyle: "italic" }}>
-              "ຂ້ອຍເລີ່ມ Trade Forex ໂດຍບໍ່ມີໃຜສອນ ສູນເສຍຫຼາຍກວ່າຈະສຳເລັດ. LaoForexTrader ຖືກສ້າງຂຶ້ນ ເພື່ອໃຫ້ Trader ລາວທຸກຄົນ ມີຄວາມຮູ້ທີ່ຖືກຕ້ອງ ກ່ອນທີ່ຈະລົງທຶນ."
-            </blockquote>
-
-            {/* Stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-              {stats.map(s => (
-                <div key={s.value} style={{ textAlign: "center", background: "#fff", border: "1.5px solid #E2E6F0", borderRadius: 12, padding: "14px 10px" }}>
-                  <div style={{ fontSize: 20, fontWeight: 900, color: "#111827", letterSpacing: "-0.02em", background: "linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    {s.value}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#6B7280", marginTop: 4 }}>{s.label}</div>
-                </div>
-              ))}
+            <div>
+              <div className="stat-number blue">+500%</div>
+              <div className="stat-label">EA in 7 months</div>
+            </div>
+            <div>
+              <div className="stat-number">12K+</div>
+              <div className="stat-label">Community</div>
+            </div>
+            <div>
+              <div className="stat-number">10+</div>
+              <div className="stat-label">Years Experience</div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
