@@ -6,22 +6,23 @@ const LAO_BAHT_OZ_FRACTION = 0.49
 const FALLBACK_USD_LAK     = 22000
 
 async function fetchSpotGold(): Promise<number | null> {
-  // 1) Direct from metals.live (browser fetch)
+  // 1) Direct from gold-api.com (free, CORS-enabled, no key required)
   try {
-    const res = await fetch('https://api.metals.live/v1/spot/gold')
+    const res = await fetch('https://api.gold-api.com/price/XAU', { cache: 'no-store' })
     if (res.ok) {
       const d: any = await res.json()
-      const p = d?.price ?? d?.[0]?.price ?? d?.[0]?.gold
-      if (p) return Number(p)
+      const p = Number(d?.price)
+      if (p && !isNaN(p)) return p
     }
   } catch {}
 
-  // 2) Fallback to server proxy /api/gold
+  // 2) Fallback: server proxy /api/gold (which also uses gold-api.com)
   try {
-    const res = await fetch('/api/gold')
+    const res = await fetch('/api/gold', { cache: 'no-store' })
     if (res.ok) {
       const d: any = await res.json()
-      if (d?.price) return Number(d.price)
+      const p = Number(d?.price)
+      if (p && !isNaN(p)) return p
     }
   } catch {}
 
@@ -30,7 +31,7 @@ async function fetchSpotGold(): Promise<number | null> {
 
 async function fetchUsdLak(): Promise<number> {
   try {
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD')
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { cache: 'no-store' })
     if (res.ok) {
       const d: any = await res.json()
       const r = Number(d?.rates?.LAK)
@@ -50,7 +51,7 @@ export function useGoldPrice() {
 
   const fetchPrices = async () => {
     const [spot, usdLak] = await Promise.all([fetchSpotGold(), fetchUsdLak()])
-    if (!spot) return // keep last known values, no error UI
+    if (!spot) return // keep last known values, do not show fake price
 
     if (prevPrice.current !== null) {
       const ch = spot - prevPrice.current
