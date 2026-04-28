@@ -3,7 +3,7 @@ export const commentSchema = {
   title: "ຄຳເຫັນ / Comment",
   type: "document",
   fields: [
-    { name: "article",   title: "ບົດຄວາມ",   type: "reference", to: [{ type: "article" }], validation: (R: any) => R.required() },
+    { name: "article",   title: "ບົດຄວາມ / Broker", type: "reference", to: [{ type: "article" }, { type: "broker" }], validation: (R: any) => R.required() },
     { name: "userId",    title: "User ID",   type: "string" },
     { name: "userName",  title: "ຊື່",        type: "string", validation: (R: any) => R.required() },
     { name: "userImage", title: "Avatar",    type: "url" },

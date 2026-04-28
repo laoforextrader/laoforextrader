@@ -6,6 +6,7 @@ import { PortableText } from "@portabletext/react"
 import { Article } from "@/types"
 import { ArrowLeft, CheckCircle, XCircle, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import PostEngagement from "@/components/sections/PostEngagement"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -186,6 +187,12 @@ export default async function BrokerSlugPage({ params }: Props) {
             </div>
           </div>
 
+          <PostEngagement
+            postId={broker._id}
+            postTitle={`ລີວິວ ${broker.name}`}
+            postUrl={`https://laoforextrader.com/broker/${broker.slug?.current ?? ""}`}
+          />
+
           <div style={{ marginTop: 20, textAlign: "center", fontSize: 11, color: "#9CA3AF" }}>
             ⚠ ການລົງທຶນໃນ Forex ມີຄວາມສ່ຽງ · ທ່ານອາດສູນເສຍເງິນທຶນ
           </div>
@@ -226,6 +233,12 @@ export default async function BrokerSlugPage({ params }: Props) {
         <div>
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
+
+        <PostEngagement
+          postId={article._id}
+          postTitle={article.title}
+          postUrl={`https://laoforextrader.com/broker/${article.slug?.current ?? ""}`}
+        />
 
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>
           <Link href="/broker" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#2563EB", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
