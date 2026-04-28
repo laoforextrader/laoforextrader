@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import CTABanner from '@/components/sections/CTABanner'
 
 export default function EASystemPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -546,6 +547,9 @@ export default function EASystemPage() {
         </div>
       </div>
 
+      {/* CTA Banner between hero and cards */}
+      <CTABanner />
+
       {/* EA Cards — White Section */}
       <div className="ea-cards-section">
         <div className="ea-cards-inner">
@@ -582,7 +586,7 @@ export default function EASystemPage() {
                   <span className="ea-v">Portfolio Growth</span>
                 </div>
               </div>
-              <button className="btn-blue-full">ໃຊ້ SGride →</button>
+              <a href="/broker" className="btn-blue-full" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>ໃຊ້ SGride →</a>
             </div>
 
             {/* MegiHedge */}
@@ -608,7 +612,7 @@ export default function EASystemPage() {
                   <span className="ea-v">Active Growth</span>
                 </div>
               </div>
-              <button className="btn-purple-full">ໃຊ້ MegiHedge →</button>
+              <a href="/broker" className="btn-purple-full" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>ໃຊ້ MegiHedge →</a>
             </div>
           </div>
 
@@ -638,9 +642,9 @@ export default function EASystemPage() {
 
           {/* CTA Row */}
           <div className="cta-row">
-            <button className="btn-primary">ເລີ່ມ Copy Trade</button>
-            <button className="btn-telegram">Join Telegram</button>
-            <button className="btn-ghost">ດູ Live Results</button>
+            <a href="/broker" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>ເລີ່ມ Copy Trade</a>
+            <a href="https://t.me/laoforextrader" target="_blank" rel="noopener noreferrer" className="btn-telegram" style={{ display: 'inline-block', textDecoration: 'none' }}>Join Telegram</a>
+            <a href="https://www.facebook.com/groups/Laoforextrader" target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ display: 'inline-block', textDecoration: 'none' }}>ດູ Live Results</a>
           </div>
         </div>
       </div>

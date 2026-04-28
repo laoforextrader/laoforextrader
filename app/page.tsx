@@ -1,13 +1,17 @@
-import { sanityClient, QUERIES } from "@/lib/sanity"
+import { sanityClient, QUERIES, urlFor } from "@/lib/sanity"
 import { ArticleCard } from "@/components/article/ArticleCard"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { HeroCanvas } from "@/components/ui/HeroCanvas"
 import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
+import { GoldWidget } from "@/components/ui/GoldWidget"
 import { BrokerSection } from "@/components/broker/BrokerSection"
 import { LessonsPreview } from "@/components/lessons/LessonsPreview"
 import MerchSection from "@/components/sections/MerchSection"
 import FounderSection from "@/components/sections/FounderSection"
+import EASGrideCTA from "@/components/sections/EASGrideCTA"
 import { Article, Broker } from "@/types"
+import { categoryRoute, formatDate } from "@/lib/utils"
+import Image from "next/image"
 import Link from "next/link"
 
 const CATEGORY_TABS = [
@@ -55,7 +59,7 @@ export default async function HomePage() {
           <div>
             <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-[11px] font-bold text-blue-600 tracking-widest uppercase mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse-dot" />
-              🇱🇦 ແຫຼ່ງຂໍ້ມູນ Forex #1 ສຳລັບຄົນລາວ
+              🇱🇦 ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ
             </div>
             <h1 className="font-sans font-extrabold text-[46px] leading-[1.06] tracking-tight mb-4">
               Trade<br />
@@ -63,12 +67,12 @@ export default async function HomePage() {
                 Smarter.
               </span><br />
               <span style={{ background: "linear-gradient(135deg,#0891B2,#2563EB)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                ຮຽນ Forex.
+                ຮຽນເທຣດກັບມືອາຊີບ
               </span>
             </h1>
             <p className="font-lao text-sm text-gray-500 leading-relaxed max-w-[380px] mb-7">
-              ລີວິວ Broker ທີ່ຊື່ສັດ · ຄວາມຮູ້ Forex ຟຣີ 50 ບົດ<br />
-              ວິເຄາະຕະຫຼາດ · ຂ່າວ · ເຄື່ອງມືຄຳນວນ
+              ລີວິວ Broker ທີ່ຊື່ສັດ · ຄວາມຮູ້ການເທຣດ ຟຣີ<br />
+              ວິເຄາະຕະຫຼາດ · ຂ່າວ · ລະບົບເທຣດອັດຕະໂນມັດ EA
             </p>
             <div className="flex gap-3 flex-wrap mb-10">
               <Link href="/lessons" className="btn-primary">ເລີ່ມຮຽນ Forex ຟຣີ →</Link>
@@ -83,28 +87,8 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-          {/* Floating price card */}
-          <div className="hidden lg:block card p-4 animate-float shadow-xl">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">XAUUSD Live</span>
-              <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-green-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />LIVE
-              </span>
-            </div>
-            <div className="font-mono text-2xl font-medium text-gray-900 mb-0.5">2,318.40</div>
-            <div className="font-mono text-[11px] text-green-600 font-semibold mb-3">▲ +7.80 (+0.34%)</div>
-            {[
-              ["EURUSD","1.0812","▼-0.12%","red"],
-              ["USDJPY","154.62","▲+0.21%","green"],
-              ["BTCUSD","64,820","▲+1.45%","green"],
-            ].map(([pair,price,ch,color])=>(
-              <div key={pair} className="flex items-center justify-between px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg mb-1.5 last:mb-0">
-                <span className="font-mono text-[11px] font-medium text-gray-800">{pair}</span>
-                <span className="font-mono text-[11px] text-gray-500">{price}</span>
-                <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded font-semibold ${color==="green"?"bg-green-50 text-green-600":"bg-red-50 text-red-600"}`}>{ch}</span>
-              </div>
-            ))}
-          </div>
+          {/* Live price + Lao gold widget */}
+          <GoldWidget />
         </div>
       </section>
 
@@ -121,18 +105,46 @@ export default async function HomePage() {
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div className="max-w-[1060px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_236px]">
+      <div className="max-w-[1060px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_280px]">
         <div className="border-r border-gray-100 bg-white">
           {featured && (
-            <div className="p-4 border-b border-gray-100">
-              <div className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-3">ບົດຄວາມແນະນຳ</div>
-              <ArticleCard article={featured} variant="featured" />
-            </div>
+            <Link href={`/${categoryRoute(featured.category)}/${featured.slug?.current ?? ""}`} className="block group border-b border-gray-100">
+              <div style={{ height: 3, background: "linear-gradient(90deg,#2563EB,#4F46E5)" }} />
+              <div className="p-5">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-blue-600 mb-2.5">⭐ ບົດຄວາມແນະນຳ</div>
+                {featured.coverImage && (
+                  <div className="relative w-full rounded-xl overflow-hidden mb-3.5 bg-gray-100" style={{ height: 200 }}>
+                    <Image
+                      src={urlFor(featured.coverImage).width(800).height(400).url()}
+                      alt={featured.title}
+                      fill
+                      sizes="(max-width:768px) 100vw, 700px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <h2 className="font-lao text-[20px] font-bold leading-snug text-gray-900 group-hover:text-blue-700 transition-colors mb-2 line-clamp-2" style={{ letterSpacing: "-0.01em" }}>
+                  {featured.title}
+                </h2>
+                {featured.excerpt && (
+                  <p className="font-lao text-[12.5px] text-gray-500 line-clamp-2 leading-relaxed mb-3">
+                    {featured.excerpt}
+                  </p>
+                )}
+                <div className="flex items-center gap-2 text-[10px] text-gray-400 font-lao">
+                  {featured.author?.name && <span className="font-medium text-gray-500">{featured.author.name}</span>}
+                  {featured.publishedAt && <><span>·</span><span>{formatDate(featured.publishedAt)}</span></>}
+                  {featured.readTime && <><span>·</span><span>{featured.readTime}m</span></>}
+                </div>
+              </div>
+            </Link>
           )}
-          <div className="text-[10px] text-gray-400 uppercase tracking-widest font-bold px-5 py-3 border-b border-gray-100">ລ່າສຸດ</div>
-          {articles.map(article => <ArticleCard key={article._id} article={article} />)}
+          <div className="text-[10px] text-gray-400 uppercase tracking-widest font-bold px-5 py-3 border-b border-gray-100">ລ່າສຸດ · 1 ຕໍ່ໝວດ</div>
+          {articles
+            .reduce<Article[]>((acc, a) => acc.some(x => x.category === a.category) ? acc : [...acc, a], [])
+            .map(article => <ArticleCard key={article._id} article={article} />)}
         </div>
-        <Sidebar brokers={brokers} trending={articles.slice(0,5)} />
+        <Sidebar brokers={brokers} trending={articles.slice(0, 5)} />
       </div>
 
       {/* ── LESSONS ── */}
@@ -165,6 +177,9 @@ export default async function HomePage() {
 
       {/* ── MERCH ── */}
       <MerchSection />
+
+      {/* ── EA SGride CTA ── */}
+      <EASGrideCTA />
 
       {/* ── FOUNDER ── */}
       <FounderSection />

@@ -6,8 +6,9 @@ import { MarketTicker } from "@/components/market/MarketTicker"
 import { SessionProvider } from "@/components/auth/SessionProvider"
 
 export const metadata: Metadata = {
-  title: { default: "LaoForexTrader — ແຫຼ່ງຂໍ້ມູນ Forex #1 ສຳລັບຄົນລາວ", template: "%s | LaoForexTrader" },
-  description: "ລີວິວ Broker, ຄວາມຮູ້ Forex, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
+  title: { default: "LaoForexTrader — ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ", template: "%s | LaoForexTrader" },
+  description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
+  icons: { icon: "/favicon.svg" },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

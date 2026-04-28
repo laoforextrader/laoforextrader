@@ -6,6 +6,8 @@ import { PortableText } from "@portabletext/react"
 import { Article } from "@/types"
 import { ArrowLeft, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import CTABanner from "@/components/sections/CTABanner"
+import PostEngagement from "@/components/sections/PostEngagement"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -71,12 +73,20 @@ export default async function ArticleDetailPage({ params }: Props) {
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
 
+        <PostEngagement
+          postId={article._id}
+          postTitle={article.title}
+          postUrl={`https://laoforextrader.com/news/${article.slug?.current ?? ""}`}
+        />
+
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>
           <Link href="/news" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#2563EB", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
             <ArrowLeft size={13} /> ກັບໄປໜ້າ ຂ່າວ
           </Link>
         </div>
       </div>
+
+      <CTABanner />
     </div>
   )
 }

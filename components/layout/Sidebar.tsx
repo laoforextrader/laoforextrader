@@ -3,14 +3,6 @@ import Link from "next/link"
 
 interface Props { brokers?: Broker[]; trending?: Article[] }
 
-const MARKET = [
-  { pair:"XAUUSD", price:"2,318.4", pct:"+0.34%", up:true  },
-  { pair:"EURUSD", price:"1.0812",  pct:"-0.12%", up:false },
-  { pair:"USDJPY", price:"154.62",  pct:"+0.21%", up:true  },
-  { pair:"BTCUSD", price:"64,820",  pct:"+1.45%", up:true  },
-  { pair:"USDLAK", price:"21,450",  pct:"-0.05%", up:false },
-]
-
 function logoStyle(name: string) {
   if (name.toLowerCase().includes("xm"))     return { bg:"#FEF2F2", color:"#DC2626" }
   if (name.toLowerCase().includes("exness")) return { bg:"#EEF3FF", color:"#2563EB" }
@@ -22,32 +14,17 @@ export function Sidebar({ brokers = [], trending = [] }: Props) {
   return (
     <aside className="bg-white border-l border-gray-100 text-sm">
 
-      {/* Market Prices */}
-      <div className="px-4 pt-4 pb-3 border-b border-gray-100">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">ລາຄາຕະຫຼາດ</div>
-        {MARKET.map(m => (
-          <div key={m.pair} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-            <span className="font-mono text-[12px] font-medium text-gray-800">{m.pair}</span>
-            <span className="font-mono text-[12px] text-gray-600">{m.price}</span>
-            <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded font-semibold
-              ${m.up ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>{m.pct}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Broker — no background, clean list */}
+      {/* Broker — subtle blue card */}
       {brokers.length > 0 && (
-        <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+        <div className="m-3" style={{ background: "#F0F4FF", border: "1px solid #DBEAFE", borderRadius: 12, padding: 16 }}>
           <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">ລີວິວ Broker</div>
           <div className="text-[13px] font-bold text-gray-900 mb-3">Broker ແນະນຳ</div>
 
-          {brokers.map((broker, i) => {
+          {brokers.slice(0, 5).map((broker, i) => {
             const ls = logoStyle(broker.name)
-            const badges = ["#FEF3C7 #D97706 #1", "#EEF3FF #2563EB #2", "#DCFCE7 #059669 EA"]
-            const [bbg, bcolor, blabel] = (badges[i] || "").split(" ")
             return (
               <Link key={broker._id} href={`/broker/${broker.slug?.current ?? ""}`}
-                className="flex items-center gap-2.5 py-2.5 border-b border-gray-50 last:border-0 group cursor-pointer">
+                className="flex items-center gap-2.5 py-2.5 border-b border-blue-100/60 last:border-0 group cursor-pointer">
                 <span className="w-4 text-center font-mono text-[11px] font-bold text-gray-300">{i + 1}</span>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[10px] font-bold border border-gray-100 flex-shrink-0"
                   style={{ background: ls.bg, color: ls.color }}>
@@ -61,10 +38,6 @@ export function Sidebar({ brokers = [], trending = [] }: Props) {
                     {"★".repeat(Math.floor(broker.rating ?? 4))}
                   </div>
                 </div>
-                {bbg && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
-                    style={{ background: bbg, color: bcolor }}>{blabel}</span>
-                )}
               </Link>
             )
           })}
@@ -72,7 +45,7 @@ export function Sidebar({ brokers = [], trending = [] }: Props) {
           <Link href="/broker" className="flex items-center gap-1 mt-3 text-[11px] font-semibold text-blue-600 hover:text-blue-700">
             ເບິ່ງ Broker ທັງໝົດ →
           </Link>
-          <p className="mt-2 text-[10px] text-gray-300 font-lao leading-relaxed border-t border-gray-100 pt-2">
+          <p className="mt-2 text-[10px] text-gray-400 font-lao leading-relaxed border-t border-blue-100/60 pt-2">
             ⚠ ລີວິວຈາກການໃຊ້ງານຂອງພວກເຮົາເທົ່ານັ້ນ
           </p>
         </div>
