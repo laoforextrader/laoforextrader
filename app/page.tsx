@@ -118,6 +118,7 @@ export default async function HomePage() {
                       src={urlFor(featured.coverImage).width(800).height(400).url()}
                       alt={featured.title}
                       fill
+                      priority
                       sizes="(max-width:768px) 100vw, 700px"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />

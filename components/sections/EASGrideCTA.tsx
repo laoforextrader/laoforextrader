@@ -1,26 +1,14 @@
 import { Rocket } from "lucide-react"
 import { GalaxyCanvas } from "@/components/ui/GalaxyCanvas"
+import styles from "./EASGrideCTA.module.css"
 
 export default function EASGrideCTA() {
   return (
-    <section style={{
-      position: 'relative',
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #050816 0%, #0B1230 50%, #1B0F36 100%)',
-      padding: '64px 24px',
-      borderTop: '1px solid #1E1B4B',
-      borderBottom: '1px solid #1E1B4B',
-    }}>
+    <section className={styles.section}>
       {/* Galaxy particle background — covers entire section, mouse-interactive */}
       <GalaxyCanvas />
 
-      <div className="ea-cta-grid" style={{
-        position: 'relative',
-        zIndex: 1,
-        maxWidth: 1060, margin: '0 auto',
-        display: 'grid', gridTemplateColumns: '1fr 1fr',
-        gap: 48, alignItems: 'center',
-      }}>
+      <div className={styles.grid}>
         {/* Left: Text */}
         <div>
           <div style={{
@@ -103,11 +91,7 @@ export default function EASGrideCTA() {
             borderRadius: 100, padding: '4px 12px',
             fontSize: 11, color: '#4ADE80', fontWeight: 600, marginBottom: 20,
           }}>
-            <span style={{
-              width: 6, height: 6, borderRadius: '50%', background: '#4ADE80',
-              display: 'inline-block',
-              animation: 'easgride-pulse 1.5s infinite',
-            }} />
+            <span className={styles.pulseDot} />
             Live Account Running
           </div>
 
@@ -146,16 +130,6 @@ export default function EASGrideCTA() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes easgride-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.4); }
-        }
-        @media (max-width: 768px) {
-          .ea-cta-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </section>
   )
 }

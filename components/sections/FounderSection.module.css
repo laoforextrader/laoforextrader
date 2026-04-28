@@ -1,0 +1,138 @@
+.founderSection {
+  background: #fff;
+  border-top: 1px solid #D4D8E5;
+}
+
+.founderInner {
+  max-width: 1060px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  min-height: 500px;
+  align-items: stretch;
+}
+
+.founderImgSide {
+  background: #fff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 500px;
+  padding-bottom: 0;
+  position: relative;
+}
+
+.founderRight {
+  padding: 56px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.founderEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.founderEyebrowLine {
+  width: 28px;
+  height: 1.5px;
+  background: #111827;
+}
+
+.founderEyebrowText {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #374151;
+}
+
+.founderName {
+  font-size: 42px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  margin-bottom: 6px;
+}
+
+.founderRole {
+  font-size: 14px;
+  color: #9CA3AF;
+  margin-bottom: 22px;
+}
+
+.founderDivider {
+  width: 40px;
+  height: 2px;
+  background: #111827;
+  margin-bottom: 20px;
+}
+
+.founderQuoteMark {
+  font-size: 52px;
+  color: #D1D5DB;
+  line-height: 0.8;
+  font-family: Georgia, serif;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.founderQuote {
+  font-size: 18px;
+  color: #374151;
+  line-height: 1.75;
+  font-style: italic;
+  margin-bottom: 28px;
+}
+
+.founderStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 28px;
+}
+
+.statNumber {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.statNumberBlue {
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9CA3AF;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .founderInner {
+    grid-template-columns: 1fr;
+  }
+  .founderImgSide {
+    min-height: 320px;
+  }
+  .founderRight {
+    padding: 32px 24px;
+  }
+  .founderName {
+    font-size: 32px;
+  }
+  .founderQuote {
+    font-size: 16px;
+  }
+}
