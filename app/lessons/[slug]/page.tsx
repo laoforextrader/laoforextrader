@@ -5,6 +5,7 @@ import { sanityClient, QUERIES } from "@/lib/sanity"
 import { PortableText } from "@portabletext/react"
 import { Article } from "@/types"
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from "lucide-react"
+import PostEngagement from "@/components/sections/PostEngagement"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -100,6 +101,12 @@ export default async function LessonDetailPage({ params }: Props) {
         <div style={{ marginBottom: 40 }}>
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
+
+        <PostEngagement
+          postId={article._id}
+          postTitle={article.title}
+          postUrl={`https://laoforextrader.com/lessons/${article.slug?.current ?? ""}`}
+        />
 
         {/* Prev / Next */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>
