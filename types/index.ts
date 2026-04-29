@@ -16,6 +16,7 @@ export interface Broker {
   _id: string
   name: string
   slug?: { current: string }
+  rank?: number
   rating?: number
   logo?: any
   minDeposit?: string
@@ -25,6 +26,11 @@ export interface Broker {
   cons?: string[]
   affiliateUrl?: string
   registerUrl?: string
+  badge?: {
+    text: string
+    color: string
+    show: boolean
+  }
 }
 
 export interface MarketPrice {

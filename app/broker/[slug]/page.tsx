@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { sanityClient, QUERIES } from "@/lib/sanity"
+import Image from "next/image"
+import { sanityClient, QUERIES, urlFor } from "@/lib/sanity"
 import { PortableText } from "@portabletext/react"
 import { Article } from "@/types"
 import { ArrowLeft, CheckCircle, XCircle, Clock, Calendar } from "lucide-react"
@@ -81,17 +82,56 @@ export default async function BrokerSlugPage({ params }: Props) {
           {/* Header card */}
           <div style={{ background: "#fff", border: "1.5px solid #E2E6F0", borderRadius: 18, padding: "28px 28px 24px", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 18, flexWrap: "wrap" }}>
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: "#EEF3FF", border: "1px solid #BFCFFF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 16, fontWeight: 800, color: "#2563EB", flexShrink: 0 }}>
-                {broker.name.slice(0, 2).toUpperCase()}
-              </div>
+              {broker.logo?.asset?.url ? (
+                <Image
+                  src={urlFor(broker.logo).width(112).height(112).url()}
+                  alt={broker.logo.alt || broker.name}
+                  width={56}
+                  height={56}
+                  style={{
+                    borderRadius: 14,
+                    objectFit: "contain",
+                    background: "#fff",
+                    border: "1px solid #E2E6F0",
+                    padding: 6,
+                    flexShrink: 0,
+                  }}
+                />
+              ) : (
+                <div style={{ width: 56, height: 56, borderRadius: 14, background: "#EEF3FF", border: "1px solid #BFCFFF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 16, fontWeight: 800, color: "#2563EB", flexShrink: 0 }}>
+                  {broker.name.slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
                   <h1 style={{ fontSize: 24, fontWeight: 800, color: "#111827", margin: 0 }}>{broker.name}</h1>
-                  {broker.badge && (
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#FEF3C7", color: "#92400E" }}>
-                      {broker.badge === "recommended" ? "ແນະນຳ" : broker.badge === "top" ? "ອັນດັບ 1" : "ໃໝ່"}
-                    </span>
-                  )}
+                  {broker.badge?.show && broker.badge?.text && (() => {
+                    const colorMap: Record<string, { bg: string; color: string; border: string }> = {
+                      gold:   { bg: "#FEF3C7", color: "#D97706", border: "#FDE68A" },
+                      blue:   { bg: "#EEF3FF", color: "#2563EB", border: "#BFCFFF" },
+                      green:  { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+                      purple: { bg: "#F5F3FF", color: "#7C3AED", border: "#DDD6FE" },
+                      gray:   { bg: "#F9FAFB", color: "#374151", border: "#E2E6F0" },
+                      orange: { bg: "#FFF7ED", color: "#EA580C", border: "#FED7AA" },
+                      red:    { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
+                    }
+                    const c = colorMap[broker.badge.color] || colorMap.gray
+                    return (
+                      <span style={{
+                        display: "inline-block",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: "4px 10px",
+                        borderRadius: 100,
+                        border: `1px solid ${c.border}`,
+                        background: c.bg,
+                        color: c.color,
+                        whiteSpace: "nowrap",
+                      }}>
+                        {broker.badge.text}
+                      </span>
+                    )
+                  })()}
                 </div>
                 <div style={{ fontSize: 20, color: "#F59E0B", letterSpacing: -1, marginBottom: 6 }}>
                   {"★".repeat(Math.floor(broker.rating ?? 4))}{"☆".repeat(5 - Math.floor(broker.rating ?? 4))}

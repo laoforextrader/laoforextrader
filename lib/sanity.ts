@@ -36,14 +36,18 @@ export const QUERIES = {
       _id, title, slug, excerpt, category, publishedAt, readTime, coverImage, body, author->{ name, slug }
     }
   `,
-  featuredBrokers: `*[_type == "broker"] | order(rating desc) [0...6] {
-    _id, name, slug, rating, logo, minDeposit, maxLeverage, laoDeposit, affiliateUrl, registerUrl
+  featuredBrokers: `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) [0...6] {
+    _id, name, slug, rank, rating, minDeposit, maxLeverage, laoDeposit, affiliateUrl, registerUrl,
+    logo { asset->{ url }, alt, hotspot, crop },
+    badge { text, color, show }
   }`,
   brokerBySlug: (slug: string) => `
     *[_type == "broker" && slug.current == "${slug}"] [0] {
-      _id, name, slug, rating, ratingBreakdown, logo, minDeposit, maxLeverage,
-      laoDeposit, pros, cons, regulators, platforms, badge, excerpt, body,
-      affiliateUrl, registerUrl
+      _id, name, slug, rank, rating, ratingBreakdown, minDeposit, maxLeverage,
+      laoDeposit, pros, cons, regulators, platforms, excerpt, body,
+      affiliateUrl, registerUrl,
+      logo { asset->{ url }, alt, hotspot, crop },
+      badge { text, color, show }
     }
   `,
 }

@@ -5,7 +5,12 @@ export const brokerSchema = {
   fields: [
     { name: "name",        title: "ຊື່ Broker",   type: "string",   validation: (R: any) => R.required() },
     { name: "slug",        title: "Slug",         type: "slug",     options: { source: "name" } },
-    { name: "logo",        title: "Logo",         type: "image" },
+    { name: "logo", title: "Logo ໂບຣກ", type: "image",
+      options: { hotspot: true },
+      fields: [
+        { name: "alt", title: "Alt text", type: "string" },
+      ],
+    },
     { name: "website",      title: "ເວັບໄຊທ໌",          type: "url" },
     { name: "affiliateUrl",  title: "Affiliate URL (Homepage)", type: "url" },
     { name: "registerUrl",  title: "Register URL (Affiliate)",  type: "url" },
@@ -30,12 +35,38 @@ export const brokerSchema = {
     { name: "description",  title: "ຄຳອະທິບາຍ",    type: "text", rows: 4 },
     { name: "laoDeposit",   title: "ຮອງຮັບຝາກເງິນກີບ", type: "boolean", initialValue: false },
     { name: "featured",     title: "ໃສ່ Sidebar",   type: "boolean", initialValue: false },
-    { name: "badge",        title: "Badge",         type: "string",
-      options: { list: [
-        { title: "ແນະນຳ",  value: "recommended" },
-        { title: "ໃໝ່",    value: "new"         },
-        { title: "ອັນດັບ 1", value: "top"        },
-      ]}
+    { name: "badge", title: "Badge", type: "object",
+      fields: [
+        {
+          name: "show",
+          title: "ສະແດງ Badge",
+          type: "boolean",
+          initialValue: false,
+        },
+        {
+          name: "text",
+          title: "ຂໍ້ຄວາມ Badge",
+          type: "string",
+          description: "ເຊັ່ນ: ⭐ ແນະນຳ, ⚡ EA ປະກອບ, 💰 Bonus ດີ",
+        },
+        {
+          name: "color",
+          title: "ສີ Badge",
+          type: "string",
+          options: {
+            list: [
+              { title: "⭐ Gold",   value: "gold"   },
+              { title: "🔵 Blue",   value: "blue"   },
+              { title: "🟢 Green",  value: "green"  },
+              { title: "🟣 Purple", value: "purple" },
+              { title: "⚪ Gray",   value: "gray"   },
+              { title: "🟠 Orange", value: "orange" },
+              { title: "🔴 Red",    value: "red"    },
+            ],
+            layout: "radio",
+          },
+        },
+      ],
     },
     { name: "excerpt",      title: "ສຸດຍ່ໍ",        type: "text", rows: 3 },
     { name: "body",         title: "ລີວິວລາຍລະອຽດ", type: "array",

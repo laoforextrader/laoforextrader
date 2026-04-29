@@ -1,5 +1,7 @@
 import { Broker, Article } from "@/types"
 import Link from "next/link"
+import Image from "next/image"
+import { urlFor } from "@/lib/sanity"
 
 interface Props { brokers?: Broker[]; trending?: Article[] }
 
@@ -22,23 +24,75 @@ export function Sidebar({ brokers = [], trending = [] }: Props) {
 
           {brokers.slice(0, 5).map((broker, i) => {
             const ls = logoStyle(broker.name)
+            const slug = broker.slug?.current ?? ""
+            const rankNum = broker.rank ?? i + 1
             return (
-              <Link key={broker._id} href={`/broker/${broker.slug?.current ?? ""}`}
-                className="flex items-center gap-2.5 py-2.5 border-b border-blue-100/60 last:border-0 group cursor-pointer">
-                <span className="w-4 text-center font-mono text-[11px] font-bold text-gray-300">{i + 1}</span>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[10px] font-bold border border-gray-100 flex-shrink-0"
-                  style={{ background: ls.bg, color: ls.color }}>
-                  {broker.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[12px] font-semibold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
-                    {broker.name}
+              <div key={broker._id} className="py-2.5 border-b border-blue-100/60 last:border-0">
+                <Link href={`/broker/${slug}`} className="flex items-center gap-2.5 group">
+                  <span style={{ color: "#2563EB", fontWeight: 700, fontSize: 12, marginRight: 4, flexShrink: 0 }}>
+                    {rankNum}
+                  </span>
+                  {broker.logo?.asset?.url ? (
+                    <Image
+                      src={urlFor(broker.logo).width(64).height(64).url()}
+                      alt={broker.logo.alt || broker.name}
+                      width={32}
+                      height={32}
+                      style={{
+                        borderRadius: 8,
+                        objectFit: "contain",
+                        background: "#fff",
+                        border: "1px solid #E2E6F0",
+                        padding: 3,
+                        flexShrink: 0,
+                      }}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[10px] font-bold border border-gray-100 flex-shrink-0"
+                      style={{ background: ls.bg, color: ls.color }}>
+                      {broker.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[12px] font-semibold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
+                        {broker.name}
+                      </div>
+                      {broker.badge?.show && broker.badge?.text && (() => {
+                        const colorMap: Record<string, { bg: string; color: string; border: string }> = {
+                          gold:   { bg: "#FEF3C7", color: "#D97706", border: "#FDE68A" },
+                          blue:   { bg: "#EEF3FF", color: "#2563EB", border: "#BFCFFF" },
+                          green:  { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+                          purple: { bg: "#F5F3FF", color: "#7C3AED", border: "#DDD6FE" },
+                          gray:   { bg: "#F9FAFB", color: "#374151", border: "#E2E6F0" },
+                          orange: { bg: "#FFF7ED", color: "#EA580C", border: "#FED7AA" },
+                          red:    { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
+                        }
+                        const c = colorMap[broker.badge!.color] || colorMap.gray
+                        return (
+                          <span style={{
+                            display: "inline-block",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "3px 8px",
+                            borderRadius: 100,
+                            border: `1px solid ${c.border}`,
+                            background: c.bg,
+                            color: c.color,
+                            flexShrink: 0,
+                            whiteSpace: "nowrap",
+                          }}>
+                            {broker.badge!.text}
+                          </span>
+                        )
+                      })()}
+                    </div>
+                    <div className="text-[10px] text-amber-400" style={{ letterSpacing: "-1px" }}>
+                      {"★".repeat(Math.floor(broker.rating ?? 4))}
+                    </div>
                   </div>
-                  <div className="text-[10px] text-amber-400" style={{ letterSpacing:"-1px" }}>
-                    {"★".repeat(Math.floor(broker.rating ?? 4))}
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             )
           })}
 

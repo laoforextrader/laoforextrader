@@ -1,8 +1,10 @@
 "use client"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import { Broker } from "@/types"
+import { urlFor } from "@/lib/sanity"
 
 interface Props { brokers: Broker[] }
 
@@ -10,6 +12,15 @@ const BROKER_META: Record<string, { tag: string; tagClass: string; highlight?: b
   "xm-global":   { tag: "#1 ທາງເລືອກ Trader ລາວ", tagClass: "bg-amber-50 text-amber-600", highlight: true },
   "exness":       { tag: "ຖອນ Instant 24/7",        tagClass: "bg-blue-50 text-blue-600" },
   "ic-markets":   { tag: "ດີທີ່ສຸດ ສຳລັບ EA",       tagClass: "bg-green-50 text-green-600" },
+}
+
+type RankStyle = { label: string; bg: string; color: string; border?: string }
+function getRankStyle(rank?: number): RankStyle | null {
+  if (!rank) return null
+  if (rank === 1) return { label: "🏆 #1 ແນະນຳ", bg: "linear-gradient(135deg,#F59E0B,#FCD34D)", color: "#78350F", border: "#F59E0B" }
+  if (rank === 2) return { label: "#2",           bg: "linear-gradient(135deg,#9CA3AF,#E5E7EB)", color: "#1F2937" }
+  if (rank === 3) return { label: "#3",           bg: "linear-gradient(135deg,#B45309,#D97706)", color: "#FFF7ED" }
+  return { label: `#${rank}`, bg: "#F3F4F6", color: "#6B7280" }
 }
 
 function getLogoStyle(name: string) {
@@ -52,25 +63,44 @@ export function BrokerSection({ brokers }: Props) {
           {brokers.map((broker, i) => {
             const meta = BROKER_META[broker.slug?.current ?? ""] ?? { tag: "", tagClass: "bg-gray-100 text-gray-500" }
             const logo = getLogoStyle(broker.name)
-            const isFirst = i === 0
+            const rankStyle = getRankStyle(broker.rank)
+            const isTop = broker.rank === 1
             const slug = broker.slug?.current ?? ""
 
             return (
               <div key={broker._id}
-                className={`bk-card bg-white rounded-2xl p-5 relative overflow-hidden
-                  ${isFirst ? "border-[1.5px] border-blue-200" : "border-[1.5px] border-gray-200"}`}
+                className="bk-card bg-white rounded-2xl p-5 relative overflow-hidden"
+                style={{ border: isTop ? "2px solid #F59E0B" : "1.5px solid #E5E7EB" }}
                 onClick={() => router.push(`/broker/${slug}`)}>
 
-                {isFirst && (
-                  <div className="absolute top-0 right-3.5 text-[9px] font-extrabold tracking-wide text-amber-800 px-2.5 py-1 rounded-b-lg" style={{ background: "linear-gradient(135deg,#F59E0B,#FCD34D)" }}>
-                    👑 #1 ແນະນຳ
+                {rankStyle && (
+                  <div className="absolute top-0 right-3.5 text-[9px] font-extrabold tracking-wide px-2.5 py-1 rounded-b-lg"
+                    style={{ background: rankStyle.bg, color: rankStyle.color }}>
+                    {rankStyle.label}
                   </div>
                 )}
 
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-bold mb-3 border border-gray-100"
-                  style={{ background: logo.bg, color: logo.color }}>
-                  {broker.name.slice(0, 2).toUpperCase()}
-                </div>
+                {broker.logo?.asset?.url ? (
+                  <Image
+                    src={urlFor(broker.logo).width(96).height(96).url()}
+                    alt={broker.logo.alt || broker.name}
+                    width={42}
+                    height={42}
+                    style={{
+                      borderRadius: 12,
+                      objectFit: "contain",
+                      background: "#fff",
+                      border: "1px solid #E2E6F0",
+                      padding: 4,
+                      marginBottom: 12,
+                    }}
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-bold mb-3 border border-gray-100"
+                    style={{ background: logo.bg, color: logo.color }}>
+                    {broker.name.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
 
                 <div className="text-[15px] font-bold text-gray-900 mb-0.5">{broker.name}</div>
                 <div className="text-xs tracking-tight text-amber-400 mb-2" style={{ letterSpacing: "-1px" }}>
