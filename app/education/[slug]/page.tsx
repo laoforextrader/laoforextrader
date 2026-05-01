@@ -8,6 +8,8 @@ import { ArrowLeft, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata } from "@/lib/articleMetadata"
+import ReadingProgress from "@/components/ui/ReadingProgress"
+import TableOfContents from "@/components/ui/TableOfContents"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -20,22 +22,142 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const ptComponents = {
   block: {
-    normal:     ({ children }: any) => <p style={{ color: "#374151", lineHeight: 1.8, marginBottom: "1rem", fontSize: 15 }}>{children}</p>,
-    h2:         ({ children }: any) => <h2 style={{ color: "#111827", fontWeight: 700, fontSize: "1.4rem", marginTop: "2rem", marginBottom: "0.8rem", paddingBottom: "0.5rem", borderBottom: "1px solid #E5E7EB" }}>{children}</h2>,
-    h3:         ({ children }: any) => <h3 style={{ color: "#111827", fontWeight: 600, fontSize: "1.15rem", marginTop: "1.5rem", marginBottom: "0.6rem" }}>{children}</h3>,
-    blockquote: ({ children }: any) => <blockquote style={{ borderLeft: "3px solid #BFCFFF", paddingLeft: "1rem", color: "#6B7280", fontStyle: "italic", margin: "1.5rem 0" }}>{children}</blockquote>,
+    normal: ({ children }: any) => (
+      <p style={{ color: "#374151", lineHeight: 1.85, marginBottom: "1.1rem", fontSize: 15 }}>
+        {children}
+      </p>
+    ),
+    h2: ({ children }: any) => (
+      <h2 style={{
+        color: "#111827", fontWeight: 800, fontSize: "1.35rem",
+        marginTop: "2.5rem", marginBottom: "1rem",
+        paddingBottom: "0.5rem",
+        borderBottom: "2px solid #E5E7EB",
+        letterSpacing: "-0.02em"
+      }}>
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: any) => (
+      <h3 style={{
+        color: "#1E3A8A", fontWeight: 700, fontSize: "1.1rem",
+        marginTop: "1.8rem", marginBottom: "0.6rem",
+        display: "flex", alignItems: "center", gap: 8
+      }}>
+        <span style={{
+          width: 4, height: 18, background: "linear-gradient(180deg,#2563EB,#4F46E5)",
+          borderRadius: 2, display: "inline-block", flexShrink: 0
+        }} />
+        {children}
+      </h3>
+    ),
+    blockquote: ({ children }: any) => (
+      <blockquote style={{
+        background: "#F8FAFF",
+        borderLeft: "4px solid #2563EB",
+        padding: "14px 18px",
+        borderRadius: "0 10px 10px 0",
+        margin: "1.5rem 0",
+        color: "#374151",
+        fontStyle: "italic",
+        fontSize: 14,
+        lineHeight: 1.75
+      }}>
+        {children}
+      </blockquote>
+    ),
   },
   list: {
-    bullet: ({ children }: any) => <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem", display:"flex", flexDirection:"column" as const, gap:6 }}>{children}</ul>,
-    number: ({ children }: any) => <ol style={{ paddingLeft: "1.5rem", marginBottom: "1rem", listStyleType:"decimal", display:"flex", flexDirection:"column" as const, gap:6 }}>{children}</ol>,
+    bullet: ({ children }: any) => (
+      <ul style={{
+        paddingLeft: "0.5rem", marginBottom: "1.2rem",
+        display: "flex", flexDirection: "column" as const, gap: 8
+      }}>
+        {children}
+      </ul>
+    ),
+    number: ({ children }: any) => (
+      <ol style={{
+        paddingLeft: "0.5rem", marginBottom: "1.2rem",
+        display: "flex", flexDirection: "column" as const, gap: 8,
+        counterReset: "item"
+      }}>
+        {children}
+      </ol>
+    ),
   },
   listItem: {
-    bullet: ({ children }: any) => <li style={{ color: "#374151", fontSize: 14 }}>{children}</li>,
-    number: ({ children }: any) => <li style={{ color: "#374151", fontSize: 14 }}>{children}</li>,
+    bullet: ({ children }: any) => (
+      <li style={{
+        display: "flex", alignItems: "flex-start", gap: 10,
+        color: "#374151", fontSize: 14, lineHeight: 1.7, listStyle: "none"
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: "50%",
+          background: "#2563EB", flexShrink: 0, marginTop: 7
+        }} />
+        <span>{children}</span>
+      </li>
+    ),
+    number: ({ children }: any) => (
+      <li style={{
+        display: "flex", alignItems: "flex-start", gap: 10,
+        color: "#374151", fontSize: 14, lineHeight: 1.7,
+        listStyle: "none", counterIncrement: "item"
+      }}>
+        <span style={{
+          minWidth: 24, height: 24, borderRadius: "50%",
+          background: "linear-gradient(135deg,#2563EB,#4F46E5)",
+          color: "#fff", fontSize: 11, fontWeight: 700,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0, marginTop: 1
+        }}>
+          {/* number handled by CSS counter */}
+        </span>
+        <span>{children}</span>
+      </li>
+    ),
   },
   marks: {
-    strong: ({ children }: any) => <strong style={{ color: "#111827", fontWeight: 600 }}>{children}</strong>,
-    link:   ({ value, children }: any) => <a href={value?.href} target="_blank" rel="noopener noreferrer" style={{ color: "#2563EB", textDecoration: "underline" }}>{children}</a>,
+    strong: ({ children }: any) => (
+      <strong style={{
+        color: "#111827", fontWeight: 700,
+        background: "linear-gradient(120deg, #DBEAFE 0%, #DBEAFE 100%)",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "100% 40%",
+        backgroundPosition: "0 85%",
+        padding: "0 2px"
+      }}>
+        {children}
+      </strong>
+    ),
+    link: ({ value, children }: any) => (
+      <a href={value?.href} target="_blank" rel="noopener noreferrer"
+        style={{ color: "#2563EB", textDecoration: "underline", fontWeight: 500 }}>
+        {children}
+      </a>
+    ),
+    code: ({ children }: any) => (
+      <code style={{
+        background: "#F3F4F6", color: "#1E3A8A",
+        padding: "2px 6px", borderRadius: 4, fontSize: 13, fontFamily: "monospace"
+      }}>
+        {children}
+      </code>
+    ),
+  },
+  types: {
+    image: ({ value }: any) => value?.asset?.url ? (
+      <div style={{ margin: "24px 0" }}>
+        <img src={value.asset.url} alt={value.alt || ""}
+          style={{ width: "100%", borderRadius: 12, border: "1px solid #E2E6F0" }} />
+        {value.caption && (
+          <p style={{ textAlign: "center", fontSize: 12, color: "#9CA3AF", marginTop: 8 }}>
+            {value.caption}
+          </p>
+        )}
+      </div>
+    ) : null,
   },
 }
 
@@ -46,6 +168,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+      <ReadingProgress />
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
 
         <Link href="/education"
@@ -69,7 +192,9 @@ export default async function ArticleDetailPage({ params }: Props) {
           </div>
         )}
 
-        <div>
+        <TableOfContents />
+
+        <div className="article-body">
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
 

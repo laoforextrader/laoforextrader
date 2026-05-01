@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import { Broker } from "@/types"
 import { urlFor } from "@/lib/sanity"
+import { event } from "@/lib/gtag"
 
 interface Props { brokers: Broker[] }
 
@@ -133,12 +134,14 @@ export function BrokerSection({ brokers }: Props) {
                 <div className="flex gap-2 mt-3.5" onClick={e => e.stopPropagation()}>
                   {broker.registerUrl && (
                     <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
+                      onClick={() => event({ action: "broker_click", category: "Broker", label: broker.name })}
                       className="btn-primary flex-1 text-[12px] py-2 text-center">
                       ສະໝັກເປີດບັນຊີ →
                     </a>
                   )}
                   {broker.affiliateUrl && (
                     <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
+                      onClick={() => event({ action: "broker_website_click", category: "Broker", label: broker.name })}
                       className="btn-outline text-[12px] py-2 px-3">
                       ເວັບໄຊທ໌
                     </a>

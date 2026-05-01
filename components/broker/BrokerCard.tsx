@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Broker } from "@/types"
+import { event } from "@/lib/gtag"
 
 interface Props {
   broker: Broker
@@ -71,12 +72,14 @@ export function BrokerCard({ broker, variant = "default", rank }: Props) {
         <div style={{ display:"flex", gap:8, marginTop:12 }} onClick={e => e.stopPropagation()}>
           {broker.registerUrl && (
             <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => event({ action: "broker_click", category: "Broker", label: broker.name })}
               style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:"7px 0", background:"linear-gradient(135deg,#2563EB,#4F46E5)", color:"#fff", fontSize:11, fontWeight:700, borderRadius:8, textDecoration:"none" }}>
               ສະໝັກເປີດບັນຊີ →
             </a>
           )}
           {broker.affiliateUrl && (
             <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => event({ action: "broker_website_click", category: "Broker", label: broker.name })}
               style={{ padding:"7px 10px", background:"#F3F4F6", color:"#374151", fontSize:11, fontWeight:600, borderRadius:8, textDecoration:"none", border:"1px solid #E5E7EB" }}>
               ເວັບໄຊທ໌
             </a>

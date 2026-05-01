@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle, XCircle, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata, buildBrokerMetadata } from "@/lib/articleMetadata"
+import { TrackedBrokerLink } from "@/components/broker/TrackedBrokerLink"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -142,16 +143,16 @@ export default async function BrokerSlugPage({ params }: Props) {
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
               {broker.registerUrl && (
-                <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
+                <TrackedBrokerLink href={broker.registerUrl} brokerName={broker.name} action="broker_click"
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "11px 28px", background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff", fontSize: 14, fontWeight: 700, borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }}>
                   ສະໝັກເປີດບັນຊີ {broker.name.split(" ")[0]} →
-                </a>
+                </TrackedBrokerLink>
               )}
               {broker.affiliateUrl && (
-                <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
+                <TrackedBrokerLink href={broker.affiliateUrl} brokerName={broker.name} action="broker_website_click"
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "11px 20px", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, borderRadius: 10, textDecoration: "none", border: "1.5px solid #D1D5DB" }}>
                   ເຂົ້າເວັບໂບຣກເກີ
-                </a>
+                </TrackedBrokerLink>
               )}
             </div>
           </div>
@@ -211,16 +212,16 @@ export default async function BrokerSlugPage({ params }: Props) {
             <div style={{ fontSize: 13, color: "#374151", marginBottom: 18 }}>ສະໝັກງ່າຍ · ຟຣີ · ໃຊ້ເວລາ 5 ນາທີ</div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
               {broker.registerUrl && (
-                <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
+                <TrackedBrokerLink href={broker.registerUrl} brokerName={broker.name} action="broker_click"
                   style={{ display: "inline-flex", alignItems: "center", padding: "11px 32px", background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff", fontSize: 14, fontWeight: 700, borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }}>
                   ສະໝັກດຽວນີ້ →
-                </a>
+                </TrackedBrokerLink>
               )}
               {broker.affiliateUrl && (
-                <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
+                <TrackedBrokerLink href={broker.affiliateUrl} brokerName={broker.name} action="broker_website_click"
                   style={{ display: "inline-flex", alignItems: "center", padding: "11px 20px", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, borderRadius: 10, textDecoration: "none", border: "1.5px solid #D1D5DB" }}>
                   ເຂົ້າເວັບໂບຣກເກີ
-                </a>
+                </TrackedBrokerLink>
               )}
             </div>
           </div>
