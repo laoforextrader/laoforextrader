@@ -10,9 +10,11 @@ import { buildArticleMetadata } from "@/lib/articleMetadata"
 
 interface Props { params: Promise<{ slug: string }> }
 
+export const revalidate = 60
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
+  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) return { title: "Not found" }
   return buildArticleMetadata(article, `/lessons/${article.slug?.current ?? ""}`)
 }
@@ -41,14 +43,14 @@ const ptComponents = {
 
 export default async function LessonDetailPage({ params }: Props) {
   const { slug } = await params
-  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
+  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) notFound()
 
   const allLessons = await sanityClient.fetch<Article[]>(`
     *[_type == "article" && category == "education"] | order(publishedAt asc) {
       _id, title, slug
     }
-  `)
+  `, {}, { next: { revalidate: 60 } })
   const currentIndex = allLessons.findIndex(l => l.slug?.current ?? "" === slug)
   const prev = currentIndex > 0 ? allLessons[currentIndex - 1] : null
   const next = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null

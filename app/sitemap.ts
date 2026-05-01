@@ -4,10 +4,12 @@ import { Article, Broker } from "@/types"
 
 const BASE = "https://laoforextrader.com"
 
+export const revalidate = 60
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, brokers] = await Promise.all([
-    sanityClient.fetch<Article[]>(QUERIES.latestArticles(100)),
-    sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers),
+    sanityClient.fetch<Article[]>(QUERIES.latestArticles(100), {}, { next: { revalidate: 60 } }),
+    sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers, {}, { next: { revalidate: 60 } }),
   ])
 
   const staticRoutes: MetadataRoute.Sitemap = [

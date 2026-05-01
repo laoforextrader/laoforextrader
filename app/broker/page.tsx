@@ -10,11 +10,12 @@ export const metadata: Metadata = {
   title: "ລີວິວ Broker | LaoForexTrader",
 }
 
+export const revalidate = 60
 
 export default async function Page() {
   const [articles, brokers] = await Promise.all([
-    sanityClient.fetch<Article[]>(QUERIES.articlesByCategory("broker", 20)),
-    sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers),
+    sanityClient.fetch<Article[]>(QUERIES.articlesByCategory("broker", 20), {}, { next: { revalidate: 60 } }),
+    sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers, {}, { next: { revalidate: 60 } }),
   ])
 
   return (

@@ -7,9 +7,13 @@ export const metadata: Metadata = {
   title: "ຂ່າວ | LaoForexTrader",
 }
 
+export const revalidate = 60
+
 export default async function Page() {
   const articles = await sanityClient.fetch<Article[]>(
-    QUERIES.articlesByCategory("news", 20)
+    QUERIES.articlesByCategory("news", 20),
+    {},
+    { next: { revalidate: 60 } }
   )
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>

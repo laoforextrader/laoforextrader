@@ -11,9 +11,11 @@ import { buildArticleMetadata } from "@/lib/articleMetadata"
 
 interface Props { params: Promise<{ slug: string }> }
 
+export const revalidate = 60
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
+  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) return { title: "Not found" }
   return buildArticleMetadata(article, `/analysis/${article.slug?.current ?? ""}`)
 }
@@ -41,7 +43,7 @@ const ptComponents = {
 
 export default async function ArticleDetailPage({ params }: Props) {
   const { slug } = await params
-  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
+  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) notFound()
 
   return (

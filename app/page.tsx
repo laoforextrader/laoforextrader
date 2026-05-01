@@ -1,5 +1,4 @@
-import { sanityClient, QUERIES, urlFor } from "@/lib/sanity"
-import { ArticleCard } from "@/components/article/ArticleCard"
+import { sanityClient, QUERIES } from "@/lib/sanity"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { HeroCanvas } from "@/components/ui/HeroCanvas"
 import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
@@ -23,32 +22,59 @@ const CATEGORY_TABS = [
   { label: "EA / Tools", href: "/?cat=ea-tools" },
 ]
 
-export const revalidate = 3600
+export const revalidate = 60
+
+interface LatestByCategory {
+  featured: Article | null
+  education: Article | null
+  "ea-tools": Article | null
+  analysis: Article | null
+  news: Article | null
+}
+
+const CAT_COLOR: Record<string, string> = {
+  education: "text-purple-600",
+  "ea-tools": "text-pink-600",
+  analysis: "text-amber-600",
+  news: "text-green-600",
+  broker: "text-blue-600",
+}
+const CAT_LABEL: Record<string, string> = {
+  education: "● ການສຶກສາ",
+  "ea-tools": "● EA & Tools",
+  analysis: "● ວິເຄາະ",
+  news: "● ຂ່າວ",
+  broker: "● ລີວິວ Broker",
+}
 
 export default async function HomePage() {
-  let articles: Article[] = []
-  let featured: Article | null = null
+  let latest: LatestByCategory = { featured: null, education: null, "ea-tools": null, analysis: null, news: null }
   let brokers: Broker[] = []
   let lessons: Article[] = []
 
   try {
     const data = await Promise.all([
-      sanityClient.fetch<Article[]>(QUERIES.latestArticles(12)),
-      sanityClient.fetch<Article>(QUERIES.featuredArticle),
-      sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers),
+      sanityClient.fetch<LatestByCategory>(QUERIES.latestByCategory, {}, { next: { revalidate: 60 } }),
+      sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers, {}, { next: { revalidate: 60 } }),
       sanityClient.fetch<Article[]>(`
         *[_type == "article" && category == "education"] | order(publishedAt asc) [0...10] {
           _id, title, slug, readTime
         }
-      `),
+      `, {}, { next: { revalidate: 60 } }),
     ])
-    articles = data[0] || []
-    featured = data[1] || null
-    brokers = data[2] || []
-    lessons = data[3] || []
+    latest = data[0] || latest
+    brokers = data[1] || []
+    lessons = data[2] || []
   } catch (err) {
     console.error("Sanity fetch error:", err)
   }
+
+  const featured = latest.featured
+  const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
+    .map(cat => latest[cat])
+    .filter((a): a is Article => !!a && a._id !== featured?._id)
+  const trending = [featured, latest.education, latest["ea-tools"], latest.analysis, latest.news]
+    .filter((a): a is Article => !!a)
 
   return (
     <div>
@@ -112,10 +138,10 @@ export default async function HomePage() {
               <div style={{ height: 3, background: "linear-gradient(90deg,#2563EB,#4F46E5)" }} />
               <div className="p-5">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-blue-600 mb-2.5">⭐ ບົດຄວາມແນະນຳ</div>
-                {featured.coverImage && (
-                  <div className="relative w-full rounded-xl overflow-hidden mb-3.5 bg-gray-100" style={{ height: 200 }}>
+                {featured.coverImage?.asset?.url && (
+                  <div className="relative w-full rounded-xl overflow-hidden mb-3.5 bg-gray-100" style={{ height: 240 }}>
                     <Image
-                      src={urlFor(featured.coverImage).width(800).height(400).url()}
+                      src={featured.coverImage.asset.url}
                       alt={featured.title}
                       fill
                       priority
@@ -124,28 +150,54 @@ export default async function HomePage() {
                     />
                   </div>
                 )}
-                <h2 className="font-lao text-[20px] font-bold leading-snug text-gray-900 group-hover:text-blue-700 transition-colors mb-2 line-clamp-2" style={{ letterSpacing: "-0.01em" }}>
+                <h2 className="font-lao font-bold leading-snug text-gray-900 group-hover:text-blue-700 transition-colors mb-2 line-clamp-2"
+                    style={{ fontSize: 24, letterSpacing: "-0.01em" }}>
                   {featured.title}
                 </h2>
                 {featured.excerpt && (
-                  <p className="font-lao text-[12.5px] text-gray-500 line-clamp-2 leading-relaxed mb-3">
+                  <p className="font-lao text-[13px] text-gray-500 line-clamp-2 leading-relaxed mb-3">
                     {featured.excerpt}
                   </p>
                 )}
-                <div className="flex items-center gap-2 text-[10px] text-gray-400 font-lao">
-                  {featured.author?.name && <span className="font-medium text-gray-500">{featured.author.name}</span>}
-                  {featured.publishedAt && <><span>·</span><span>{formatDate(featured.publishedAt)}</span></>}
-                  {featured.readTime && <><span>·</span><span>{featured.readTime}m</span></>}
+                <div className="flex items-center gap-2 text-[11px] font-lao">
+                  <span className={`font-bold uppercase tracking-widest ${CAT_COLOR[featured.category] ?? "text-gray-500"}`}>
+                    {CAT_LABEL[featured.category] ?? featured.category}
+                  </span>
+                  {featured.publishedAt && <><span className="text-gray-400">·</span><span className="text-gray-400">{formatDate(featured.publishedAt)}</span></>}
+                  {featured.readTime && <><span className="text-gray-400">·</span><span className="text-gray-400">{featured.readTime}m</span></>}
                 </div>
               </div>
             </Link>
           )}
           <div className="text-[10px] text-gray-400 uppercase tracking-widest font-bold px-5 py-3 border-b border-gray-100">ລ່າສຸດ · 1 ຕໍ່ໝວດ</div>
-          {articles
-            .reduce<Article[]>((acc, a) => acc.some(x => x.category === a.category) ? acc : [...acc, a], [])
-            .map(article => <ArticleCard key={article._id} article={article} />)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5">
+            {categoryCards.map(article => (
+              <Link
+                key={article._id}
+                href={`/${categoryRoute(article.category)}/${article.slug?.current ?? ""}`}
+                className="group flex flex-col bg-white rounded-xl p-4 transition-all hover:-translate-y-1"
+                style={{ border: "1px solid #E2E6F0", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }}
+              >
+                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${CAT_COLOR[article.category] ?? "text-gray-500"}`}>
+                  {CAT_LABEL[article.category] ?? article.category}
+                </div>
+                <h3 className="font-lao text-[14px] font-semibold leading-snug text-gray-900 group-hover:text-blue-700 transition-colors mb-2 line-clamp-2">
+                  {article.title}
+                </h3>
+                {article.excerpt && (
+                  <p className="font-lao text-[12px] text-gray-500 leading-relaxed line-clamp-2 mb-3 flex-1">
+                    {article.excerpt}
+                  </p>
+                )}
+                <div className="flex items-center gap-2 text-[10px] text-gray-400 font-lao mt-auto">
+                  {article.publishedAt && <span>{formatDate(article.publishedAt)}</span>}
+                  {article.readTime && <><span>·</span><span>{article.readTime}m</span></>}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-        <Sidebar brokers={brokers} trending={articles.slice(0, 5)} />
+        <Sidebar brokers={brokers} trending={trending.slice(0, 5)} />
       </div>
 
       {/* ── LESSONS ── */}

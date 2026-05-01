@@ -8,9 +8,13 @@ export const metadata: Metadata = {
   description: "ຮຽນຮູ້ EA, Robot Forex, MT4 vs MT5, VPS ສຳລັບ Trader ລາວ",
 }
 
+export const revalidate = 60
+
 export default async function EAToolsPage() {
   const articles = await sanityClient.fetch<Article[]>(
-    QUERIES.articlesByCategory("ea-tools", 20)
+    QUERIES.articlesByCategory("ea-tools", 20),
+    {},
+    { next: { revalidate: 60 } }
   )
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

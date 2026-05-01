@@ -13,11 +13,13 @@ import { TrackedBrokerLink } from "@/components/broker/TrackedBrokerLink"
 
 interface Props { params: Promise<{ slug: string }> }
 
+export const revalidate = 60
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const broker = await sanityClient.fetch(QUERIES.brokerBySlug(slug))
+  const broker = await sanityClient.fetch(QUERIES.brokerBySlug(slug), {}, { next: { revalidate: 60 } })
   if (broker) return buildBrokerMetadata(broker, `/broker/${broker.slug?.current ?? slug}`)
-  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
+  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (article) return buildArticleMetadata(article, `/broker/${article.slug?.current ?? ""}`)
   return { title: "Not found" }
 }
@@ -67,7 +69,7 @@ export default async function BrokerSlugPage({ params }: Props) {
   const { slug } = await params
 
   // ── Try broker profile first ───────────────────────────────────────────────
-  const broker = await sanityClient.fetch(QUERIES.brokerBySlug(slug))
+  const broker = await sanityClient.fetch(QUERIES.brokerBySlug(slug), {}, { next: { revalidate: 60 } })
 
   if (broker) {
     const rb = broker.ratingBreakdown ?? {}
@@ -241,7 +243,7 @@ export default async function BrokerSlugPage({ params }: Props) {
   }
 
   // ── Fall back to article ───────────────────────────────────────────────────
-  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug))
+  const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) notFound()
 
   return (

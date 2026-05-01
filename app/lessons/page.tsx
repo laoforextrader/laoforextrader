@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: "ຮຽນ Forex ຕັ້ງແຕ່ສູນ ຈົນ Pro ດ້ວຍ 50 ບົດຮຽນ ພາສາລາວ",
 }
 
+export const revalidate = 60
+
 const SECTIONS = [
   { label: "ພາກທີ 1: ພື້ນຖານ Forex",      from: 1,  to: 10, color: "#2563EB",  bg: "#EEF3FF",  border: "#BFCFFF" },
   { label: "ພາກທີ 2: Technical Analysis", from: 11, to: 25, color: "#7C3AED",  bg: "#F5F3FF",  border: "#DDD6FE" },
@@ -26,7 +28,7 @@ export default async function LessonsPage() {
     *[_type == "article" && category == "education"] | order(publishedAt asc) {
       _id, title, slug, readTime
     }
-  `)
+  `, {}, { next: { revalidate: 60 } })
 
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>

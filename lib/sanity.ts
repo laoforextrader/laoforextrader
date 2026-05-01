@@ -8,7 +8,7 @@ export const sanityClient = createClient({
   projectId,
   dataset,
   apiVersion: "2025-04-25",
-  useCdn:     true,
+  useCdn:     false,
 })
 
 const builder = imageUrlBuilder(sanityClient)
@@ -36,6 +36,33 @@ export const QUERIES = {
       _id, title, slug, excerpt, category, publishedAt, readTime, coverImage, body, author->{ name, slug }
     }
   `,
+  latestByCategory: `{
+    "featured": *[_type == "article" && category != "broker"]
+      | order(publishedAt desc) [0] {
+        _id, title, slug, excerpt, category, publishedAt, readTime,
+        coverImage { asset->{ url } }
+      },
+    "education": *[_type == "article" && category == "education"]
+      | order(publishedAt desc) [0] {
+        _id, title, slug, excerpt, category, publishedAt, readTime,
+        coverImage { asset->{ url } }
+      },
+    "ea-tools": *[_type == "article" && category == "ea-tools"]
+      | order(publishedAt desc) [0] {
+        _id, title, slug, excerpt, category, publishedAt, readTime,
+        coverImage { asset->{ url } }
+      },
+    "analysis": *[_type == "article" && category == "analysis"]
+      | order(publishedAt desc) [0] {
+        _id, title, slug, excerpt, category, publishedAt, readTime,
+        coverImage { asset->{ url } }
+      },
+    "news": *[_type == "article" && category == "news"]
+      | order(publishedAt desc) [0] {
+        _id, title, slug, excerpt, category, publishedAt, readTime,
+        coverImage { asset->{ url } }
+      }
+  }`,
   featuredBrokers: `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) [0...6] {
     _id, name, slug, rank, rating, minDeposit, maxLeverage, laoDeposit, affiliateUrl, registerUrl,
     logo { asset->{ url }, alt, hotspot, crop },
