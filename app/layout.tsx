@@ -3,7 +3,7 @@ import "./globals.css"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { MarketTicker } from "@/components/market/MarketTicker"
-import { SessionProvider } from "@/components/auth/SessionProvider"
+import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"
 import { GoogleAnalytics } from "@next/third-parties/google"
 
 export const metadata: Metadata = {
@@ -32,12 +32,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         display: "flex",
         flexDirection: "column",
       }}>
-        <SessionProvider>
+        <SessionProviderWrapper>
           <Navbar />
           <MarketTicker />
           <main style={{ flex: 1, color: "#111827" }}>{children}</main>
           <Footer />
-        </SessionProvider>
+        </SessionProviderWrapper>
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />

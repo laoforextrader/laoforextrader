@@ -11,7 +11,7 @@ import { buildArticleMetadata } from "@/lib/articleMetadata"
 
 interface Props { params: Promise<{ slug: string }> }
 
-export const revalidate = 60
+export const revalidate = 3600
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
