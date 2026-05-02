@@ -7,9 +7,13 @@ import { SessionProvider } from "@/components/auth/SessionProvider"
 import { GoogleAnalytics } from "@next/third-parties/google"
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://laoforextrader.com"),
   title: { default: "LaoForexTrader — ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ", template: "%s | LaoForexTrader" },
   description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
   icons: { icon: "/favicon.svg" },
+  openGraph: {
+    images: [{ url: "/opengraph-image" }],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
