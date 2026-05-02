@@ -115,6 +115,30 @@ export const OG_STYLES: Record<string, OGStyle> = {
     eyebrow: '#34D399',
     candleOpacity: 0.09,
   },
+  lessons: {
+    bg: 'linear-gradient(160deg, #0A0E1A 0%, #111827 50%, #0D1220 100%)',
+    accent: '#EAB308',
+    accentLight: '#F59E0B',
+    badgeBg: 'linear-gradient(135deg, #EAB308, #CA8A04)',
+    badgeColor: '#000',
+    catBg: 'rgba(234,179,8,0.12)',
+    catBorder: 'rgba(234,179,8,0.3)',
+    catColor: '#EAB308',
+    eyebrow: '#EAB308',
+    candleOpacity: 0.07,
+  },
+  tools: {
+    bg: 'linear-gradient(135deg, #060C1B 0%, #0D1829 60%, #060C1B 100%)',
+    accent: '#22D3EE',
+    accentLight: '#818CF8',
+    badgeBg: 'linear-gradient(135deg, #0891B2, #06B6D4)',
+    badgeColor: '#fff',
+    catBg: 'rgba(6,182,212,0.12)',
+    catBorder: 'rgba(6,182,212,0.3)',
+    catColor: '#22D3EE',
+    eyebrow: '#22D3EE',
+    candleOpacity: 0.06,
+  },
 }
 
 export function getOGStyle(category: string): OGStyle {
@@ -127,4 +151,6 @@ export const CATEGORY_LABELS: Record<string, string> = {
   broker: 'Broker',
   analysis: 'Analysis',
   news: 'News',
+  lessons: 'Lessons',
+  tools: 'Tools',
 }
