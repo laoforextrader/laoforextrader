@@ -1,7 +1,43 @@
 import { ImageResponse } from 'next/og'
-import { CANDLES_SVG, getOGStyle, CATEGORY_LABELS } from './ogCandlesticks'
+import { CANDLES, getOGStyle, CATEGORY_LABELS } from './ogCandlesticks'
 
 export const OG_SIZE = { width: 1200, height: 630 }
+
+function CandleLayer({ opacity }: { opacity: number }) {
+  return (
+    <div style={{
+      display: 'flex',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: 1200,
+      height: 630,
+      opacity,
+    }}>
+      {CANDLES.map((c, i) => (
+        <div key={i} style={{ display: 'flex', position: 'absolute', top: 0, left: 0 }}>
+          <div style={{
+            position: 'absolute',
+            left: c.x + 8,
+            top: c.wickTop,
+            width: 2,
+            height: c.wickBottom - c.wickTop,
+            background: c.color,
+            borderRadius: 1,
+          }} />
+          <div style={{
+            position: 'absolute',
+            left: c.x,
+            top: c.y,
+            width: 18,
+            height: c.h,
+            background: c.color,
+          }} />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function generateOGImage(article: {
   title: string
@@ -31,21 +67,11 @@ export function generateOGImage(article: {
           fontFamily: 'sans-serif',
         }}
       >
-        <svg
-          width="1200"
-          height="630"
-          viewBox="0 0 1200 630"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            opacity: style.candleOpacity,
-          }}
-          dangerouslySetInnerHTML={{ __html: CANDLES_SVG }}
-        />
+        <CandleLayer opacity={style.candleOpacity} />
 
         <div
           style={{
+            display: 'flex',
             position: 'absolute',
             bottom: 0,
             left: 0,
@@ -57,6 +83,7 @@ export function generateOGImage(article: {
 
         <div
           style={{
+            display: 'flex',
             position: 'absolute',
             top: 0,
             left: 0,
@@ -68,6 +95,7 @@ export function generateOGImage(article: {
 
         {isEA && (
           <div style={{
+            display: 'flex',
             position: 'absolute',
             top: 0,
             left: 0,
@@ -91,7 +119,7 @@ export function generateOGImage(article: {
             }}>
               LFT
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 16, fontWeight: 500 }}>
+            <div style={{ display: 'flex', color: 'rgba(255,255,255,0.45)', fontSize: 16, fontWeight: 500 }}>
               LaoForexTrader
             </div>
           </div>
@@ -124,7 +152,7 @@ export function generateOGImage(article: {
             textTransform: 'uppercase',
             marginBottom: 16,
           }}>
-            <div style={{ width: 28, height: 2, background: style.eyebrow, borderRadius: 2 }} />
+            <div style={{ display: 'flex', width: 28, height: 2, background: style.eyebrow, borderRadius: 2 }} />
             {isEA ? '● LIVE ACCOUNT' : catLabel}
           </div>
 
@@ -161,7 +189,7 @@ export function generateOGImage(article: {
           paddingTop: 20,
           borderTop: '1px solid rgba(255,255,255,0.07)',
         }}>
-          <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: 14, fontWeight: 500 }}>
+          <div style={{ display: 'flex', color: 'rgba(255,255,255,0.28)', fontSize: 14, fontWeight: 500 }}>
             laoforextrader.com
           </div>
           <div style={{

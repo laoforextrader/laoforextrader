@@ -1,65 +1,45 @@
-export const CANDLES_SVG = `
-<g fill="#10B981" opacity="0.9">
-  <rect x="20"  y="320" width="18" height="120"/>
-  <line x1="29"  y1="290" x2="29"  y2="460" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="60"  y="260" width="18" height="160"/>
-  <line x1="69"  y1="220" x2="69"  y2="440" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="140" y="200" width="18" height="180"/>
-  <line x1="149" y1="160" x2="149" y2="420" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="220" y="240" width="18" height="130"/>
-  <line x1="229" y1="200" x2="229" y2="400" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="300" y="180" width="18" height="200"/>
-  <line x1="309" y1="130" x2="309" y2="420" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="380" y="220" width="18" height="150"/>
-  <line x1="389" y1="180" x2="389" y2="410" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="500" y="170" width="18" height="180"/>
-  <line x1="509" y1="130" x2="509" y2="400" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="580" y="200" width="18" height="140"/>
-  <line x1="589" y1="165" x2="589" y2="380" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="700" y="160" width="18" height="200"/>
-  <line x1="709" y1="110" x2="709" y2="410" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="780" y="190" width="18" height="160"/>
-  <line x1="789" y1="155" x2="789" y2="390" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="900" y="140" width="18" height="220"/>
-  <line x1="909" y1="90"  x2="909" y2="420" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="980" y="170" width="18" height="170"/>
-  <line x1="989" y1="130" x2="989" y2="390" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="1100" y="120" width="18" height="240"/>
-  <line x1="1109" y1="70" x2="1109" y2="430" stroke="#10B981" stroke-width="2.5"/>
-  <rect x="1160" y="150" width="18" height="190"/>
-  <line x1="1169" y1="110" x2="1169" y2="400" stroke="#10B981" stroke-width="2.5"/>
-</g>
-<g fill="#EF4444" opacity="0.9">
-  <rect x="100" y="280" width="18" height="100"/>
-  <line x1="109" y1="250" x2="109" y2="410" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="180" y="250" width="18" height="130"/>
-  <line x1="189" y1="210" x2="189" y2="420" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="260" y="230" width="18" height="110"/>
-  <line x1="269" y1="200" x2="269" y2="380" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="340" y="260" width="18" height="90"/>
-  <line x1="349" y1="235" x2="349" y2="390" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="420" y="200" width="18" height="140"/>
-  <line x1="429" y1="165" x2="429" y2="380" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="460" y="230" width="18" height="100"/>
-  <line x1="469" y1="205" x2="469" y2="370" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="540" y="190" width="18" height="130"/>
-  <line x1="549" y1="155" x2="549" y2="360" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="620" y="220" width="18" height="110"/>
-  <line x1="629" y1="190" x2="629" y2="375" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="740" y="210" width="18" height="110"/>
-  <line x1="749" y1="180" x2="749" y2="370" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="820" y="200" width="18" height="140"/>
-  <line x1="829" y1="165" x2="829" y2="390" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="940" y="180" width="18" height="130"/>
-  <line x1="949" y1="145" x2="949" y2="360" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="1020" y="200" width="18" height="100"/>
-  <line x1="1029" y1="170" x2="1029" y2="350" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="1060" y="175" width="18" height="120"/>
-  <line x1="1069" y1="140" x2="1069" y2="350" stroke="#EF4444" stroke-width="2.5"/>
-  <rect x="1140" y="160" width="18" height="130"/>
-  <line x1="1149" y1="125" x2="1149" y2="345" stroke="#EF4444" stroke-width="2.5"/>
-</g>
-`
+export type Candle = {
+  x: number
+  y: number
+  h: number
+  wickTop: number
+  wickBottom: number
+  color: '#10B981' | '#EF4444'
+}
+
+// Pre-computed candle layout for the 1200x630 OG canvas.
+// Body = rect(x, y, w=18, h). Wick = vertical line at x+8, from wickTop to wickBottom.
+export const CANDLES: Candle[] = [
+  { x: 20,   y: 320, h: 120, wickTop: 290, wickBottom: 460, color: '#10B981' },
+  { x: 60,   y: 260, h: 160, wickTop: 220, wickBottom: 440, color: '#10B981' },
+  { x: 140,  y: 200, h: 180, wickTop: 160, wickBottom: 420, color: '#10B981' },
+  { x: 220,  y: 240, h: 130, wickTop: 200, wickBottom: 400, color: '#10B981' },
+  { x: 300,  y: 180, h: 200, wickTop: 130, wickBottom: 420, color: '#10B981' },
+  { x: 380,  y: 220, h: 150, wickTop: 180, wickBottom: 410, color: '#10B981' },
+  { x: 500,  y: 170, h: 180, wickTop: 130, wickBottom: 400, color: '#10B981' },
+  { x: 580,  y: 200, h: 140, wickTop: 165, wickBottom: 380, color: '#10B981' },
+  { x: 700,  y: 160, h: 200, wickTop: 110, wickBottom: 410, color: '#10B981' },
+  { x: 780,  y: 190, h: 160, wickTop: 155, wickBottom: 390, color: '#10B981' },
+  { x: 900,  y: 140, h: 220, wickTop: 90,  wickBottom: 420, color: '#10B981' },
+  { x: 980,  y: 170, h: 170, wickTop: 130, wickBottom: 390, color: '#10B981' },
+  { x: 1100, y: 120, h: 240, wickTop: 70,  wickBottom: 430, color: '#10B981' },
+  { x: 1160, y: 150, h: 190, wickTop: 110, wickBottom: 400, color: '#10B981' },
+
+  { x: 100,  y: 280, h: 100, wickTop: 250, wickBottom: 410, color: '#EF4444' },
+  { x: 180,  y: 250, h: 130, wickTop: 210, wickBottom: 420, color: '#EF4444' },
+  { x: 260,  y: 230, h: 110, wickTop: 200, wickBottom: 380, color: '#EF4444' },
+  { x: 340,  y: 260, h: 90,  wickTop: 235, wickBottom: 390, color: '#EF4444' },
+  { x: 420,  y: 200, h: 140, wickTop: 165, wickBottom: 380, color: '#EF4444' },
+  { x: 460,  y: 230, h: 100, wickTop: 205, wickBottom: 370, color: '#EF4444' },
+  { x: 540,  y: 190, h: 130, wickTop: 155, wickBottom: 360, color: '#EF4444' },
+  { x: 620,  y: 220, h: 110, wickTop: 190, wickBottom: 375, color: '#EF4444' },
+  { x: 740,  y: 210, h: 110, wickTop: 180, wickBottom: 370, color: '#EF4444' },
+  { x: 820,  y: 200, h: 140, wickTop: 165, wickBottom: 390, color: '#EF4444' },
+  { x: 940,  y: 180, h: 130, wickTop: 145, wickBottom: 360, color: '#EF4444' },
+  { x: 1020, y: 200, h: 100, wickTop: 170, wickBottom: 350, color: '#EF4444' },
+  { x: 1060, y: 175, h: 120, wickTop: 140, wickBottom: 350, color: '#EF4444' },
+  { x: 1140, y: 160, h: 130, wickTop: 125, wickBottom: 345, color: '#EF4444' },
+]
 
 export type OGStyle = {
   bg: string

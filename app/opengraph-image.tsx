@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { CANDLES_SVG } from '@/lib/ogCandlesticks'
+import { CANDLES } from '@/lib/ogCandlesticks'
 
 export const runtime = 'edge'
 export const size = { width: 1200, height: 630 }
@@ -17,11 +17,43 @@ export default function HomeOG() {
         fontFamily: 'sans-serif',
         gap: 20,
       }}>
-        <svg width="1200" height="630" viewBox="0 0 1200 630"
-          style={{ position: 'absolute', top: 0, left: 0, opacity: 0.07 }}
-          dangerouslySetInnerHTML={{ __html: CANDLES_SVG }}
-        />
-        <div style={{ display: 'flex', position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(37,99,235,0.15) 0%, transparent 70%)' }} />
+        <div style={{
+          display: 'flex',
+          position: 'absolute',
+          top: 0, left: 0,
+          width: 1200, height: 630,
+          opacity: 0.07,
+        }}>
+          {CANDLES.map((c, i) => (
+            <div key={i} style={{ display: 'flex', position: 'absolute', top: 0, left: 0 }}>
+              <div style={{
+                position: 'absolute',
+                left: c.x + 8,
+                top: c.wickTop,
+                width: 2,
+                height: c.wickBottom - c.wickTop,
+                background: c.color,
+                borderRadius: 1,
+              }} />
+              <div style={{
+                position: 'absolute',
+                left: c.x,
+                top: c.y,
+                width: 18,
+                height: c.h,
+                background: c.color,
+              }} />
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          display: 'flex',
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(37,99,235,0.15) 0%, transparent 70%)',
+        }} />
+
         <div style={{
           display: 'flex',
           background: 'linear-gradient(135deg, #2563EB, #4F46E5)',
