@@ -12,8 +12,17 @@ export const metadata: Metadata = {
   description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
   icons: { icon: "/favicon.svg" },
   openGraph: {
+    type: "website",
+    siteName: "LaoForexTrader",
+    locale: "lo_LA",
+    url: "https://www.laoforextrader.com",
+    title: "LaoForexTrader — ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ",
+    description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
     images: [{ url: "/opengraph-image" }],
   },
+  ...(process.env.NEXT_PUBLIC_FB_APP_ID && {
+    facebook: { appId: process.env.NEXT_PUBLIC_FB_APP_ID },
+  }),
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
