@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { CANDLES, getOGStyle, CATEGORY_LABELS } from './ogCandlesticks'
+import { loadLaoFont } from './ogFont'
 
 export const OG_SIZE = { width: 1200, height: 630 }
 
@@ -39,7 +40,7 @@ function CandleLayer({ opacity }: { opacity: number }) {
   )
 }
 
-export function generateOGImage(article: {
+export async function generateOGImage(article: {
   title: string
   excerpt?: string
   category: string
@@ -50,6 +51,7 @@ export function generateOGImage(article: {
   const title = article.title || 'LaoForexTrader'
   const excerpt = article.excerpt?.slice(0, 110) || ''
   const isEA = article.category === 'ea-tools'
+  const fontData = await loadLaoFont()
 
   return new ImageResponse(
     (
@@ -64,7 +66,7 @@ export function generateOGImage(article: {
           background: style.bg,
           position: 'relative',
           overflow: 'hidden',
-          fontFamily: 'sans-serif',
+          fontFamily: '"NotoSansLao", sans-serif',
         }}
       >
         <CandleLayer opacity={style.candleOpacity} />
@@ -205,6 +207,16 @@ export function generateOGImage(article: {
         </div>
       </div>
     ),
-    { ...OG_SIZE }
+    {
+      ...OG_SIZE,
+      fonts: [
+        {
+          name: 'NotoSansLao',
+          data: fontData,
+          style: 'normal',
+          weight: 700,
+        },
+      ],
+    }
   )
 }

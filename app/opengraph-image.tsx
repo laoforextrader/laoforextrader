@@ -1,11 +1,13 @@
 import { ImageResponse } from 'next/og'
 import { CANDLES } from '@/lib/ogCandlesticks'
+import { loadLaoFont } from '@/lib/ogFont'
 
 export const runtime = 'edge'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-export default function HomeOG() {
+export default async function HomeOG() {
+  const fontData = await loadLaoFont()
   return new ImageResponse(
     (
       <div style={{
@@ -14,7 +16,7 @@ export default function HomeOG() {
         alignItems: 'center', justifyContent: 'center',
         background: 'linear-gradient(135deg, #0A0E1A 0%, #111827 100%)',
         position: 'relative', overflow: 'hidden',
-        fontFamily: 'sans-serif',
+        fontFamily: '"NotoSansLao", sans-serif',
         gap: 20,
       }}>
         <div style={{
@@ -79,6 +81,12 @@ export default function HomeOG() {
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        { name: 'NotoSansLao', data: fontData, style: 'normal', weight: 700 },
+      ],
+    }
   )
 }
