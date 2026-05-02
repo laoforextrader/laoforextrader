@@ -7,7 +7,7 @@ import { SessionProvider } from "@/components/auth/SessionProvider"
 import { GoogleAnalytics } from "@next/third-parties/google"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://laoforextrader.com"),
+  metadataBase: new URL("https://www.laoforextrader.com"),
   title: { default: "LaoForexTrader — ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ", template: "%s | LaoForexTrader" },
   description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
   icons: { icon: "/favicon.svg" },
