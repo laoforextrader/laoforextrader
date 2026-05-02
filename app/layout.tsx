@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
     images: [{ url: "/opengraph-image" }],
   },
-  ...(process.env.NEXT_PUBLIC_FB_APP_ID && {
-    facebook: { appId: process.env.NEXT_PUBLIC_FB_APP_ID },
-  }),
+  other: {
+    'fb:app_id': '1949886389746807',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
