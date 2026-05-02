@@ -20,8 +20,8 @@ export const metadata: Metadata = {
     description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
     images: [{ url: "/opengraph-image" }],
   },
-  other: {
-    'fb:app_id': '1949886389746807',
+  facebook: {
+    appId: '1949886389746807',
   },
 }
 
