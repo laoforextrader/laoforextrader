@@ -75,12 +75,15 @@ string Q(string s) { return "\"" + Esc(s) + "\""; }
 string F(double d) { return DoubleToString(d, 2); }
 
 //+------------------------------------------------------------------+
-//|  Compute starting balance = first DEAL_TYPE_BALANCE deal         |
-//|  (the initial deposit) or fallback to current balance.           |
+//|  Compute net deposits = sum of all DEAL_TYPE_BALANCE deals       |
+//|  (deposits + bonuses - withdrawals).                              |
+//|  Used as denominator for profit % so multi-deposit accounts show |
+//|  correct returns.                                                 |
 //+------------------------------------------------------------------+
-double GetStartBalance()
+double GetNetDeposits()
 {
-   if(!HistorySelect(0, TimeCurrent())) return AccountInfoDouble(ACCOUNT_BALANCE);
+   if(!HistorySelect(0, TimeCurrent())) return 0;
+   double net = 0;
    int total = HistoryDealsTotal();
    for(int i = 0; i < total; i++)
    {
@@ -88,12 +91,30 @@ double GetStartBalance()
       if(ticket == 0) continue;
       long type = HistoryDealGetInteger(ticket, DEAL_TYPE);
       if(type == DEAL_TYPE_BALANCE)
-      {
-         double amt = HistoryDealGetDouble(ticket, DEAL_PROFIT);
-         if(amt > 0) return amt; // first positive balance op = initial deposit
-      }
+         net += HistoryDealGetDouble(ticket, DEAL_PROFIT);
    }
-   return AccountInfoDouble(ACCOUNT_BALANCE);
+   return net;
+}
+
+//+------------------------------------------------------------------+
+//|  Total trading profit since account opened                        |
+//+------------------------------------------------------------------+
+double GetTotalTradingProfit()
+{
+   if(!HistorySelect(0, TimeCurrent())) return 0;
+   double sum = 0;
+   int total = HistoryDealsTotal();
+   for(int i = 0; i < total; i++)
+   {
+      ulong ticket = HistoryDealGetTicket(i);
+      if(ticket == 0) continue;
+      long type = HistoryDealGetInteger(ticket, DEAL_TYPE);
+      if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL) continue;
+      sum += HistoryDealGetDouble(ticket, DEAL_PROFIT);
+      sum += HistoryDealGetDouble(ticket, DEAL_SWAP);
+      sum += HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+   }
+   return sum;
 }
 
 //+------------------------------------------------------------------+
@@ -142,8 +163,9 @@ string BuildPayload()
    string currency  = AccountInfoString(ACCOUNT_CURRENCY);
    double balance   = AccountInfoDouble(ACCOUNT_BALANCE);
    double equity    = AccountInfoDouble(ACCOUNT_EQUITY);
-   double startBal  = GetStartBalance();
-   double profitTot = balance - startBal;
+   double netDep    = GetNetDeposits();         // sum of all deposits − withdrawals
+   double startBal  = netDep > 0 ? netDep : balance; // shown as "Balance ເລີ່ມຕົ້ນ"
+   double profitTot = GetTotalTradingProfit(); // pure trading P&L (incl. swap + commission)
    double profitPct = startBal > 0 ? (profitTot / startBal) * 100.0 : 0;
 
    // ── Monthly returns: last 12 months ──
