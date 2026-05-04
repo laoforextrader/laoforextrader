@@ -58,7 +58,7 @@ export default async function EASGrideCTA() {
             <Rocket size={13} strokeWidth={2.5} style={{ color: '#FCD34D' }} />
             TheRocket EA SGride
           </div>
-          <h2 style={{
+          <div role="heading" aria-level={2} style={{
             fontSize: 42, fontWeight: 800, color: '#fff',
             lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 8,
             fontFamily: 'Noto Sans Lao, sans-serif',
@@ -68,7 +68,7 @@ export default async function EASGrideCTA() {
               background: 'linear-gradient(135deg, #4ADE80, #22D3EE)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>{totalDisplay}</span>
-          </h2>
+          </div>
           <p style={{
             fontSize: 16, fontWeight: 700, marginBottom: 8,
             background: 'linear-gradient(135deg, #60A5FA, #A78BFA)',
