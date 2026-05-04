@@ -62,12 +62,12 @@ export default async function EASGrideCTA() {
             fontSize: 42, fontWeight: 800, color: '#fff',
             lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 8,
             fontFamily: 'Noto Sans Lao, sans-serif',
+            textShadow: '0 2px 8px rgba(0,0,0,.4)',
           }}>
-            ກຳໄລ <span style={{
+            ກຳໄລລວມ <span style={{
               background: 'linear-gradient(135deg, #4ADE80, #22D3EE)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>{totalDisplay}</span>
-            <br />ໃນ 7 ເດືອນ
           </h2>
           <p style={{
             fontSize: 16, fontWeight: 700, marginBottom: 8,

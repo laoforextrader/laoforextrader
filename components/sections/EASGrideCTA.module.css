@@ -29,7 +29,7 @@
   border-radius: 50%;
   background: #4ADE80;
   display: inline-block;
-  animation: easgridePulse 1.5s infinite;
+  animation: easgridePulse 3s infinite;
 }
 
 @media (max-width: 768px) {

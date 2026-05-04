@@ -52,10 +52,10 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
           transition:transform .25s;
         }
         .ea-cta-wrap:hover{transform:translateY(-2px)}
-        .ea-shimmer{position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);animation:ea-shimmer 5s ease-in-out infinite;pointer-events:none}
-        .ea-scanner{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:ea-scanner 6s linear infinite;pointer-events:none}
-        .ea-blob1{position:absolute;border-radius:50%;width:200px;height:200px;top:-60px;right:20px;opacity:.35;animation:ea-float1 9s ease-in-out infinite;pointer-events:none}
-        .ea-blob2{position:absolute;border-radius:50%;width:130px;height:130px;bottom:-40px;left:30px;opacity:.2;animation:ea-float2 12s ease-in-out infinite;pointer-events:none}
+        .ea-shimmer{position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);animation:ea-shimmer 10s ease-in-out infinite;pointer-events:none}
+        .ea-scanner{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:ea-scanner 12s linear infinite;pointer-events:none}
+        .ea-blob1{position:absolute;border-radius:50%;width:200px;height:200px;top:-60px;right:20px;opacity:.35;animation:ea-float1 18s ease-in-out infinite;pointer-events:none}
+        .ea-blob2{position:absolute;border-radius:50%;width:130px;height:130px;bottom:-40px;left:30px;opacity:.2;animation:ea-float2 24s ease-in-out infinite;pointer-events:none}
         .ea-cta-btn{
           display:inline-flex;align-items:center;gap:8px;
           padding:9px 20px;border-radius:9px;font-size:13px;font-weight:500;
@@ -64,7 +64,24 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
           font-family:'Noto Sans Lao',sans-serif;
         }
         .ea-cta-btn:hover{transform:scale(.96);opacity:.9}
-        .ea-arrow{display:inline-flex;animation:ea-arrow 1.8s ease-in-out infinite}
+        .ea-arrow{display:inline-flex;animation:ea-arrow 3.6s ease-in-out infinite}
+        .ea-pulse-dot{animation:ea-pulse-dot 3.2s infinite}
+        .ea-btn-blue{animation:ea-btn-glow-blue 5.6s infinite}
+        .ea-btn-purple{animation:ea-btn-glow-purple 5.6s infinite}
+
+        .ea-info{flex:1;min-width:0;position:relative;z-index:2}
+        .ea-stats{display:flex;align-items:center;gap:24px;position:relative;z-index:2;flex-shrink:0}
+
+        @media (max-width: 640px) {
+          .ea-cta-wrap{
+            flex-direction:column;align-items:stretch;gap:14px;
+            padding:16px;text-align:center;
+          }
+          .ea-info{text-align:center}
+          .ea-stats{justify-content:center;gap:32px}
+          .ea-cta-btn{width:100%;justify-content:center;padding:12px 20px}
+          .ea-blob1,.ea-blob2{display:none}
+        }
       `}</style>
 
       <div className="ea-cta-wrap" style={{ background: bg, borderColor: accentLight }}>
@@ -73,7 +90,7 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
         <div className="ea-blob1" style={{ background: blob1 }} />
         <div className="ea-blob2" style={{ background: blob2 }} />
 
-        <div style={{ flex:1, minWidth:0, position:'relative', zIndex:2 }}>
+        <div className="ea-info">
           <div style={{
             display:'inline-flex', alignItems:'center', gap:5,
             border:`0.5px solid ${pillBorder}`, borderRadius:100,
@@ -81,9 +98,9 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
             background: pillBg, color: dotColor, marginBottom:10,
             fontFamily:'Noto Sans Lao, sans-serif',
           }}>
-            <span style={{
+            <span className="ea-pulse-dot" style={{
               width:6, height:6, borderRadius:'50%', background: dotColor,
-              display:'inline-block', animation:'ea-pulse-dot 1.6s infinite',
+              display:'inline-block',
             }} />
             Live Account Running
           </div>
@@ -95,7 +112,7 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
           </p>
         </div>
 
-        <div style={{ display:'flex', alignItems:'center', gap:24, position:'relative', zIndex:2, flexShrink:0 }}>
+        <div className="ea-stats">
           <div style={{ textAlign:'center' }}>
             <div style={{ fontSize:22, fontWeight:500, color: gainColor, fontVariantNumeric:'tabular-nums', lineHeight:1 }}>
               {totalGain}
@@ -112,11 +129,8 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
 
         <a href={href} style={{ textDecoration:'none', position:'relative', zIndex:2 }}>
           <button
-            className="ea-cta-btn"
-            style={{
-              background: accent,
-              animation: isSGride ? 'ea-btn-glow-blue 2.8s infinite' : 'ea-btn-glow-purple 2.8s infinite',
-            }}
+            className={`ea-cta-btn ${isSGride ? 'ea-btn-blue' : 'ea-btn-purple'}`}
+            style={{ background: accent }}
           >
             Copy Trade
             <span className="ea-arrow">

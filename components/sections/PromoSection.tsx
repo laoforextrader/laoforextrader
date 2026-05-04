@@ -33,11 +33,11 @@ export default function PromoSection() {
     const mkP = (): P => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 1.2,
-      vy: (Math.random() - 0.5) * 1.2,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
       angle: Math.random() * Math.PI * 2,
-      angleV: (Math.random() - 0.5) * 0.06,
-      speed: Math.random() * 0.9 + 0.35,
+      angleV: (Math.random() - 0.5) * 0.03,
+      speed: (Math.random() * 0.9 + 0.35) * 0.5,
       size: Math.random() < 0.12 ? Math.random() * 2.2 + 1.8 : Math.random() * 1.3 + 0.4,
       baseAlpha: Math.random() * 0.45 + 0.25,
       alpha: Math.random() * 0.45 + 0.25,
@@ -167,6 +167,33 @@ export default function PromoSection() {
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden', background: '#080C1A', padding: '48px 24px' }}>
+      <style>{`
+        .promo-card{
+          position:relative;overflow:hidden;
+          background:linear-gradient(135deg,rgba(37,99,235,0.16),rgba(79,70,229,0.16));
+          border:1px solid rgba(99,102,241,0.32);
+          border-radius:20px;padding:36px 44px;margin-bottom:20px;
+          display:flex;align-items:center;gap:44px;
+        }
+        .promo-divider{width:1px;height:88px;background:rgba(99,102,241,0.25);flex-shrink:0}
+        .promo-num{flex-shrink:0;text-align:center}
+        .promo-num-val{font-size:88px;font-weight:900;line-height:1;letter-spacing:-0.05em;background:linear-gradient(135deg,#60A5FA,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .promo-info{flex:1;min-width:0}
+        .promo-cta-wrap{flex-shrink:0;text-align:center}
+        .promo-cta-btn{display:inline-block;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#2563EB,#4F46E5);padding:15px 36px;border-radius:8px;text-decoration:none;white-space:nowrap}
+
+        @media (max-width: 768px) {
+          .promo-card{
+            flex-direction:column;align-items:stretch;
+            padding:24px 20px;gap:18px;text-align:center;
+          }
+          .promo-divider{display:none}
+          .promo-num-val{font-size:64px}
+          .promo-info{text-align:center}
+          .promo-info-row{justify-content:center}
+          .promo-cta-btn{display:block;padding:14px 24px}
+        }
+      `}</style>
 
       <canvas
         ref={canvasRef}
@@ -176,24 +203,22 @@ export default function PromoSection() {
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1060, margin: '0 auto' }}>
 
         {/* XM $30 hero card */}
-        <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg,rgba(37,99,235,0.16),rgba(79,70,229,0.16))', border: '1px solid rgba(99,102,241,0.32)', borderRadius: 20, padding: '36px 44px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 44 }}>
+        <div className="promo-card">
           <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'radial-gradient(circle,rgba(99,102,241,0.14),transparent)', borderRadius: '50%', pointerEvents: 'none' }} />
 
           {/* Big number */}
-          <div style={{ flexShrink: 0, textAlign: 'center' }}>
-            <div style={{ fontSize: 88, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em', background: 'linear-gradient(135deg,#60A5FA,#A78BFA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              $30
-            </div>
+          <div className="promo-num">
+            <div className="promo-num-val">$30</div>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#818CF8', marginTop: 4 }}>
               FREE BONUS
             </div>
           </div>
 
-          <div style={{ width: 1, height: 88, background: 'rgba(99,102,241,0.25)', flexShrink: 0 }} />
+          <div className="promo-divider" />
 
           {/* Info */}
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <div className="promo-info">
+            <div className="promo-info-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
               <div style={{ background: '#FEF2F2', color: '#DC2626', fontFamily: 'monospace', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 8 }}>XM</div>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FCD34D', background: 'rgba(252,211,77,0.1)', padding: '3px 12px', borderRadius: 99 }}>
                 🔥 NO-DEPOSIT BONUS
@@ -208,12 +233,12 @@ export default function PromoSection() {
           </div>
 
           {/* CTA */}
-          <div style={{ flexShrink: 0, textAlign: 'center' }}>
+          <div className="promo-cta-wrap">
             <a
               href="https://clicks.pipaffiliates.com/c?c=350890&l=th&p=6"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#fff', background: 'linear-gradient(135deg,#2563EB,#4F46E5)', padding: '15px 36px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}
+              className="promo-cta-btn"
             >
               ຮັບ $30 ຟຣີ →
             </a>

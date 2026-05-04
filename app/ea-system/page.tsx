@@ -89,7 +89,7 @@ export default async function EASystemPage() {
           height: 5px;
           border-radius: 50%;
           background: #4ADE80;
-          animation: ldot 1.5s infinite;
+          animation: ldot 3s infinite;
         }
         @keyframes ldot {
           0%, 100% { opacity: 1; transform: scale(1); }
