@@ -75,25 +75,26 @@ string Q(string s) { return "\"" + Esc(s) + "\""; }
 string F(double d) { return DoubleToString(d, 2); }
 
 //+------------------------------------------------------------------+
-//|  Compute net deposits = sum of all DEAL_TYPE_BALANCE deals       |
-//|  (deposits + bonuses - withdrawals).                              |
-//|  Used as denominator for profit % so multi-deposit accounts show |
-//|  correct returns.                                                 |
+//|  Gross deposits = sum of POSITIVE DEAL_TYPE_BALANCE only         |
+//|  (deposits + bonuses). Withdrawals are ignored — they shouldn't   |
+//|  shrink the denominator of the Gain% formula. This matches the    |
+//|  industry-standard "Gain%" used by MyFxBook/FXBlue/etc.           |
 //+------------------------------------------------------------------+
-double GetNetDeposits()
+double GetGrossDeposits()
 {
    if(!HistorySelect(0, TimeCurrent())) return 0;
-   double net = 0;
+   double sum = 0;
    int total = HistoryDealsTotal();
    for(int i = 0; i < total; i++)
    {
       ulong ticket = HistoryDealGetTicket(i);
       if(ticket == 0) continue;
       long type = HistoryDealGetInteger(ticket, DEAL_TYPE);
-      if(type == DEAL_TYPE_BALANCE)
-         net += HistoryDealGetDouble(ticket, DEAL_PROFIT);
+      if(type != DEAL_TYPE_BALANCE) continue;
+      double amt = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+      if(amt > 0) sum += amt; // only positive: deposits + bonuses
    }
-   return net;
+   return sum;
 }
 
 //+------------------------------------------------------------------+
@@ -163,8 +164,8 @@ string BuildPayload()
    string currency  = AccountInfoString(ACCOUNT_CURRENCY);
    double balance   = AccountInfoDouble(ACCOUNT_BALANCE);
    double equity    = AccountInfoDouble(ACCOUNT_EQUITY);
-   double netDep    = GetNetDeposits();         // sum of all deposits − withdrawals
-   double startBal  = netDep > 0 ? netDep : balance; // shown as "Balance ເລີ່ມຕົ້ນ"
+   double grossDep  = GetGrossDeposits();      // total deposits + bonuses (ignore withdrawals)
+   double startBal  = grossDep > 0 ? grossDep : balance; // denominator + "Balance ເລີ່ມຕົ້ນ"
    double profitTot = GetTotalTradingProfit(); // pure trading P&L (incl. swap + commission)
    double profitPct = startBal > 0 ? (profitTot / startBal) * 100.0 : 0;
 
