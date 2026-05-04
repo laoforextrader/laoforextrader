@@ -8,7 +8,9 @@ import { LessonsPreview } from "@/components/lessons/LessonsPreview"
 import MerchSection from "@/components/sections/MerchSection"
 import FounderSection from "@/components/sections/FounderSection"
 import EASGrideCTA from "@/components/sections/EASGrideCTA"
-import { Article, Broker } from "@/types"
+import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
+import EAStatsCompact from "@/components/ea/EAStatsCompact"
+import { Article, Broker, EAStats } from "@/types"
 import { categoryRoute, formatDate } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
@@ -51,6 +53,8 @@ export default async function HomePage() {
   let latest: LatestByCategory = { featured: null, education: null, "ea-tools": null, analysis: null, news: null }
   let brokers: Broker[] = []
   let lessons: Article[] = []
+  let popular: Article[] = []
+  let liveEAs: EAStats[] = []
 
   try {
     const data = await Promise.all([
@@ -61,15 +65,20 @@ export default async function HomePage() {
           _id, title, slug, readTime
         }
       `, {}, { next: { revalidate: 60 } }),
+      sanityClient.fetch<Article[]>(QUERIES.popularArticles(2), {}, { next: { revalidate: 60 } }),
+      sanityClient.fetch<EAStats[]>(QUERIES.allActiveEAs, {}, { next: { revalidate: 60 } }),
     ])
     latest = data[0] || latest
     brokers = data[1] || []
     lessons = data[2] || []
+    popular = data[3] || []
+    liveEAs = data[4] || []
   } catch (err) {
     console.error("Sanity fetch error:", err)
   }
 
   const featured = latest.featured
+  const popularPick = popular.find(p => p._id !== featured?._id) ?? null
   const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
     .map(cat => latest[cat])
     .filter((a): a is Article => !!a && a._id !== featured?._id)
@@ -169,6 +178,39 @@ export default async function HomePage() {
               </div>
             </Link>
           )}
+          {popularPick && (
+            <Link href={`/${categoryRoute(popularPick.category)}/${popularPick.slug?.current ?? ""}`} className="block group border-b border-gray-100">
+              <div style={{ height: 3, background: "linear-gradient(90deg,#F97316,#EF4444)" }} />
+              <div className="p-5 flex gap-4">
+                {popularPick.coverImage?.asset?.url && (
+                  <div className="relative rounded-xl overflow-hidden bg-gray-100 flex-shrink-0" style={{ width: 130, height: 130 }}>
+                    <Image
+                      src={popularPick.coverImage.asset.url}
+                      alt={popularPick.title}
+                      fill
+                      sizes="130px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <div className="min-w-0 flex flex-col justify-center">
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-orange-600 mb-2">🔥 ບົດຄວາມຍອດນິຍົມ</div>
+                  <h3 className="font-lao font-bold leading-snug text-gray-900 group-hover:text-blue-700 transition-colors mb-2 line-clamp-2"
+                      style={{ fontSize: 16, letterSpacing: "-0.01em" }}>
+                    {popularPick.title}
+                  </h3>
+                  <div className="flex items-center gap-2 text-[11px] font-lao flex-wrap">
+                    <span className={`font-bold uppercase tracking-widest ${CAT_COLOR[popularPick.category] ?? "text-gray-500"}`}>
+                      {CAT_LABEL[popularPick.category] ?? popularPick.category}
+                    </span>
+                    <span className="text-gray-400">·</span>
+                    <span className="text-gray-400">👁 {(popularPick.views ?? 0).toLocaleString()}</span>
+                    {popularPick.readTime && <><span className="text-gray-400">·</span><span className="text-gray-400">{popularPick.readTime}m</span></>}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
           <div className="text-[10px] text-gray-400 uppercase tracking-widest font-bold px-5 py-3 border-b border-gray-100">ລ່າສຸດ · 1 ຕໍ່ໝວດ</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5">
             {categoryCards.map(article => (
@@ -206,6 +248,38 @@ export default async function HomePage() {
           <LessonsPreview lessons={lessons} />
         </div>
       </div>
+
+      {/* ── LIVE EAs ── */}
+      {liveEAs.length > 0 && (
+        <div className="bg-white border-t border-gray-200 border-b border-gray-200">
+          <div className="max-w-[1060px] mx-auto px-6 py-12">
+            <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1.5">
+                  🟢 LIVE EA STATS
+                </div>
+                <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
+                  EA ຂອງເຮົາ
+                </h2>
+                <p className="font-lao text-[12px] text-gray-500 mt-1">
+                  ສະຖິຕິສົດຈາກ MT5 — ບໍ່ມີການແຕ້ມເພີ່ມ
+                </p>
+              </div>
+              <Link href="/ea" className="text-[12px] font-lao text-blue-600 hover:underline font-bold">
+                ເບິ່ງລາຍລະອຽດທັງໝົດ →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liveEAs.map(ea => (
+                <EAStatsCompact key={ea._id} stats={ea} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── QUIZZES ── */}
+      <QuizzesHomeSection />
 
       {/* ── STARBURST ── */}
       <div className="relative overflow-hidden border-t border-b border-blue-100" style={{ background: "linear-gradient(180deg,#EEF3FF 0%,#DBEAFE 50%,#EEF3FF 100%)" }}>

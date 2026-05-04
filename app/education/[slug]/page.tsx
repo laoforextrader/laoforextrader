@@ -10,10 +10,15 @@ import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata } from "@/lib/articleMetadata"
 import ReadingProgress from "@/components/ui/ReadingProgress"
 import TableOfContents from "@/components/ui/TableOfContents"
+import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
+import CTASelector from "@/components/cta/CTASelector"
+import QuizSidebar from "@/components/quiz/QuizSidebar"
+import ArticleSidebar, { articleHasSidebar, shouldRenderQuizInline } from "@/components/article/ArticleSidebar"
+import ViewTracker from "@/components/article/ViewTracker"
 
 interface Props { params: Promise<{ slug: string }> }
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -168,10 +173,19 @@ export default async function ArticleDetailPage({ params }: Props) {
   const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) notFound()
 
+  const hasSidebar = articleHasSidebar(article)
+  const showInlineQuiz = shouldRenderQuizInline(article)
+
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
       <ReadingProgress />
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
+      <ViewTracker slug={article.slug?.current ?? ""} />
+      <div className={
+        hasSidebar
+          ? "max-w-[1080px] mx-auto px-6 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8 lg:items-start"
+          : "max-w-[760px] mx-auto px-6 py-8"
+      }>
+        <div className="min-w-0">
 
         <Link href="/education"
           style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#6B7280", fontSize: 13, textDecoration: "none", marginBottom: 20, fontWeight: 500 }}>
@@ -196,9 +210,31 @@ export default async function ArticleDetailPage({ params }: Props) {
 
         <TableOfContents />
 
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'middle' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
         <div className="article-body">
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
+
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'bottom' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
+        {article.ctas?.map((c, i) => (
+          c?.type ? <CTASelector key={c._key ?? i} type={c.type} /> : null
+        ))}
+
+        {showInlineQuiz && article.featuredQuiz && (
+          <QuizSidebar quiz={article.featuredQuiz} />
+        )}
 
         <PostEngagement
           postId={article._id}
@@ -211,6 +247,8 @@ export default async function ArticleDetailPage({ params }: Props) {
             <ArrowLeft size={13} /> ກັບໄປໜ້າ ການສຶກສາ
           </Link>
         </div>
+        </div>
+        {hasSidebar && <ArticleSidebar article={article} />}
       </div>
     </div>
   )

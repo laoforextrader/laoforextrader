@@ -103,6 +103,12 @@ img {
 }
 .animate-pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
 
+@keyframes quizPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 14px rgba(37,99,235,0.25); }
+  50%      { transform: scale(1.06); box-shadow: 0 8px 22px rgba(37,99,235,0.45); }
+}
+.animate-quiz-next { animation: quizPulse 1.4s ease-in-out infinite; }
+
 /* ── Prose / Article body ── */
 .prose-lao {
   color: #1F2937 !important;

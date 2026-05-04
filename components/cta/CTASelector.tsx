@@ -1,0 +1,94 @@
+import BrokerCTA from './BrokerCTA'
+import EaCTA from './EaCTA'
+import { sanityClient, urlFor } from '@/lib/sanity'
+
+export type CTAType =
+  | 'ea-sgride'
+  | 'ea-megihgedge'
+  | 'broker-xm'
+  | 'broker-exness'
+  | 'broker-markets4you'
+  | 'broker-vantage'
+  | 'broker-interstellar'
+  | 'broker-iux'
+
+interface Props {
+  type?: CTAType | string
+}
+
+type BrokerLite = { slug?: string; name?: string; logo?: any }
+
+const BROKER_LOGOS_QUERY = `*[_type == "broker"]{
+  "slug": slug.current,
+  name,
+  logo
+}`
+
+async function getBrokerLogo(key: string): Promise<string | undefined> {
+  const list = await sanityClient.fetch<BrokerLite[]>(
+    BROKER_LOGOS_QUERY,
+    {},
+    { next: { revalidate: 3600 } }
+  )
+  const k = key.toLowerCase()
+  const exact = list.find(b => b.slug?.toLowerCase() === k)
+  const match = exact ?? list.find(b => b.name?.toLowerCase().replace(/\s+/g, '').includes(k))
+  if (!match?.logo?.asset) return undefined
+  return urlFor(match.logo).width(88).height(88).url()
+}
+
+export default async function CTASelector({ type }: Props) {
+  if (!type) return null
+
+  if (type === 'ea-sgride') return (
+    <EaCTA name="SGride" totalGain="+500%" monthlyGain="18.7" sub="Grid Trading · ກຳໄລໝັ້ນຄົງ · ກ໊ອບໄດ້ທັນທີ" href="/ea-system" />
+  )
+
+  if (type === 'ea-megihgedge') return (
+    <EaCTA name="MegiHedge" totalGain="+247%" monthlyGain="22.1" sub="Hedging · ກຳໄລໄວ · ກ໊ອບໄດ້ທັນທີ" href="/ea-system" />
+  )
+
+  if (type === 'broker-xm') {
+    const logoSrc = await getBrokerLogo('xm')
+    return (
+      <BrokerCTA name="XM Global" badge="★ #1 ຄົນລາວເລືອກຫຼາຍທີ່ສຸດ" sub="ຝາກ $5 · BCEL ✓ · Bonus $30 ຟຣີ · Regulated ASIC" registerUrl="https://affs.click/xXymd" logoInitials="XM" logoSrc={logoSrc} theme="xm" slug="xm" />
+    )
+  }
+
+  if (type === 'broker-exness') {
+    const logoSrc = await getBrokerLogo('exness')
+    return (
+      <BrokerCTA name="Exness" badge="ຖອນ Instant 24/7" sub="Spread ຕ່ຳ · BCEL ✓ · Leverage 1:2000" registerUrl="https://one.exnessonelink.com/intl/th/a/tv2hiv2h" logoInitials="EX" logoSrc={logoSrc} theme="exness" slug="exness" />
+    )
+  }
+
+  if (type === 'broker-markets4you') {
+    const logoSrc = await getBrokerLogo('markets4you')
+    return (
+      <BrokerCTA name="Markets4you" badge="Bonus ດີທີ່ສຸດ" sub="ຝາກ $15 · BCEL ✓ · Leverage 1:4000" registerUrl="https://www.markets4you.online/?affid=xpkpced" logoInitials="MA" logoSrc={logoSrc} theme="markets4you" slug="markets4you" />
+    )
+  }
+
+  if (type === 'broker-vantage') {
+    const logoSrc = await getBrokerLogo('vantage')
+    return (
+      <BrokerCTA name="Vantage Markets" badge="ສາກົນ · Multi-award" sub="ຝາກ $50 · Leverage 1:500 · ECN Spreads" registerUrl="https://www.vantagemarkets.com/?affid=NzExNDc=" logoInitials="VA" logoSrc={logoSrc} theme="vantage" slug="vantage" />
+    )
+  }
+
+  if (type === 'broker-interstellar') {
+    const logoSrc = await getBrokerLogo('interstellar')
+    return (
+      <BrokerCTA name="Interstellar Group" badge="ຮອງຮັບລາວ ✓" sub="ຝາກ $50 · BCEL ✓ · Leverage 1:2000" registerUrl="https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d" logoInitials="IN" logoSrc={logoSrc} theme="interstellar" slug="interstellar" />
+    )
+  }
+
+  if (type === 'broker-iux') {
+    const logoSrc = await getBrokerLogo('iux')
+    return (
+      <BrokerCTA name="IUX" badge="App ດີທີ່ສຸດ" sub="ຝາກ $10 · BCEL ✓ · Leverage 1:3000" registerUrl="http://iux.com/en/register?code=NMP0eN4X" logoInitials="IU" logoSrc={logoSrc} theme="iux" slug="iux" />
+    )
+  }
+
+  return null
+}

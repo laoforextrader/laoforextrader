@@ -10,6 +10,8 @@ import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata, buildBrokerMetadata } from "@/lib/articleMetadata"
 import { TrackedBrokerLink } from "@/components/broker/TrackedBrokerLink"
+import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
+import CTASelector from "@/components/cta/CTASelector"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -271,9 +273,27 @@ export default async function BrokerSlugPage({ params }: Props) {
           </div>
         )}
 
-        <div>
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'middle' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
+        <div className="article-body">
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
+
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'bottom' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
+        {article.ctas?.map((c, i) => (
+          c?.type ? <CTASelector key={c._key ?? i} type={c.type} /> : null
+        ))}
 
         <PostEngagement
           postId={article._id}

@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     revalidatePath("/broker", "layout")
     revalidatePath("/news", "layout")
     revalidatePath("/analysis", "layout")
+    revalidatePath("/lessons", "layout")
 
     return NextResponse.json({ revalidated: true, now: Date.now() })
   } catch (err) {

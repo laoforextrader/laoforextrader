@@ -23,6 +23,33 @@ export const QUERIES = {
       coverImage, author->{ name, slug }
     }
   `,
+  allActiveEAs: `
+    *[_type == "eaStats" && updateMode != "off"] | order(coalesce(profitTotalPct, 0) desc) {
+      _id, eaId, title, updateMode,
+      account, server, broker, currency,
+      balance, equity, startBalance, profitTotal, profitTotalPct,
+      monthlyReturns[] { _key, month, profitPct },
+      dailyReturns[] { _key, date, profitPct },
+      lastUpdate
+    }
+  `,
+  eaStatsByEaId: (eaId: string) => `
+    *[_type == "eaStats" && eaId == "${eaId}"][0] {
+      _id, eaId, title, updateMode,
+      account, server, broker, currency,
+      balance, equity, startBalance, profitTotal, profitTotalPct,
+      monthlyReturns[] { _key, month, profitPct },
+      dailyReturns[] { _key, date, profitPct },
+      lastUpdate
+    }
+  `,
+  popularArticles: (limit = 6) => `
+    *[_type == "article" && category != "broker"]
+      | order(coalesce(views, 0) desc, publishedAt desc) [0...${limit}] {
+        _id, title, slug, excerpt, category, publishedAt, readTime, views,
+        coverImage { asset->{ url } }
+      }
+  `,
   featuredArticle: `*[_type == "article" && featured == true] | order(publishedAt desc) [0] {
     _id, title, slug, excerpt, category, publishedAt, readTime, coverImage, author->{ name, slug }
   }`,
@@ -33,7 +60,24 @@ export const QUERIES = {
   `,
   articleBySlug: (slug: string) => `
     *[_type == "article" && slug.current == "${slug}"] [0] {
-      _id, title, slug, excerpt, category, publishedAt, readTime, coverImage, body, author->{ name, slug }
+      _id, title, slug, excerpt, category, publishedAt, readTime, coverImage, body, author->{ name, slug },
+      adsBanner { show, html, position },
+      ctas[] { _key, type },
+      featuredQuiz->{ _id, title, slug, level, requiresLogin, totalQuestions, icon },
+      quizPosition
+    }
+  `,
+  allQuizzes: `*[_type == "quiz"] | order(coalesce(order, 999) asc) {
+    _id, title, slug, level, requiresLogin, order, icon, color, totalQuestions
+  }`,
+  quizBySlug: (slug: string) => `
+    *[_type == "quiz" && (slug == "${slug}" || slug.current == "${slug}")] [0] {
+      _id, title, slug, level, requiresLogin, order, icon, color, totalQuestions,
+      questions[] {
+        _key, question,
+        choices { a, b, c },
+        correctAnswer
+      }
     }
   `,
   latestByCategory: `{

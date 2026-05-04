@@ -3,5 +3,7 @@ import { brokerSchema }  from "./broker"
 import { authorSchema }  from "./author"
 import { likeSchema }    from "./like"
 import { commentSchema } from "./comment"
+import { quizSchema }    from "./quiz"
+import { eaStatsSchema } from "./eaStats"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema]

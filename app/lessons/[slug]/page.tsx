@@ -7,10 +7,15 @@ import { Article } from "@/types"
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from "lucide-react"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata } from "@/lib/articleMetadata"
+import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
+import CTASelector from "@/components/cta/CTASelector"
+import QuizSidebar from "@/components/quiz/QuizSidebar"
+import ArticleSidebar, { articleHasSidebar, shouldRenderQuizInline } from "@/components/article/ArticleSidebar"
+import ViewTracker from "@/components/article/ViewTracker"
 
 interface Props { params: Promise<{ slug: string }> }
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -48,17 +53,29 @@ export default async function LessonDetailPage({ params }: Props) {
 
   const allLessons = await sanityClient.fetch<Article[]>(`
     *[_type == "article" && category == "education"] | order(publishedAt asc) {
-      _id, title, slug
+      _id, title, slug, readTime
     }
   `, {}, { next: { revalidate: 60 } })
-  const currentIndex = allLessons.findIndex(l => l.slug?.current ?? "" === slug)
+  const currentIndex = allLessons.findIndex(l => (l.slug?.current ?? "") === slug)
   const prev = currentIndex > 0 ? allLessons[currentIndex - 1] : null
   const next = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
+  const upcoming = allLessons.slice(currentIndex + 1, currentIndex + 4)
   const lessonNum = currentIndex + 1
+  const totalLessons = allLessons.length || 50
+  const progressPct = Math.round((lessonNum / totalLessons) * 100)
+
+  const hasSidebar = articleHasSidebar(article)
+  const showInlineQuiz = shouldRenderQuizInline(article)
 
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
+      <ViewTracker slug={article.slug?.current ?? ""} />
+      <div className={
+        hasSidebar
+          ? "max-w-[1080px] mx-auto px-6 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8 lg:items-start"
+          : "max-w-[760px] mx-auto px-6 py-8"
+      }>
+        <div className="min-w-0">
 
         {/* Breadcrumb */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>
@@ -69,9 +86,31 @@ export default async function LessonDetailPage({ params }: Props) {
           <span style={{ color: "#374151" }}>ບົດທີ {lessonNum}</span>
         </div>
 
-        {/* Lesson number badge */}
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#EEF3FF", border: "1px solid #BFCFFF", borderRadius: 100, padding: "4px 12px", fontSize: 10, fontWeight: 700, color: "#2563EB", letterSpacing: "0.07em", textTransform: "uppercase" as const, marginBottom: 14 }}>
-          ບົດທີ {lessonNum} / 50
+        {/* Big Progress Card */}
+        <div style={{
+          background: "linear-gradient(135deg,#EEF3FF,#F5F3FF)",
+          border: "1px solid #BFCFFF",
+          borderRadius: 14,
+          padding: "16px 20px",
+          marginBottom: 20,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#2563EB", letterSpacing: "0.07em", textTransform: "uppercase" as const }}>
+              ບົດທີ {lessonNum} / {totalLessons}
+            </div>
+            <div style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>
+              ຄວາມຄືບໜ້າ <span style={{ color: "#2563EB", fontFamily: "'JetBrains Mono', monospace" }}>{progressPct}%</span>
+            </div>
+          </div>
+          <div style={{ height: 8, background: "#fff", borderRadius: 99, overflow: "hidden", border: "1px solid #DBEAFE" }}>
+            <div style={{
+              height: "100%",
+              width: `${progressPct}%`,
+              background: "linear-gradient(90deg,#2563EB,#4F46E5)",
+              borderRadius: 99,
+              transition: "width .4s",
+            }} />
+          </div>
         </div>
 
         {/* Title */}
@@ -79,18 +118,12 @@ export default async function LessonDetailPage({ params }: Props) {
           {article.title}
         </h1>
 
-        {/* Meta + Progress */}
+        {/* Meta */}
         <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "#9CA3AF", marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid #E5E7EB", flexWrap: "wrap" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Clock size={11} /> {article.readTime ?? 5} ນາທີ
           </span>
           <span>LFT Team</span>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 80, height: 4, background: "#E5E7EB", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "#2563EB", borderRadius: 2, width: `${(lessonNum / 50) * 100}%` }} />
-            </div>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10 }}>{lessonNum}/50</span>
-          </div>
         </div>
 
         {/* Excerpt */}
@@ -100,10 +133,36 @@ export default async function LessonDetailPage({ params }: Props) {
           </div>
         )}
 
+        {/* Banner — middle */}
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'middle' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
         {/* Body */}
         <div style={{ marginBottom: 40 }}>
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
+
+        {/* Banner — bottom */}
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'bottom' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
+        {/* CTAs */}
+        {article.ctas?.map((c, i) => (
+          c?.type ? <CTASelector key={c._key ?? i} type={c.type} /> : null
+        ))}
+
+        {/* Quiz — inline only when quizPosition is inline/both */}
+        {showInlineQuiz && article.featuredQuiz && (
+          <QuizSidebar quiz={article.featuredQuiz} />
+        )}
 
         <PostEngagement
           postId={article._id}
@@ -111,15 +170,19 @@ export default async function LessonDetailPage({ params }: Props) {
           postUrl={`https://laoforextrader.com/lessons/${article.slug?.current ?? ""}`}
         />
 
-        {/* Prev / Next */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>
+        {/* Prev / Next — big buttons */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 24, marginTop: 8, borderTop: "1px solid #E5E7EB" }}>
           {prev ? (
             <Link href={`/lessons/${prev.slug?.current ?? ""}`}
-              style={{ display: "flex", flexDirection: "column", gap: 4, padding: 14, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, textDecoration: "none" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#9CA3AF" }}>
-                <ArrowLeft size={10} /> ບົດກ່ອນໜ້າ
+              style={{
+                display: "flex", flexDirection: "column", gap: 6, padding: "16px 18px",
+                background: "#fff", border: "1.5px solid #E5E7EB", borderRadius: 14,
+                textDecoration: "none", transition: "all .2s",
+              }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#6B7280", fontWeight: 600 }}>
+                <ArrowLeft size={13} /> ບົດກ່ອນໜ້າ
               </div>
-              <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
+              <p style={{ fontSize: 13, color: "#111827", fontWeight: 600, lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
                 {prev.title}
               </p>
             </Link>
@@ -127,27 +190,81 @@ export default async function LessonDetailPage({ params }: Props) {
 
           {next ? (
             <Link href={`/lessons/${next.slug?.current ?? ""}`}
-              style={{ display: "flex", flexDirection: "column", gap: 4, padding: 14, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, textDecoration: "none", textAlign: "right" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, fontSize: 10, color: "#9CA3AF" }}>
-                ບົດຖັດໄປ <ArrowRight size={10} />
+              style={{
+                display: "flex", flexDirection: "column", gap: 6, padding: "16px 18px",
+                background: "linear-gradient(135deg,#2563EB,#4F46E5)", border: "1.5px solid transparent",
+                borderRadius: 14, textDecoration: "none", textAlign: "right" as const,
+                boxShadow: "0 4px 14px rgba(37,99,235,.25)",
+              }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, fontSize: 11, color: "rgba(255,255,255,.85)", fontWeight: 600 }}>
+                ບົດຖັດໄປ <ArrowRight size={13} />
               </div>
-              <p style={{ fontSize: 12, color: "#2563EB", lineHeight: 1.4, margin: 0, fontWeight: 500 }}>
+              <p style={{ fontSize: 13, color: "#fff", fontWeight: 700, lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
                 {next.title}
               </p>
             </Link>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: 14, background: "#EEF3FF", border: "1px solid #BFCFFF", borderRadius: 12, textAlign: "right" }}>
-              <div style={{ fontSize: 11, color: "#2563EB" }}>ຮຽນຄົບແລ້ວ! 🎉</div>
-              <p style={{ fontSize: 12, color: "#2563EB", fontWeight: 600, margin: 0 }}>ຄົບ 50 ບົດ</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "16px 18px", background: "#EEF3FF", border: "1.5px solid #BFCFFF", borderRadius: 14, textAlign: "right" as const }}>
+              <div style={{ fontSize: 11, color: "#2563EB", fontWeight: 600 }}>ຮຽນຄົບແລ້ວ! 🎉</div>
+              <p style={{ fontSize: 13, color: "#2563EB", fontWeight: 700, margin: 0 }}>ຄົບທຸກບົດແລ້ວ</p>
             </div>
           )}
         </div>
 
-        <div style={{ marginTop: 20, textAlign: "center" }}>
+        {/* Upcoming lessons — clickable */}
+        {upcoming.length > 0 && (
+          <div style={{ marginTop: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: "#111827", margin: 0, letterSpacing: "-0.01em" }}>
+                📚 ບົດຮຽນຖັດໄປ
+              </h2>
+              <Link href="/lessons" style={{ fontSize: 12, color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>
+                ເບິ່ງທັງໝົດ →
+              </Link>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {upcoming.map((lesson, i) => {
+                const num = currentIndex + 2 + i
+                return (
+                  <Link key={lesson._id} href={`/lessons/${lesson.slug?.current ?? ""}`}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 14,
+                      padding: "14px 16px", background: "#fff",
+                      border: "1px solid #E5E7EB", borderRadius: 12,
+                      textDecoration: "none", transition: "all .2s",
+                    }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                      background: "linear-gradient(135deg,#EEF3FF,#F5F3FF)",
+                      border: "1px solid #BFCFFF",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontWeight: 800, fontSize: 13, color: "#2563EB",
+                    }}>
+                      {num}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, color: "#111827", fontWeight: 600, margin: "0 0 3px", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
+                        {lesson.title}
+                      </p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#9CA3AF" }}>
+                        <Clock size={10} /> {lesson.readTime ?? 5} ນາທີ
+                      </div>
+                    </div>
+                    <ArrowRight size={14} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginTop: 24, textAlign: "center" }}>
           <Link href="/lessons" style={{ fontSize: 12, color: "#6B7280", textDecoration: "none" }}>
             ← ກັບໄປ ບົດຮຽນທັງໝົດ
           </Link>
         </div>
+        </div>
+        {hasSidebar && <ArticleSidebar article={article} />}
       </div>
     </div>
   )

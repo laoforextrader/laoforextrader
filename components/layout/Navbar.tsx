@@ -10,6 +10,7 @@ const NAV = [
   { label:"EA System", href:"/ea-system" },
   { label:"ບົດຮຽນ",   href:"/lessons"   },
   { label:"ການສຶກສາ", href:"/education"  },
+  { label:"Quizzes",  href:"/quiz"      },
   { label:"ຂ່າວ",     href:"/news"      },
   { label:"ວິເຄາະ",   href:"/analysis"  },
   { label:"ເຄື່ອງມື", href:"/tools"     },

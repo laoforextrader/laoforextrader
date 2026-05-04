@@ -8,6 +8,9 @@ import { ArrowLeft, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata } from "@/lib/articleMetadata"
+import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
+import CTASelector from "@/components/cta/CTASelector"
+import ViewTracker from "@/components/article/ViewTracker"
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -48,6 +51,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+      <ViewTracker slug={article.slug?.current ?? ""} />
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
 
         <Link href="/analysis"
@@ -71,9 +75,27 @@ export default async function ArticleDetailPage({ params }: Props) {
           </div>
         )}
 
-        <div>
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'middle' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
+        <div className="article-body">
           {article.body && <PortableText value={article.body} components={ptComponents} />}
         </div>
+
+        {article.adsBanner?.show &&
+         article.adsBanner?.html &&
+         (article.adsBanner.position === 'bottom' ||
+          article.adsBanner.position === 'both') && (
+          <BrokerAdsBanner html={article.adsBanner.html} />
+        )}
+
+        {article.ctas?.map((c, i) => (
+          c?.type ? <CTASelector key={c._key ?? i} type={c.type} /> : null
+        ))}
 
         <PostEngagement
           postId={article._id}
