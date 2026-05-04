@@ -1,7 +1,26 @@
 import Image from 'next/image'
 import styles from './FounderSection.module.css'
+import { sanityClient, QUERIES } from '@/lib/sanity'
+import { EAStats } from '@/types'
 
-export default function FounderSection() {
+function fmtPct(n: number | undefined, fallback: string): string {
+  if (n === undefined || n === null || isNaN(n)) return fallback
+  const sign = n >= 0 ? '+' : ''
+  return `${sign}${n.toFixed(0)}%`
+}
+
+export default async function FounderSection() {
+  let stats: EAStats | null = null
+  try {
+    stats = await sanityClient.fetch<EAStats>(
+      QUERIES.eaStatsByEaId('sgride'),
+      {},
+      { next: { revalidate: 60 } }
+    )
+    if (!stats || stats.updateMode === 'off') stats = null
+  } catch {}
+  const eaTotal = fmtPct(stats?.profitTotalPct, '+500%')
+
   return (
     <section className={styles.founderSection}>
       <div className={styles.founderInner}>
@@ -45,7 +64,7 @@ export default function FounderSection() {
               <div className={styles.statLabel}>Started Trading</div>
             </div>
             <div>
-              <div className={`${styles.statNumber} ${styles.statNumberBlue}`}>+500%</div>
+              <div className={`${styles.statNumber} ${styles.statNumberBlue}`}>{eaTotal}</div>
               <div className={styles.statLabel}>EA in 7 months</div>
             </div>
             <div>

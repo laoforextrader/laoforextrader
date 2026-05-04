@@ -9,8 +9,7 @@ import MerchSection from "@/components/sections/MerchSection"
 import FounderSection from "@/components/sections/FounderSection"
 import EASGrideCTA from "@/components/sections/EASGrideCTA"
 import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
-import EAStatsCompact from "@/components/ea/EAStatsCompact"
-import { Article, Broker, EAStats } from "@/types"
+import { Article, Broker } from "@/types"
 import { categoryRoute, formatDate } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
@@ -54,7 +53,6 @@ export default async function HomePage() {
   let brokers: Broker[] = []
   let lessons: Article[] = []
   let popular: Article[] = []
-  let liveEAs: EAStats[] = []
 
   try {
     const data = await Promise.all([
@@ -66,13 +64,11 @@ export default async function HomePage() {
         }
       `, {}, { next: { revalidate: 60 } }),
       sanityClient.fetch<Article[]>(QUERIES.popularArticles(2), {}, { next: { revalidate: 60 } }),
-      sanityClient.fetch<EAStats[]>(QUERIES.allActiveEAs, {}, { next: { revalidate: 60 } }),
     ])
     latest = data[0] || latest
     brokers = data[1] || []
     lessons = data[2] || []
     popular = data[3] || []
-    liveEAs = data[4] || []
   } catch (err) {
     console.error("Sanity fetch error:", err)
   }
@@ -248,35 +244,6 @@ export default async function HomePage() {
           <LessonsPreview lessons={lessons} />
         </div>
       </div>
-
-      {/* ── LIVE EAs ── */}
-      {liveEAs.length > 0 && (
-        <div className="bg-white border-t border-gray-200 border-b border-gray-200">
-          <div className="max-w-[1060px] mx-auto px-6 py-12">
-            <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1.5">
-                  🟢 LIVE EA STATS
-                </div>
-                <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
-                  EA ຂອງເຮົາ
-                </h2>
-                <p className="font-lao text-[12px] text-gray-500 mt-1">
-                  ສະຖິຕິສົດຈາກ MT5 — ບໍ່ມີການແຕ້ມເພີ່ມ
-                </p>
-              </div>
-              <Link href="/ea" className="text-[12px] font-lao text-blue-600 hover:underline font-bold">
-                ເບິ່ງລາຍລະອຽດທັງໝົດ →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {liveEAs.map(ea => (
-                <EAStatsCompact key={ea._id} stats={ea} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── QUIZZES ── */}
       <QuizzesHomeSection />

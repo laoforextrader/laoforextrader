@@ -1,8 +1,44 @@
 import { Rocket } from "lucide-react"
 import { GalaxyCanvas } from "@/components/ui/GalaxyCanvas"
 import styles from "./EASGrideCTA.module.css"
+import { sanityClient, QUERIES } from "@/lib/sanity"
+import { EAStats } from "@/types"
 
-export default function EASGrideCTA() {
+function fmtPct(n: number | undefined, fallback: string): string {
+  if (n === undefined || n === null || isNaN(n)) return fallback
+  const sign = n >= 0 ? "+" : ""
+  return `${sign}${n.toFixed(1)}%`
+}
+
+function pctColor(n: number | undefined, fallback: string): string {
+  if (n === undefined || n === null || isNaN(n)) return fallback
+  return n >= 0 ? "#4ADE80" : "#EF4444"
+}
+
+export default async function EASGrideCTA() {
+  let stats: EAStats | null = null
+  try {
+    stats = await sanityClient.fetch<EAStats>(
+      QUERIES.eaStatsByEaId("sgride"),
+      {},
+      { next: { revalidate: 60 } }
+    )
+    if (!stats || stats.updateMode === "off") stats = null
+  } catch {}
+
+  const totalDisplay = fmtPct(stats?.profitTotalPct, "+500%")
+  const totalColor   = pctColor(stats?.profitTotalPct, "#4ADE80")
+
+  const monthly      = stats?.monthlyReturns ?? []
+  const lastMonth    = monthly.length ? monthly[monthly.length - 1] : null
+  const monthDisplay = fmtPct(lastMonth?.profitPct, "+18.7%")
+  const monthColor   = pctColor(lastMonth?.profitPct, "#60A5FA")
+
+  const daily        = stats?.dailyReturns ?? []
+  const lastDay      = daily.length ? daily[daily.length - 1] : null
+  const dayDisplay   = fmtPct(lastDay?.profitPct, "+2.4%")
+  const dayColor     = pctColor(lastDay?.profitPct, "#4ADE80")
+
   return (
     <section className={styles.section}>
       {/* Galaxy particle background — covers entire section, mouse-interactive */}
@@ -30,7 +66,7 @@ export default function EASGrideCTA() {
             ກຳໄລ <span style={{
               background: 'linear-gradient(135deg, #4ADE80, #22D3EE)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>+500%</span>
+            }}>{totalDisplay}</span>
             <br />ໃນ 7 ເດືອນ
           </h2>
           <p style={{
@@ -104,8 +140,8 @@ export default function EASGrideCTA() {
               <Rocket size={11} strokeWidth={2.5} style={{ color: '#FCD34D' }} />
               TheRocket EA SGride
             </div>
-            <div style={{ fontSize: 48, fontWeight: 700, color: '#4ADE80', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1 }}>
-              +500%
+            <div style={{ fontSize: 48, fontWeight: 700, color: totalColor, fontFamily: 'JetBrains Mono, monospace', lineHeight: 1 }}>
+              {totalDisplay}
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
               Total Growth · 7 months
@@ -114,10 +150,10 @@ export default function EASGrideCTA() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
-              { label: 'ເດືອນນີ້', value: '+18.7%', color: '#60A5FA' },
-              { label: 'ມື້ນີ້',   value: '+2.4%',  color: '#4ADE80' },
-              { label: 'Strategy', value: 'Grid',   color: '#A78BFA' },
-              { label: 'Risk',     value: 'Medium', color: '#FCD34D' },
+              { label: 'ເດືອນນີ້', value: monthDisplay, color: monthColor },
+              { label: 'ມື້ນີ້',   value: dayDisplay,   color: dayColor },
+              { label: 'Strategy', value: 'Grid',       color: '#A78BFA' },
+              { label: 'Risk',     value: 'Medium',     color: '#FCD34D' },
             ].map((s, i) => (
               <div key={i} style={{
                 background: 'rgba(255,255,255,0.05)',

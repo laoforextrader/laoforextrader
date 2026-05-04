@@ -1,6 +1,31 @@
 import BrokerCTA from './BrokerCTA'
 import EaCTA from './EaCTA'
-import { sanityClient, urlFor } from '@/lib/sanity'
+import { sanityClient, urlFor, QUERIES } from '@/lib/sanity'
+import { EAStats } from '@/types'
+
+function fmtPct(n: number | undefined, fallback: string): string {
+  if (n === undefined || n === null || isNaN(n)) return fallback
+  const sign = n >= 0 ? '+' : ''
+  return `${sign}${n.toFixed(1)}%`
+}
+
+function fmtMonthly(n: number | undefined, fallback: string): string {
+  if (n === undefined || n === null || isNaN(n)) return fallback
+  return n.toFixed(1)
+}
+
+async function getEALive(eaId: string): Promise<EAStats | null> {
+  try {
+    const stats = await sanityClient.fetch<EAStats>(
+      QUERIES.eaStatsByEaId(eaId),
+      {},
+      { next: { revalidate: 60 } }
+    )
+    return stats && stats.updateMode !== 'off' ? stats : null
+  } catch {
+    return null
+  }
+}
 
 export type CTAType =
   | 'ea-sgride'
@@ -40,13 +65,33 @@ async function getBrokerLogo(key: string): Promise<string | undefined> {
 export default async function CTASelector({ type }: Props) {
   if (!type) return null
 
-  if (type === 'ea-sgride') return (
-    <EaCTA name="SGride" totalGain="+500%" monthlyGain="18.7" sub="Grid Trading · ກຳໄລໝັ້ນຄົງ · ກ໊ອບໄດ້ທັນທີ" href="/ea-system" />
-  )
+  if (type === 'ea-sgride') {
+    const live = await getEALive('sgride')
+    const lastMonth = live?.monthlyReturns?.length ? live.monthlyReturns[live.monthlyReturns.length - 1] : null
+    return (
+      <EaCTA
+        name="SGride"
+        totalGain={fmtPct(live?.profitTotalPct, '+500%')}
+        monthlyGain={fmtMonthly(lastMonth?.profitPct, '18.7')}
+        sub="Grid Trading · ກຳໄລໝັ້ນຄົງ · ກ໊ອບໄດ້ທັນທີ"
+        href="/ea-system"
+      />
+    )
+  }
 
-  if (type === 'ea-megihgedge') return (
-    <EaCTA name="MegiHedge" totalGain="+247%" monthlyGain="22.1" sub="Hedging · ກຳໄລໄວ · ກ໊ອບໄດ້ທັນທີ" href="/ea-system" />
-  )
+  if (type === 'ea-megihgedge') {
+    const live = await getEALive('megihedge')
+    const lastMonth = live?.monthlyReturns?.length ? live.monthlyReturns[live.monthlyReturns.length - 1] : null
+    return (
+      <EaCTA
+        name="MegiHedge"
+        totalGain={fmtPct(live?.profitTotalPct, '+247%')}
+        monthlyGain={fmtMonthly(lastMonth?.profitPct, '22.1')}
+        sub="Hedging · ກຳໄລໄວ · ກ໊ອບໄດ້ທັນທີ"
+        href="/ea-system"
+      />
+    )
+  }
 
   if (type === 'broker-xm') {
     const logoSrc = await getBrokerLogo('xm')
