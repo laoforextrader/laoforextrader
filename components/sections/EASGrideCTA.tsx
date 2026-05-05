@@ -58,16 +58,11 @@ export default async function EASGrideCTA() {
             <Rocket size={13} strokeWidth={2.5} style={{ color: '#FCD34D' }} />
             TheRocket EA SGride
           </div>
-          <div role="heading" aria-level={2} style={{
-            fontSize: 42, fontWeight: 800, color: '#fff',
-            lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 8,
-            fontFamily: 'Noto Sans Lao, sans-serif',
-            textShadow: '0 2px 8px rgba(0,0,0,.4)',
-          }}>
-            ກຳໄລລວມ <span style={{
-              background: 'linear-gradient(135deg, #4ADE80, #22D3EE)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>{totalDisplay}</span>
+          <div role="heading" aria-level={2} className={styles.rocketTitle} style={{ marginBottom: 8 }}>
+            <span className={styles.rocketIconWrap} aria-hidden="true">
+              <Rocket size={32} strokeWidth={2.4} style={{ color: '#FCD34D' }} />
+            </span>
+            <span>TheRocketEA</span>
           </div>
           <p style={{
             fontSize: 16, fontWeight: 700, marginBottom: 8,

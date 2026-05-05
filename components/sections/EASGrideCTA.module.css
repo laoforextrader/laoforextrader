@@ -3,6 +3,74 @@
   50%     { opacity: 0.4; transform: scale(1.4); }
 }
 
+@keyframes rocketFly {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50%      { transform: translateY(-6px) rotate(-2deg); }
+}
+
+@keyframes rocketGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(96,165,250,0.55)) drop-shadow(0 0 14px rgba(167,139,250,0.35)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(96,165,250,0.9))  drop-shadow(0 0 22px rgba(244,114,182,0.55)); }
+}
+
+@keyframes rocketGradient {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes rocketFlame {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, 0) scaleY(0.85); }
+  50%      { opacity: 1;   transform: translate(-50%, 1px) scaleY(1.15); }
+}
+
+.rocketTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #60A5FA, #22D3EE, #A78BFA, #F472B6, #FCD34D, #60A5FA);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent;
+  animation: rocketGradient 6s linear infinite;
+  font-family: 'Inter', 'Noto Sans Lao', sans-serif;
+}
+
+.rocketIconWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  animation: rocketFly 2.6s ease-in-out infinite, rocketGlow 2.6s ease-in-out infinite;
+}
+
+.rocketIconWrap::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 10px;
+  height: 14px;
+  border-radius: 50% 50% 40% 40% / 30% 30% 70% 70%;
+  background: radial-gradient(ellipse at center, #FCD34D 0%, #F97316 55%, rgba(249,115,22,0) 100%);
+  filter: blur(1px);
+  transform: translate(-50%, 0);
+  animation: rocketFlame 0.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .rocketTitle    { font-size: 38px; gap: 10px; }
+  .rocketIconWrap { width: 36px; height: 36px; }
+}
+
 .section {
   position: relative;
   overflow: hidden;
