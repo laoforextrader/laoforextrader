@@ -15,7 +15,7 @@ export default async function LoginPage() {
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em" }}>ເຂົ້າສູ່ລະບົບ</h1>
         <p style={{ fontSize: 13, color: "#111827", marginBottom: 28, fontFamily: "'Noto Sans Lao', sans-serif" }}>
-          ເຂົ້າຮຽນ 50 ບົດ · ຕິດຕາມ Broker · ຕั้ງການແຈ້ງເຕືອນ
+          ຮັບການອັບເດດຂໍ້ມູນຂ່າວສານການເທຣດທຸກວັນ
         </p>
         <LoginButton />
         <p style={{ fontSize: 11, color: "#111827", marginTop: 20, fontFamily: "'Noto Sans Lao', sans-serif", lineHeight: 1.6 }}>
