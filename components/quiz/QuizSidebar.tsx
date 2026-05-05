@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 interface Props {
   quiz: {
@@ -19,6 +22,8 @@ const bgMap: Record<string, string> = {
 
 export default function QuizSidebar({ quiz }: Props) {
   const slug = typeof quiz.slug === 'string' ? quiz.slug : quiz.slug?.current
+  const { status } = useSession()
+  const showLockBadge = quiz.requiresLogin && status === 'unauthenticated'
 
   return (
     <div style={{
@@ -61,10 +66,10 @@ export default function QuizSidebar({ quiz }: Props) {
           </div>
           <div style={{
             fontSize: 9, fontWeight: 700, padding: '3px 9px', borderRadius: 100,
-            background: quiz.requiresLogin ? '#EEF3FF' : '#ECFDF5',
-            color: quiz.requiresLogin ? '#2563EB' : '#059669',
+            background: showLockBadge ? '#EEF3FF' : '#ECFDF5',
+            color: showLockBadge ? '#2563EB' : '#059669',
           }}>
-            {quiz.requiresLogin ? '🔒 Login' : 'ຟຣີ'}
+            {showLockBadge ? '🔒 Login' : 'ຟຣີ'}
           </div>
         </div>
         <Link href={`/quiz/${slug}`} style={{ textDecoration: 'none', display: 'block' }}>

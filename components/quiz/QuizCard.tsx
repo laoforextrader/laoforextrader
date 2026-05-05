@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { useSession, signIn } from 'next-auth/react'
 import CandlestickPattern from './CandlestickPattern'
 
 export interface QuizCardData {
@@ -25,9 +28,11 @@ interface Props {
 
 export default function QuizCard({ quiz, compact = false }: Props) {
   const slug = typeof quiz.slug === 'string' ? quiz.slug : quiz.slug?.current
-  const locked = quiz.requiresLogin
+  const { status } = useSession()
+  const locked = quiz.requiresLogin && status === 'unauthenticated'
   const seed = `${quiz._id}-${slug ?? quiz.title}`
   const coverHeight = compact ? 124 : 148
+  const detailUrl = slug ? `/quiz/${slug}` : '/quiz'
 
   return (
     <div style={{
@@ -71,18 +76,23 @@ export default function QuizCard({ quiz, compact = false }: Props) {
 
       <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'center' }}>
         {locked ? (
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '12px 24px', borderRadius: 100,
-            border: '1.5px solid #E5E7EB',
-            fontSize: 14, fontWeight: 600,
-            background: '#F9FAFB', color: '#9CA3AF',
-            fontFamily: 'Noto Sans Lao, sans-serif',
-          }}>
+          <button
+            type="button"
+            onClick={() => signIn('facebook', { callbackUrl: detailUrl })}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '12px 24px', borderRadius: 100,
+              border: '1.5px solid #E5E7EB',
+              fontSize: 14, fontWeight: 600,
+              background: '#F9FAFB', color: '#6B7280',
+              cursor: 'pointer',
+              fontFamily: 'Noto Sans Lao, sans-serif',
+            }}
+          >
             🔒 Login ເພື່ອເຂົ້າ
-          </div>
+          </button>
         ) : (
-          <Link href={`/quiz/${slug}`} style={{ textDecoration: 'none' }}>
+          <Link href={detailUrl} style={{ textDecoration: 'none' }}>
             <div className="animate-quiz-next" style={{
               display: 'inline-flex', alignItems: 'center', gap: 10,
               padding: '13px 28px', borderRadius: 100,
