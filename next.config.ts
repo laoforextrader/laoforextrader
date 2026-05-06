@@ -2,10 +2,6 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium-min", "puppeteer-core"],
-  outputFileTracingIncludes: {
-    "/api/cron/broadcast": ["./public/fonts/NotoSansLao-Bold-v2.ttf"],
-    "/api/broadcast/run/**": ["./public/fonts/NotoSansLao-Bold-v2.ttf"],
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },
