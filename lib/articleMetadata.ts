@@ -5,7 +5,7 @@ import { Article } from "@/types"
 
 const SITE_URL  = "https://www.laoforextrader.com"
 const SITE_NAME = "LaoForexTrader"
-const OG_IMAGE_VERSION = 4
+const OG_IMAGE_VERSION = 5
 
 export function buildArticleMetadata(article: Article, pathname: string): Metadata {
   const path = pathname.startsWith("/") ? pathname : "/" + pathname
