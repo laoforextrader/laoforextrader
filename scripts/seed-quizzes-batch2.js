@@ -604,7 +604,7 @@ const quizzes = [
     "title": "Quiz 11: Market Sessions",
     "slug": "q11",
     "level": "basic",
-    "requiresLogin": false,
+    "requiresLogin": true,
     "order": 11,
     "icon": "🕐",
     "color": "10B981",
