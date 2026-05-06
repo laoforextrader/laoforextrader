@@ -198,7 +198,8 @@ export async function generateOGImage(article: {
     await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 1 })
     await page.setContent(buildHtml(article, fontUri), { waitUntil: 'networkidle0', timeout: 15000 })
     const buffer = await page.screenshot({ type: 'png', omitBackground: false, clip: { x: 0, y: 0, width: 1200, height: 630 } })
-    return new Response(buffer as unknown as Uint8Array, {
+    const blob = new Blob([buffer as unknown as BlobPart], { type: 'image/png' })
+    return new Response(blob, {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
