@@ -24,7 +24,7 @@ export function buildArticleMetadata(article: Article, pathname: string): Metada
       locale:      "lo_LA",
       publishedTime: article.publishedAt,
       authors:     [article.author?.name || "LFT Team"],
-      images: imageUrl ? [{ url: imageUrl }] : undefined,
+      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
     },
     twitter: {
       card:        "summary_large_image",
