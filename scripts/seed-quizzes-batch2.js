@@ -16,7 +16,7 @@ const quizzes = [
     "title": "Quiz 7: Broker Selection",
     "slug": "q7",
     "level": "basic",
-    "requiresLogin": false,
+    "requiresLogin": true,
     "order": 7,
     "icon": "🏦",
     "color": "10B981",
