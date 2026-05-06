@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node scripts/prerender-og-images.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prerender-og": "node scripts/prerender-og-images.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.4",
@@ -14,7 +15,6 @@
     "@sanity/client": "^6.22.1",
     "@sanity/icons": "^3.7.0",
     "@sanity/image-url": "^1.1.0",
-    "@sparticuz/chromium": "^148.0.0",
     "chart.js": "^4.4.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -22,7 +22,6 @@
     "next": "15.5.15",
     "next-auth": "^4.24.7",
     "next-sanity": "^9.8.16",
-    "puppeteer-core": "^24.43.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "styled-components": "^6.4.1",
@@ -31,11 +30,13 @@
   },
   "devDependencies": {
     "@sanity/vision": "^5.22.0",
+    "@sparticuz/chromium": "^148.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
     "postcss": "^8",
+    "puppeteer-core": "^24.43.0",
     "sanity": "^5.22.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

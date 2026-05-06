@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     url: "https://www.laoforextrader.com",
     title: "LaoForexTrader — ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ",
     description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
-    images: [{ url: "/opengraph-image" }],
+    images: [{ url: "/og/_default.png", width: 1200, height: 630, type: "image/png" }],
   },
   facebook: {
     appId: '1949886389746807',

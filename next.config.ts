@@ -1,11 +1,6 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
-  outputFileTracingIncludes: {
-    '**/opengraph-image': ['./public/fonts/NotoSansLao-Bold-v2.ttf'],
-    'app/**/opengraph-image/**': ['./public/fonts/NotoSansLao-Bold-v2.ttf'],
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },

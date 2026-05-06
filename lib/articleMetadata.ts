@@ -5,14 +5,20 @@ import { Article } from "@/types"
 
 const SITE_URL  = "https://www.laoforextrader.com"
 const SITE_NAME = "LaoForexTrader"
-const OG_IMAGE_VERSION = 5
+const FALLBACK_OG = `${SITE_URL}/og/_default.png`
+
+function articleOgUrl(article: Article): string {
+  const slug = article.slug?.current
+  const cat  = article.category
+  if (!slug || !cat) return FALLBACK_OG
+  return `${SITE_URL}/og/${cat}/${slug}.png`
+}
 
 export function buildArticleMetadata(article: Article, pathname: string): Metadata {
   const path = pathname.startsWith("/") ? pathname : "/" + pathname
   const url  = `${SITE_URL}${path}`
   const coverUrl = article.coverImage ? urlFor(article.coverImage).url() : undefined
-  const fallbackOg = `${SITE_URL}${path}/opengraph-image?v=${OG_IMAGE_VERSION}`
-  const imageUrl = coverUrl ?? fallbackOg
+  const imageUrl = coverUrl ?? articleOgUrl(article)
   const desc = article.excerpt || article.title
 
   return {
@@ -43,6 +49,8 @@ export function buildBrokerMetadata(broker: any, pathname: string): Metadata {
   const url   = `${SITE_URL}${pathname.startsWith("/") ? pathname : "/" + pathname}`
   const title = `ລີວິວ ${broker.name} | ${SITE_NAME}`
   const desc  = broker?.excerpt ?? `ລີວິວ ${broker.name} ຝາກຂັ້ນຕ່ຳ $${broker?.minDeposit ?? "—"}`
+  const slug  = broker?.slug?.current
+  const imageUrl = slug ? `${SITE_URL}/og/broker/${slug}.png` : FALLBACK_OG
 
   return {
     title,
@@ -55,11 +63,13 @@ export function buildBrokerMetadata(broker: any, pathname: string): Metadata {
       siteName:    SITE_NAME,
       type:        "website",
       locale:      "lo_LA",
+      images: [{ url: imageUrl, width: 1200, height: 630, type: "image/png" }],
     },
     twitter: {
       card:        "summary_large_image",
       title,
       description: desc,
+      images:      [imageUrl],
     },
   }
 }
