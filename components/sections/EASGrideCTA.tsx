@@ -93,16 +93,21 @@ export default async function EASGrideCTA() {
               <Rocket size={15} strokeWidth={2.5} />
               ເລີ່ມ Copy Trade →
             </a>
-            <a href="/ea-system#results" style={{
-              background: 'rgba(255,255,255,0.06)',
-              color: '#fff', textDecoration: 'none',
-              padding: '14px 28px', borderRadius: 10,
-              fontSize: 14, fontWeight: 600,
-              border: '1.5px solid rgba(255,255,255,0.25)',
-              fontFamily: 'Noto Sans Lao, sans-serif',
-              backdropFilter: 'blur(6px)',
-            }}>
-              ດູ Live Results
+            <a
+              href="https://line.me/R/ti/p/@499dvtuz"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                color: '#fff', textDecoration: 'none',
+                padding: '14px 28px', borderRadius: 10,
+                fontSize: 14, fontWeight: 600,
+                border: '1.5px solid rgba(255,255,255,0.25)',
+                fontFamily: 'Noto Sans Lao, sans-serif',
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              ເບິ່ງ Live Results
             </a>
           </div>
         </div>

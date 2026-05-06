@@ -1,562 +1,227 @@
-import CTABanner from '@/components/sections/CTABanner'
-import EASystemHeroCanvas from '@/components/sections/EASystemHeroCanvas'
-import { sanityClient, QUERIES } from '@/lib/sanity'
-import { EAStats } from '@/types'
+import Link from "next/link"
+import { Rocket, Zap } from "lucide-react"
+import EAShowcaseSection from "@/components/sections/EAShowcaseSection"
 
 export const revalidate = 60
 
-function fmtPct(n: number | undefined, fallback: string): string {
-  if (n === undefined || n === null || isNaN(n)) return fallback
-  const sign = n >= 0 ? '+' : ''
-  return `${sign}${n.toFixed(1)}%`
-}
+const LINE_URL = "https://line.me/R/ti/p/@499dvtuz"
 
-function pctClass(n: number | undefined, fallback: 'blue' | 'amber'): 'blue' | 'amber' {
-  if (n === undefined || n === null || isNaN(n)) return fallback
-  return n >= 0 ? fallback : 'amber' // negative shows as amber-ish
-}
-
-function monthLabel(monthStr: string | undefined): string {
-  if (!monthStr) return 'Live'
-  // monthStr is "YYYY-MM"
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const [y, m] = monthStr.split('-').map(Number)
-  if (!y || !m || m < 1 || m > 12) return 'Live'
-  return `${months[m-1]} ${y}`
-}
-
-export default async function EASystemPage() {
-  let stats: EAStats | null = null
-  try {
-    stats = await sanityClient.fetch<EAStats>(
-      QUERIES.eaStatsByEaId('sgride'),
-      {},
-      { next: { revalidate: 60 } }
-    )
-    if (!stats || stats.updateMode === 'off') stats = null
-  } catch {}
-
-  const monthly   = stats?.monthlyReturns ?? []
-  const lastMonth = monthly.length ? monthly[monthly.length - 1] : null
-  const daily     = stats?.dailyReturns ?? []
-  const lastDay   = daily.length ? daily[daily.length - 1] : null
-
-  const todayDisplay = fmtPct(lastDay?.profitPct,        '+2.4%')
-  const monthDisplay = fmtPct(lastMonth?.profitPct,      '+18.7%')
-  const totalDisplay = fmtPct(stats?.profitTotalPct,     '+500%')
-  const monthSubLabel = monthLabel(lastMonth?.month)
-
+export default function EASystemPage() {
   return (
     <>
+      {/* ── HERO (compact intro) ───────────────────────────────────────── */}
+      <section style={{
+        background: "linear-gradient(180deg, #050816 0%, #0B1230 100%)",
+        borderBottom: "1px solid #1E1B4B",
+      }}>
+        <div style={{
+          maxWidth: 1060, margin: "0 auto",
+          padding: "56px 24px 44px", textAlign: "center",
+        }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(74,222,128,0.12)",
+            border: "0.5px solid rgba(74,222,128,0.35)",
+            borderRadius: 100, padding: "4px 12px",
+            fontSize: 11, color: "#4ADE80", fontWeight: 600, marginBottom: 18,
+          }}>
+            <span style={{
+              display: "inline-block", width: 6, height: 6, borderRadius: 9999,
+              background: "#4ADE80",
+            }} />
+            Live Account Running
+          </div>
+
+          <h1 style={{
+            fontSize: 38, fontWeight: 800, color: "#fff",
+            letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 12,
+          }}>
+            TheRocket <span style={{
+              background: "linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}>EA System</span>
+          </h1>
+          <p style={{
+            fontSize: 14, color: "rgba(255,255,255,0.55)",
+            fontFamily: "Noto Sans Lao, sans-serif",
+            lineHeight: 1.7, maxWidth: 540, margin: "0 auto",
+          }}>
+            ລະບົບ Trade ອັດຕະໂນມັດ ຈາກ Live Account ຈິງ · ບໍ່ແມ່ນ Backtest<br />
+            ກ໊ອບ Trade ໄດ້ທັນທີ · ຮັບ Merch ຟຣີ
+          </p>
+
+          <div style={{
+            display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap",
+            marginTop: 24, fontSize: 11, color: "rgba(255,255,255,0.4)",
+            fontFamily: "Noto Sans Lao, sans-serif",
+          }}>
+            <span>⚡ Live Account</span>
+            <span>📈 Real Trading</span>
+            <span>🤖 24/5 Auto</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── EA #1 — SGride (Galaxy) ────────────────────────────────────── */}
+      <EAShowcaseSection
+        eaId="sgride"
+        variant="galaxy"
+        theme="blue"
+        badgeLabel="TheRocket EA SGride"
+        titleText="TheRocketEA"
+        subtitleAccent="ຈາກ Live Account ຈິງ"
+        description={"ບໍ່ແມ່ນ Backtest · Trade ອັດຕະໂນມັດ 24/5\nGrid Trading · ໝັ້ນຄົງ · Long-term"}
+        strategy="Grid"
+        risk="Medium"
+        riskColor="#FCD34D"
+        fallbacks={{ totalPct: "+500%", monthPct: "+18.7%", dayPct: "+2.4%", months: 7 }}
+      />
+
+      {/* ── EA #2 — MegiHedge (Hyperspace) ─────────────────────────────── */}
+      <EAShowcaseSection
+        eaId="megihedge"
+        variant="hyperspace"
+        theme="purple"
+        badgeLabel="TheRocket EA MegiHedge"
+        titleText="MegiHedge"
+        subtitleAccent="ຍານ Hedge ກຳໄລໄວ"
+        description={"Hedging Strategy · Aggressive\nShort-term · Active Growth"}
+        strategy="Hedging"
+        risk="Higher"
+        riskColor="#F87171"
+        fallbacks={{ totalPct: "+320%", monthPct: "+22.4%", dayPct: "+3.1%", months: 5 }}
+      />
+
+      {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}
+      <section style={{ background: "#fff", borderTop: "1px solid #D4D8E5", borderBottom: "1px solid #D4D8E5" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "48px 24px" }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", color: "#2563EB", marginBottom: 5,
+          }}>
+            How it Works
+          </div>
+          <div style={{
+            fontSize: 26, fontWeight: 800, color: "#111827",
+            letterSpacing: "-0.025em", marginBottom: 24,
+          }}>
+            ເລີ່ມໃຊ້ໃນ <span style={{
+              background: "linear-gradient(135deg, #2563EB, #4F46E5)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}>3 ຂັ້ນຕອນ</span>
+          </div>
+
+          <div className="how-grid">
+            {[
+              { num: "1", title: "ເປີດບັນຊີ Broker",   sub: "ສະໝັກຜ່ານ Link LFT" },
+              { num: "2", title: "ເຊື່ອມ EA System",   sub: "Connect TheRocket EA" },
+              { num: "3", title: "Trade ອັດຕະໂນມັດ",   sub: "ບໍ່ຕ້ອງເຝົ້ານຳ" },
+            ].map(s => (
+              <div key={s.num} style={{
+                background: "#F9FAFB", border: "1px solid #E2E6F0",
+                borderRadius: 12, padding: 20, textAlign: "center",
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: "#EEF3FF", border: "1.5px solid #BFCFFF",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 14, fontWeight: 700, color: "#2563EB", marginBottom: 12,
+                }}>
+                  {s.num}
+                </div>
+                <div style={{
+                  fontSize: 14, fontWeight: 600, color: "#111827", marginBottom: 4,
+                  fontFamily: "Noto Sans Lao, sans-serif",
+                }}>
+                  {s.title}
+                </div>
+                <div style={{
+                  fontSize: 12, color: "#6B7280",
+                  fontFamily: "Noto Sans Lao, sans-serif",
+                }}>
+                  {s.sub}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            background: "#FFFBEB", border: "1px solid #FDE68A",
+            borderRadius: 8, padding: "10px 16px", marginTop: 20,
+            fontSize: 11, color: "#92400E", lineHeight: 1.6,
+            fontFamily: "Noto Sans Lao, sans-serif",
+          }}>
+            ⚠ Risk Disclosure: ການລົງທຶນໃນ Forex ມີຄວາມສ່ຽງ · ຜົນງານໃນອະດີດບໍ່ຮັບປະກັນຜົນໃນອະນາຄົດ
+          </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ──────────────────────────────────────────────────── */}
+      <section style={{
+        background: "linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #4F46E5 100%)",
+        padding: "48px 24px",
+      }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{
+            fontSize: 26, fontWeight: 800, color: "#fff",
+            letterSpacing: "-0.02em", marginBottom: 8,
+            fontFamily: "Noto Sans Lao, sans-serif",
+          }}>
+            ຢາກເລີ່ມໃຊ້ TheRocket EA?
+          </h2>
+          <p style={{
+            fontSize: 14, color: "rgba(255,255,255,0.78)", marginBottom: 22,
+            fontFamily: "Noto Sans Lao, sans-serif",
+          }}>
+            ສະໝັກ Broker ຜ່ານ LFT · ຮັບ Merch ຟຣີ · ຕັ້ງຄ່າ EA ຟຣີ
+          </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+            <a
+              href={LINE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "#06C755", color: "#fff", textDecoration: "none",
+                padding: "13px 28px", borderRadius: 10,
+                fontSize: 14, fontWeight: 700,
+                fontFamily: "Noto Sans Lao, sans-serif",
+                boxShadow: "0 6px 20px rgba(6,199,85,0.35)",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .628.285.628.63 0 .349-.282.63-.63.63H17.61v1.125h1.755zm-3.855 3.016a.629.629 0 0 1-.626.628.62.62 0 0 1-.51-.255l-2.443-3.317v2.943a.63.63 0 0 1-1.257 0V8.108a.628.628 0 0 1 .624-.629c.195 0 .375.105.51.254l2.444 3.318V8.108a.63.63 0 0 1 1.258 0v4.771zm-5.461 0a.627.627 0 0 1-.626.628.629.629 0 0 1-.63-.628V8.108a.63.63 0 0 1 1.256 0v4.771zm-2.736.628H4.917a.625.625 0 0 1-.625-.628V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.141h1.762c.346 0 .628.283.628.63 0 .344-.282.628-.628.628M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+              </svg>
+              Add Line Official
+            </a>
+            <Link
+              href="/broker"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "rgba(255,255,255,0.12)", color: "#fff", textDecoration: "none",
+                padding: "13px 28px", borderRadius: 10,
+                fontSize: 14, fontWeight: 700,
+                fontFamily: "Noto Sans Lao, sans-serif",
+                border: "1.5px solid rgba(255,255,255,0.3)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              ເລືອກ Broker →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
-
-        .ea-hero {
-          position: relative;
-          background: #000;
-          overflow: hidden;
-          min-height: 440px;
-          display: flex;
-          align-items: center;
-        }
-        .ea-hero-inner {
-          position: relative;
-          z-index: 2;
-          max-width: 1060px;
-          margin: 0 auto;
-          padding: 52px 24px;
-          display: grid;
-          grid-template-columns: 340px 1fr;
-          gap: 48px;
-          align-items: center;
-          width: 100%;
-        }
-        .live-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(74, 222, 128, 0.12);
-          border: 0.5px solid rgba(74, 222, 128, 0.35);
-          border-radius: 100px;
-          padding: 4px 12px;
-          font-size: 11px;
-          color: #4ADE80;
-          font-weight: 600;
-          margin-bottom: 14px;
-        }
-        .live-dot {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: #4ADE80;
-          animation: ldot 3s infinite;
-        }
-        @keyframes ldot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.4); }
-        }
-        .ea-stat-card {
-          background: rgba(255, 255, 255, 0.08);
-          border: 0.5px solid rgba(255, 255, 255, 0.14);
-          border-radius: 16px;
-          padding: 22px;
-          backdrop-filter: blur(10px);
-        }
-        .ea-sname {
-          font-size: 14px;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.65);
-          margin-bottom: 4px;
-          font-family: 'JetBrains Mono', monospace;
-        }
-        .ea-slabel {
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.35);
-          margin-bottom: 14px;
-        }
-        .ea-bigval {
-          font-size: 44px;
-          font-weight: 700;
-          color: #4ADE80;
-          line-height: 1;
-          font-family: 'JetBrains Mono', monospace;
-          margin-bottom: 3px;
-        }
-        .ea-bigsub {
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.4);
-          margin-bottom: 18px;
-        }
-        .ea-minigrid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-        .ea-mini {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 8px;
-          padding: 10px;
-        }
-        .ea-minilabel {
-          font-size: 10px;
-          color: rgba(255, 255, 255, 0.35);
-          margin-bottom: 4px;
-        }
-        .ea-minival {
-          font-size: 17px;
-          font-weight: 600;
-          font-family: 'JetBrains Mono', monospace;
-        }
-        .ea-minival.blue { color: #60A5FA; }
-        .ea-minival.amber { color: #FCD34D; }
-        .ea-minisub {
-          font-size: 10px;
-          color: rgba(255, 255, 255, 0.3);
-          margin-top: 2px;
-        }
-        .ea-eyebrow {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #60A5FA;
-          margin-bottom: 6px;
-        }
-        .ea-h1 {
-          font-size: 28px;
-          font-weight: 800;
-          color: #fff;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          margin-bottom: 2px;
-        }
-        .ea-h2 {
-          font-size: 28px;
-          font-weight: 800;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          margin-bottom: 10px;
-          background: linear-gradient(135deg, #60A5FA, #A78BFA);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .ea-sub {
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.5);
-          line-height: 1.65;
-        }
-
-        /* EA Cards white section */
-        .ea-cards-section {
-          background: #fff;
-          border-top: 1px solid #D4D8E5;
-          border-bottom: 1px solid #D4D8E5;
-        }
-        .ea-cards-inner {
-          max-width: 1060px;
-          margin: 0 auto;
-          padding: 48px 24px;
-        }
-        .section-eyebrow {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #2563EB;
-          margin-bottom: 5px;
-        }
-        .section-title {
-          font-size: 26px;
-          font-weight: 800;
-          color: #111827;
-          margin-bottom: 4px;
-          letter-spacing: -0.025em;
-        }
-        .section-title span {
-          background: linear-gradient(135deg, #2563EB, #4F46E5);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .section-subtitle {
-          font-size: 14px;
-          color: #374151;
-          margin-bottom: 24px;
-        }
-        .ea-cards-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-          margin-bottom: 24px;
-        }
-        .ea-card {
-          background: #fff;
-          border: 1.5px solid #E2E6F0;
-          border-radius: 16px;
-          padding: 20px;
-          cursor: pointer;
-          transition: all 0.25s;
-          position: relative;
-          overflow: hidden;
-        }
-        .ea-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-        }
-        .ea-card.blue::before { background: linear-gradient(90deg, #2563EB, #4F46E5); }
-        .ea-card.purple::before { background: linear-gradient(90deg, #7C3AED, #EC4899); }
-        .ea-card:hover {
-          border-color: #2563EB;
-          box-shadow: 0 6px 24px rgba(37, 99, 235, 0.09);
-          transform: translateY(-3px);
-        }
-        .ea-tag {
-          display: inline-block;
-          font-size: 9px;
-          font-weight: 700;
-          padding: 3px 9px;
-          border-radius: 100px;
-          margin-bottom: 12px;
-        }
-        .ea-tag.blue { background: #EEF3FF; color: #2563EB; }
-        .ea-tag.purple { background: #F5F3FF; color: #7C3AED; }
-        .ea-card-name {
-          font-size: 15px;
-          font-weight: 700;
-          color: #111827;
-          margin-bottom: 3px;
-        }
-        .ea-card-desc {
-          font-size: 12px;
-          color: #6B7280;
-          margin-bottom: 14px;
-        }
-        .ea-rows {
-          border-top: 1px solid #F3F4F6;
-          padding-top: 12px;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          margin-bottom: 14px;
-        }
-        .ea-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
-        }
-        .ea-k { color: #6B7280; }
-        .ea-v { font-weight: 600; color: #111827; }
-        .ea-v.ok { color: #059669; }
-        .ea-v.am { color: #D97706; }
-        .ea-v.rd { color: #DC2626; }
-        .btn-blue-full {
-          width: 100%;
-          background: linear-gradient(135deg, #2563EB, #4F46E5);
-          color: #fff;
-          border: none;
-          padding: 10px;
-          border-radius: 9px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: 'Noto Sans Lao', sans-serif;
-        }
-        .btn-purple-full {
-          width: 100%;
-          background: linear-gradient(135deg, #7C3AED, #4F46E5);
-          color: #fff;
-          border: none;
-          padding: 10px;
-          border-radius: 9px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: 'Noto Sans Lao', sans-serif;
-        }
-        .steps-grid {
+        .how-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 12px;
-          margin-bottom: 20px;
-        }
-        .step-card {
-          background: #F9FAFB;
-          border: 1px solid #E2E6F0;
-          border-radius: 12px;
-          padding: 18px;
-          text-align: center;
-        }
-        .step-num {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: #EEF3FF;
-          border: 1.5px solid #BFCFFF;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 13px;
-          font-weight: 700;
-          color: #2563EB;
-          margin: 0 auto 10px;
-        }
-        .step-title {
-          font-size: 13px;
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 3px;
-        }
-        .step-sub {
-          font-size: 11px;
-          color: #6B7280;
-        }
-        .risk-banner {
-          background: #FFFBEB;
-          border: 1px solid #FDE68A;
-          border-radius: 8px;
-          padding: 10px 16px;
-          margin-bottom: 20px;
-          font-size: 11px;
-          color: #92400E;
-          line-height: 1.6;
-        }
-        .cta-row {
-          display: flex;
-          gap: 10px;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-        .btn-primary {
-          font-family: 'Noto Sans Lao', sans-serif;
-          font-size: 13px;
-          font-weight: 700;
-          color: #fff;
-          background: linear-gradient(135deg, #2563EB, #4F46E5);
-          border: none;
-          padding: 12px 28px;
-          border-radius: 10px;
-          cursor: pointer;
-        }
-        .btn-telegram {
-          font-family: 'Noto Sans Lao', sans-serif;
-          font-size: 13px;
-          font-weight: 700;
-          color: #fff;
-          background: #229ED9;
-          border: none;
-          padding: 12px 22px;
-          border-radius: 10px;
-          cursor: pointer;
-        }
-        .btn-ghost {
-          font-family: 'Noto Sans Lao', sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          color: #1F2937;
-          background: #fff;
-          border: 1.5px solid #9CA3AF;
-          padding: 12px 22px;
-          border-radius: 10px;
-          cursor: pointer;
         }
         @media (max-width: 768px) {
-          .ea-hero-inner {
-            grid-template-columns: 1fr;
-          }
-          .ea-cards-grid {
-            grid-template-columns: 1fr;
-          }
-          .steps-grid {
-            grid-template-columns: 1fr;
-          }
+          .how-grid { grid-template-columns: 1fr; }
         }
       `}</style>
-
-      {/* EA Dark Hero with Particle Canvas */}
-      <div className="ea-hero">
-        <EASystemHeroCanvas />
-        <div className="ea-hero-inner">
-          {/* Stat Card — LIVE values from Sanity (fall back to static) */}
-          <div className="ea-stat-card">
-            <div className="live-badge">
-              <div className="live-dot" />
-              Live Account Running
-            </div>
-            <div className="ea-sname">TheRocket EA SGride</div>
-            <div className="ea-slabel">ກຳໄລມື້ນີ້</div>
-            <div className="ea-bigval">{todayDisplay}</div>
-            <div className="ea-bigsub">Live realtime</div>
-            <div className="ea-minigrid">
-              <div className="ea-mini">
-                <div className="ea-minilabel">ເດືອນນີ້</div>
-                <div className={`ea-minival ${pctClass(lastMonth?.profitPct, 'blue')}`}>{monthDisplay}</div>
-                <div className="ea-minisub">{monthSubLabel}</div>
-              </div>
-              <div className="ea-mini">
-                <div className="ea-minilabel">TOTAL GROWTH</div>
-                <div className="ea-minival amber">{totalDisplay}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Hero Text */}
-          <div>
-            <div className="ea-eyebrow">TheRocket EA System</div>
-            <div className="ea-h1">ລະບົບ Trade ອັດຕະໂນມັດ</div>
-            <div className="ea-h2">ຜົນງານຈິງ ທຸກວັນ</div>
-            <div className="ea-sub">
-              ກຳໄລຈາກ Live Account · ບໍ່ແມ່ນ Backtest · ກ໊ອບ Trade ໄດ້ທັນທີ
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Banner between hero and cards */}
-      <CTABanner />
-
-      {/* EA Cards — White Section */}
-      <div className="ea-cards-section">
-        <div className="ea-cards-inner">
-          <div className="section-eyebrow">EA Products</div>
-          <div className="section-title">
-            ເລືອກ EA <span>ທີ່ເໝາະກັບທ່ານ</span>
-          </div>
-          <div className="section-subtitle">
-            ທັງ 2 EA ທຳງານໃນ Live Account ຈິງ
-          </div>
-
-          {/* Cards */}
-          <div className="ea-cards-grid">
-            {/* SGride */}
-            <div className="ea-card blue">
-              <div className="ea-tag blue">Portfolio Builder</div>
-              <div className="ea-card-name">TheRocket EA SGride</div>
-              <div className="ea-card-desc">Grid Trading · ກຳໄລຍາວ · ໝັ້ນຄົງ</div>
-              <div className="ea-rows">
-                <div className="ea-row">
-                  <span className="ea-k">Strategy</span>
-                  <span className="ea-v">Grid Trading</span>
-                </div>
-                <div className="ea-row">
-                  <span className="ea-k">Risk Level</span>
-                  <span className="ea-v am">Medium</span>
-                </div>
-                <div className="ea-row">
-                  <span className="ea-k">Profit Style</span>
-                  <span className="ea-v ok">Long-term</span>
-                </div>
-                <div className="ea-row">
-                  <span className="ea-k">Best For</span>
-                  <span className="ea-v">Portfolio Growth</span>
-                </div>
-              </div>
-              <a href="/broker" className="btn-blue-full" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>ໃຊ້ SGride →</a>
-            </div>
-
-            {/* MegiHedge */}
-            <div className="ea-card purple">
-              <div className="ea-tag purple">Aggressive Growth</div>
-              <div className="ea-card-name">TheRocket EA MegiHedge</div>
-              <div className="ea-card-desc">Hedge · ກຳໄລໄວ · Short-term</div>
-              <div className="ea-rows">
-                <div className="ea-row">
-                  <span className="ea-k">Strategy</span>
-                  <span className="ea-v">Hedging</span>
-                </div>
-                <div className="ea-row">
-                  <span className="ea-k">Risk Level</span>
-                  <span className="ea-v rd">Higher</span>
-                </div>
-                <div className="ea-row">
-                  <span className="ea-k">Profit Style</span>
-                  <span className="ea-v ok">Short-term</span>
-                </div>
-                <div className="ea-row">
-                  <span className="ea-k">Best For</span>
-                  <span className="ea-v">Active Growth</span>
-                </div>
-              </div>
-              <a href="/broker" className="btn-purple-full" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>ໃຊ້ MegiHedge →</a>
-            </div>
-          </div>
-
-          {/* Steps */}
-          <div className="steps-grid">
-            <div className="step-card">
-              <div className="step-num">1</div>
-              <div className="step-title">ເປີດບັນຊີ Broker</div>
-              <div className="step-sub">ສະໝັກຜ່ານ Link LFT</div>
-            </div>
-            <div className="step-card">
-              <div className="step-num">2</div>
-              <div className="step-title">ເຊື່ອມ EA System</div>
-              <div className="step-sub">Connect TheRocket EA</div>
-            </div>
-            <div className="step-card">
-              <div className="step-num">3</div>
-              <div className="step-title">Trade ອັດຕະໂນມັດ</div>
-              <div className="step-sub">ບໍ່ຕ້ອງເຝົ້ານຳ</div>
-            </div>
-          </div>
-
-          {/* Risk Disclosure */}
-          <div className="risk-banner">
-            ⚠ Risk Disclosure: ການລົງທຶນໃນ Forex ມີຄວາມສ່ຽງ · ຜົນງານໃນອະດີດບໍ່ຮັບປະກັນຜົນໃນອະນາຄົດ
-          </div>
-
-          {/* CTA Row */}
-          <div className="cta-row">
-            <a href="/broker" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>ເລີ່ມ Copy Trade</a>
-            <a href="https://t.me/laoforextrader" target="_blank" rel="noopener noreferrer" className="btn-telegram" style={{ display: 'inline-block', textDecoration: 'none' }}>Join Telegram</a>
-            <a href="https://www.facebook.com/groups/Laoforextrader" target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ display: 'inline-block', textDecoration: 'none' }}>ດູ Live Results</a>
-          </div>
-        </div>
-      </div>
     </>
   )
 }
