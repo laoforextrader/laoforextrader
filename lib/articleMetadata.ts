@@ -3,7 +3,7 @@ import { urlFor } from "@/lib/sanity"
 
 import { Article } from "@/types"
 
-const SITE_URL  = "https://laoforextrader.com"
+const SITE_URL  = "https://www.laoforextrader.com"
 const SITE_NAME = "LaoForexTrader"
 
 export function buildArticleMetadata(article: Article, pathname: string): Metadata {

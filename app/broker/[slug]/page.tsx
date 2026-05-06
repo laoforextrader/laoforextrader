@@ -233,7 +233,7 @@ export default async function BrokerSlugPage({ params }: Props) {
           <PostEngagement
             postId={broker._id}
             postTitle={`ລີວິວ ${broker.name}`}
-            postUrl={`https://laoforextrader.com/broker/${broker.slug?.current ?? ""}`}
+            postUrl={`https://www.laoforextrader.com/broker/${broker.slug?.current ?? ""}`}
           />
 
           <div style={{ marginTop: 20, textAlign: "center", fontSize: 11, color: "#9CA3AF" }}>
@@ -298,7 +298,7 @@ export default async function BrokerSlugPage({ params }: Props) {
         <PostEngagement
           postId={article._id}
           postTitle={article.title}
-          postUrl={`https://laoforextrader.com/broker/${article.slug?.current ?? ""}`}
+          postUrl={`https://www.laoforextrader.com/broker/${article.slug?.current ?? ""}`}
         />
 
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>

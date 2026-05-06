@@ -100,7 +100,7 @@ export default async function ArticleDetailPage({ params }: Props) {
         <PostEngagement
           postId={article._id}
           postTitle={article.title}
-          postUrl={`https://laoforextrader.com/analysis/${article.slug?.current ?? ""}`}
+          postUrl={`https://www.laoforextrader.com/analysis/${article.slug?.current ?? ""}`}
         />
 
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>

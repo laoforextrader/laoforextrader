@@ -167,7 +167,7 @@ export default async function LessonDetailPage({ params }: Props) {
         <PostEngagement
           postId={article._id}
           postTitle={article.title}
-          postUrl={`https://laoforextrader.com/lessons/${article.slug?.current ?? ""}`}
+          postUrl={`https://www.laoforextrader.com/lessons/${article.slug?.current ?? ""}`}
         />
 
         {/* Prev / Next — big buttons */}

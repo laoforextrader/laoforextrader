@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { Article, Broker } from "@/types"
 
-const BASE = "https://laoforextrader.com"
+const BASE = "https://www.laoforextrader.com"
 
 export const revalidate = 60
 
