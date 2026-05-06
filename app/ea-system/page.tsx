@@ -33,12 +33,14 @@ export default function EASystemPage() {
           </div>
 
           <h1 style={{
-            fontSize: 38, fontWeight: 800, color: "#fff",
+            fontSize: 38, fontWeight: 800,
             letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 12,
           }}>
-            TheRocket <span style={{
+            <span style={{ color: "#fff" }}>TheRocket</span>{" "}
+            <span style={{
               background: "linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}>EA System</span>
           </h1>
           <p style={{

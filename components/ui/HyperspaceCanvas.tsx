@@ -31,7 +31,7 @@ export function HyperspaceCanvas() {
       s.angle = Math.random() * Math.PI * 2
       s.z = Math.random() * 0.02
       s.pz = s.z
-      s.speed = 0.0035 + Math.random() * 0.0045 // slow warp
+      s.speed = 0.0023 + Math.random() * 0.003 // ~1/3 slower than before
       s.color = PALETTE[Math.floor(Math.random() * PALETTE.length)]
     }
 
@@ -48,7 +48,7 @@ export function HyperspaceCanvas() {
       canvas.style.height = h + "px"
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-      const count = Math.min(220, Math.max(120, Math.floor((w * h) / 7000)))
+      const count = Math.min(420, Math.max(220, Math.floor((w * h) / 4200)))
       stars = []
       for (let i = 0; i < count; i++) {
         const s: Star = { angle: 0, z: 0, pz: 0, speed: 0, color: "" }
