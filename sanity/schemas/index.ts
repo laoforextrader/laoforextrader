@@ -5,5 +5,6 @@ import { likeSchema }    from "./like"
 import { commentSchema } from "./comment"
 import { quizSchema }    from "./quiz"
 import { eaStatsSchema } from "./eaStats"
+import { broadcastScheduleSchema } from "./broadcastSchedule"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema]
