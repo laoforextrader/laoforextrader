@@ -48,14 +48,15 @@ export async function generateOGImage(article: {
 }) {
   const style = getOGStyle(article.category)
   const catLabel = CATEGORY_LABELS[article.category] || article.category
-  const title = article.title || 'LaoForexTrader'
-  const excerpt = article.excerpt?.slice(0, 110) || ''
+  const title = (article.title || 'LaoForexTrader').normalize('NFC')
+  const excerpt = (article.excerpt?.slice(0, 110) || '').normalize('NFC')
   const isEA = article.category === 'ea-tools'
   const fontData = await loadLaoFont()
 
   return new ImageResponse(
     (
       <div
+        lang="lo"
         style={{
           width: 1200,
           height: 630,
