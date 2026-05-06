@@ -1,6 +1,7 @@
 import { generateOGImage, OG_SIZE } from '@/lib/ogImageTemplate'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
+export const maxDuration = 30
 export const size = OG_SIZE
 export const contentType = 'image/png'
 
