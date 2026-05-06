@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { urlFor } from "@/lib/sanity"
+
 import { Article } from "@/types"
 
 const SITE_URL  = "https://laoforextrader.com"
@@ -6,7 +8,8 @@ const SITE_NAME = "LaoForexTrader"
 
 export function buildArticleMetadata(article: Article, pathname: string): Metadata {
   const url  = `${SITE_URL}${pathname.startsWith("/") ? pathname : "/" + pathname}`
-  const desc = article.excerpt ?? ""
+  const imageUrl = article.coverImage ? urlFor(article.coverImage).url() : undefined
+  const desc = article.excerpt || article.title
 
   return {
     title:       article.title,
@@ -21,6 +24,7 @@ export function buildArticleMetadata(article: Article, pathname: string): Metada
       locale:      "lo_LA",
       publishedTime: article.publishedAt,
       authors:     [article.author?.name || "LFT Team"],
+      images: imageUrl ? [{ url: imageUrl }] : undefined,
     },
     twitter: {
       card:        "summary_large_image",
