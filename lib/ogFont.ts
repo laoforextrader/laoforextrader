@@ -1,5 +1,5 @@
 const FONT_URLS = [
-  'https://www.laoforextrader.com/fonts/NotoSansLao-Bold.ttf',
+  'https://www.laoforextrader.com/fonts/NotoSansLao-Bold-v2.ttf',
   'https://fonts.gstatic.com/s/notosanslao/v33/bx6lNx2Ol_ixgdYWLm9BwxM3NW6BOkuf763Clj73CiQ_J1Djx9pidOt4lsHdfw.ttf',
 ]
 
