@@ -78,7 +78,7 @@ export default function QuizCard({ quiz, compact = false }: Props) {
         {locked ? (
           <button
             type="button"
-            onClick={() => signIn('facebook', { callbackUrl: detailUrl })}
+            onClick={() => signIn('google', { callbackUrl: detailUrl })}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '12px 24px', borderRadius: 100,

@@ -73,10 +73,10 @@ export default function QuizDetailPage() {
           fontSize: 14, color: '#6B7280', marginBottom: 24,
           fontFamily: 'Noto Sans Lao, sans-serif',
         }}>
-          {quiz.level === 'intermediate' ? 'Intermediate' : 'Advanced'} Quiz ຕ້ອງ Login ດ້ວຍ Facebook
+          {quiz.level === 'intermediate' ? 'Intermediate' : 'Advanced'} Quiz ຕ້ອງ Login ດ້ວຍ Google
         </p>
         <button
-          onClick={() => signIn('facebook', { callbackUrl: window.location.pathname })}
+          onClick={() => signIn('google', { callbackUrl: window.location.pathname })}
           style={{
             background: '#2563EB', color: '#fff', border: 'none',
             padding: '12px 28px', borderRadius: 100,
@@ -84,7 +84,7 @@ export default function QuizDetailPage() {
             fontFamily: 'Noto Sans Lao, sans-serif',
           }}
         >
-          Login ດ້ວຍ Facebook →
+          Login ດ້ວຍ Google →
         </button>
       </div>
     )
@@ -197,7 +197,7 @@ export default function QuizDetailPage() {
                   Login ເພື່ອບັນທຶກຄະແນນ ແລະ ເຂົ້າ Quiz ລະດັບສູງ
                 </div>
                 <button
-                  onClick={() => signIn('facebook', { callbackUrl: window.location.pathname })}
+                  onClick={() => signIn('google', { callbackUrl: window.location.pathname })}
                   style={{
                     background: '#2563EB', color: '#fff', border: 'none',
                     padding: '10px 24px', borderRadius: 100,
@@ -205,7 +205,7 @@ export default function QuizDetailPage() {
                     fontFamily: 'Noto Sans Lao, sans-serif',
                   }}
                 >
-                  Login ດ້ວຍ Facebook →
+                  Login ດ້ວຍ Google →
                 </button>
               </div>
             )}
