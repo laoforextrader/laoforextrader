@@ -141,13 +141,11 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
     const stats = cfg.eaId === "sgride" ? sgrideStats : megiStats
     const periodPct = periodPctFor(stats, period, cfg.fallbacks[period])
     const totalPct  = fmtPct(stats?.profitTotalPct, cfg.fallbacks.total)
-    const dayPct    = periodPctFor(stats, "daily",   cfg.fallbacks.daily)
-    const monthPct  = periodPctFor(stats, "monthly", cfg.fallbacks.monthly)
     const monthsRunning = monthsSinceFirstReturn(stats, 7)
     return {
-      ea: { name: cfg.name, icon: cfg.icon, theme: cfg.theme, strategy: cfg.strategy, risk: cfg.risk },
+      ea: { name: cfg.name, icon: cfg.icon, theme: cfg.theme },
       period, dateLabel: dl,
-      periodPct, totalPct, dayPct, monthPct,
+      periodPct, totalPct,
       monthsRunning, fontDataUri,
     }
   })

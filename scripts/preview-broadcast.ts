@@ -249,22 +249,15 @@ async function main() {
       const stats = statsByEa.get(ea.eaId) ?? null
       const periodPctStr = periodPctFor(stats, period, ea.fallbacks)
       const totalPctStr  = totalPct(stats, ea.fallbacks.total)
-      const dayPctStr    = periodPctFor(stats, "daily",   ea.fallbacks)
-      const monthPctStr  = periodPctFor(stats, "monthly", ea.fallbacks)
       const monthsRunning = monthsSince(stats?.monthlyReturns?.[0]?.month) || 7
       periodPcts[ea.eaId] = periodPctStr
       totalPcts[ea.eaId]  = totalPctStr
 
       const input: EACardInput = {
-        ea: {
-          name: ea.name, icon: ea.icon, theme: ea.theme,
-          strategy: ea.strategy, risk: ea.risk,
-        },
+        ea: { name: ea.name, icon: ea.icon, theme: ea.theme },
         period, dateLabel: dl,
         periodPct: periodPctStr,
         totalPct: totalPctStr,
-        dayPct: dayPctStr,
-        monthPct: monthPctStr,
         monthsRunning,
         fontDataUri,
       }

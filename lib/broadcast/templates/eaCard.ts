@@ -1,7 +1,7 @@
 // Single-EA broadcast card. One image per EA so each gets its own
 // background (galaxy for SGride, hyperspace for MegiHedge) — matching
-// /ea-system. The data block is a 1:1 port of the website's stat
-// card so the broadcast looks like a snapshot of the live page.
+// /ea-system. Shows just the two requested metrics: this period's
+// profit (big headline) and total profit (smaller, secondary).
 //
 // Output: 1080×1080.
 
@@ -13,21 +13,15 @@ export interface EACardInput {
     name: string                  // "TheRocket EA SGride"
     icon: "rocket" | "zap"
     theme: Theme
-    strategy: string              // "Grid"
-    risk: string                  // "Medium"
   }
   period: Period
-  /** Display date label (e.g. "07-05-2026") */
+  /** Display date (e.g. "07-05-2026") */
   dateLabel: string
-  /** Period profit string (e.g. "+1.3%") */
+  /** Period profit (the headline number, e.g. "+1.3%") */
   periodPct: string
-  /** Cumulative profit string (e.g. "+554.2%") */
+  /** Cumulative profit (e.g. "+554.2%") */
   totalPct: string
-  /** Day profit (always shown in grid) */
-  dayPct: string
-  /** Month profit (always shown in grid) */
-  monthPct: string
-  /** Months since EA started — shown under big total number */
+  /** Months since EA started — shown under total */
   monthsRunning: number
   /** Embedded font as data URI for offline rendering */
   fontDataUri: string
@@ -40,8 +34,8 @@ const PERIOD_LABEL: Record<Period, { eyebrow: string; metric: string }> = {
 }
 
 const ICONS = {
-  rocket: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>`,
-  zap:    `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  rocket: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>`,
+  zap:    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
 }
 
 function pctColor(s: string, fallback: string): string {
@@ -51,30 +45,20 @@ function pctColor(s: string, fallback: string): string {
 export function buildEaCardHtml(input: EACardInput): string {
   const {
     ea, period, dateLabel,
-    periodPct, totalPct, dayPct, monthPct, monthsRunning,
+    periodPct, totalPct, monthsRunning,
     fontDataUri,
   } = input
   const label = PERIOD_LABEL[period]
   const isPurple = ea.theme === "purple"
 
-  // Match the EA showcase backgrounds from the website
   const bgGradient = isPurple
     ? "linear-gradient(135deg, #0A031F 0%, #1B0F36 50%, #2A0A40 100%)"
     : "linear-gradient(135deg, #050816 0%, #0B1230 50%, #1B0F36 100%)"
-
   const iconColor   = isPurple ? "#F472B6" : "#FCD34D"
-  const stratColor  = isPurple ? "#F472B6" : "#A78BFA"
-  const totalColor  = pctColor(totalPct, "#4ADE80")
-  const dayColor    = pctColor(dayPct,   "#4ADE80")
-  const monthColor  = pctColor(monthPct, "#60A5FA")
   const periodColor = pctColor(periodPct, "#4ADE80")
-
-  // Background script — runs in headless browser before screenshot
-  const bgScript = isPurple ? hyperspaceScript : galaxyScript
-
-  // Determine which period cell goes where (the broadcast's primary period
-  // becomes the highlighted cell at top-left of the 2x2 grid).
-  const cells = buildGridCells(period, label.metric, periodPct, periodColor, dayPct, dayColor, monthPct, monthColor, ea.strategy, stratColor, ea.risk)
+  const totalColor  = pctColor(totalPct, isPurple ? "#F472B6" : "#FCD34D")
+  const bgScript    = isPurple ? hyperspaceScript : galaxyScript
+  const monthLabel  = monthsRunning === 1 ? "month" : "months"
 
   return `<!DOCTYPE html>
 <html lang="lo">
@@ -127,33 +111,35 @@ export function buildEaCardHtml(input: EACardInput): string {
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 10px rgba(74,222,128,0.7); }
 
   /* Eyebrow */
-  .eyebrow {
+  .eyebrow-wrap {
     text-align: center; position: relative; z-index: 2;
+  }
+  .eyebrow {
     font-size: 16px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
     background: linear-gradient(90deg, #60A5FA, #22D3EE, #A78BFA, #F472B6, #FCD34D, #60A5FA);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
   }
   .date {
-    text-align: center; position: relative; z-index: 2;
     font-size: 18px; color: rgba(255,255,255,0.5);
     font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
   }
 
-  /* Main stat card — port of /ea-system right column */
+  /* Glass card */
   .card {
     position: relative; z-index: 2;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 28px; padding: 50px 56px;
     backdrop-filter: blur(14px);
+    text-align: center;
   }
   .card-live {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(74,222,128,0.12); border: 0.5px solid rgba(74,222,128,0.35);
     border-radius: 100px; padding: 7px 16px;
     font-size: 14px; color: #4ADE80; font-weight: 600;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
   .card-live-dot {
     width: 7px; height: 7px; border-radius: 50%; background: #4ADE80;
@@ -161,43 +147,41 @@ export function buildEaCardHtml(input: EACardInput): string {
   }
 
   .ea-name-row {
-    display: flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 22px; color: rgba(255,255,255,0.65); margin-bottom: 8px;
+    font-size: 22px; color: rgba(255,255,255,0.7); margin-bottom: 36px;
   }
-  .ea-icon { color: ${iconColor}; display: flex; align-items: center; }
+  .ea-icon { color: ${iconColor}; display: inline-flex; align-items: center; }
 
-  .total-value {
+  .period-label {
+    font-size: 18px; color: rgba(255,255,255,0.5);
+    letter-spacing: 0.06em; font-weight: 600; margin-bottom: 8px;
+  }
+  .period-value {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700; line-height: 1; letter-spacing: -0.04em;
-    font-size: 130px; color: ${totalColor}; margin-bottom: 8px;
-  }
-  .total-sub {
-    font-size: 18px; color: rgba(255,255,255,0.42);
-    margin-bottom: 36px;
+    font-size: 168px; color: ${periodColor}; margin-bottom: 36px;
+    text-shadow: 0 0 50px ${periodColor}40;
   }
 
-  .grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  .divider {
+    height: 1px; background: rgba(255,255,255,0.12);
+    margin: 0 auto 30px; max-width: 70%;
   }
-  .cell {
-    background: rgba(255,255,255,0.05);
-    border-radius: 14px; padding: 22px 24px;
+
+  .total-label {
+    font-size: 14px; color: rgba(255,255,255,0.42);
+    letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;
+    margin-bottom: 8px;
   }
-  .cell.featured {
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.14);
-  }
-  .cell-label {
-    font-size: 14px; color: rgba(255,255,255,0.42); margin-bottom: 8px;
-    font-family: 'NotoSansLao','Inter',sans-serif;
-    letter-spacing: 0.04em;
-  }
-  .cell-value {
+  .total-value {
     font-family: 'JetBrains Mono', monospace;
-    font-weight: 600; font-size: 36px; line-height: 1;
+    font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+    font-size: 64px; color: ${totalColor}; margin-bottom: 6px;
   }
-  .cell.featured .cell-value { font-size: 44px; }
+  .total-sub {
+    font-size: 14px; color: rgba(255,255,255,0.4);
+  }
 
   /* Footer */
   .footer {
@@ -233,7 +217,7 @@ export function buildEaCardHtml(input: EACardInput): string {
     </div>
   </div>
 
-  <div>
+  <div class="eyebrow-wrap">
     <div class="eyebrow">${escapeHtml(label.eyebrow)}</div>
     <div class="date">${escapeHtml(dateLabel)}</div>
   </div>
@@ -247,17 +231,15 @@ export function buildEaCardHtml(input: EACardInput): string {
       <span class="ea-icon">${ICONS[ea.icon]}</span>
       ${escapeHtml(ea.name)}
     </div>
-    <div class="total-value">${escapeHtml(totalPct)}</div>
-    <div class="total-sub">Total Growth · ${monthsRunning} ${monthsRunning === 1 ? "month" : "months"}</div>
 
-    <div class="grid">
-      ${cells.map(c => `
-        <div class="cell${c.featured ? ' featured' : ''}">
-          <div class="cell-label">${escapeHtml(c.label)}</div>
-          <div class="cell-value" style="color: ${c.color};">${escapeHtml(c.value)}</div>
-        </div>
-      `).join("")}
-    </div>
+    <div class="period-label">${escapeHtml(label.metric)}</div>
+    <div class="period-value">${escapeHtml(periodPct)}</div>
+
+    <div class="divider"></div>
+
+    <div class="total-label">Total Growth</div>
+    <div class="total-value">${escapeHtml(totalPct)}</div>
+    <div class="total-sub">${monthsRunning} ${monthLabel} · Live</div>
   </div>
 
   <div class="footer">
@@ -271,49 +253,6 @@ ${bgScript}
 </script>
 </body>
 </html>`
-}
-
-interface Cell { label: string; value: string; color: string; featured?: boolean }
-
-function buildGridCells(
-  period: Period,
-  metricLabel: string,
-  periodPct: string, periodColor: string,
-  dayPct: string, dayColor: string,
-  monthPct: string, monthColor: string,
-  strategy: string, stratColor: string,
-  risk: string,
-): Cell[] {
-  // Risk text color picks based on label
-  const riskColor =
-    risk.toLowerCase().startsWith("low") ? "#34D399"
-  : risk.toLowerCase().startsWith("med") ? "#FCD34D"
-                                         : "#F87171"
-
-  // Featured cell = the current broadcast's primary period
-  if (period === "daily") {
-    return [
-      { label: "ມື້ນີ້",     value: dayPct,   color: dayColor,   featured: true },
-      { label: "ເດືອນນີ້",   value: monthPct, color: monthColor },
-      { label: "Strategy",  value: strategy, color: stratColor },
-      { label: "Risk",      value: risk,     color: riskColor },
-    ]
-  }
-  if (period === "weekly") {
-    return [
-      { label: "ອາທິດນີ້",   value: periodPct, color: periodColor, featured: true },
-      { label: "ເດືອນນີ້",   value: monthPct,  color: monthColor },
-      { label: "Strategy",  value: strategy,  color: stratColor },
-      { label: "Risk",      value: risk,      color: riskColor },
-    ]
-  }
-  // monthly
-  return [
-    { label: "ເດືອນນີ້",   value: monthPct, color: monthColor, featured: true },
-    { label: "ມື້ນີ້",     value: dayPct,   color: dayColor },
-    { label: "Strategy",  value: strategy, color: stratColor },
-    { label: "Risk",      value: risk,     color: riskColor },
-  ]
 }
 
 // ─── Background scripts ────────────────────────────────────────────────────
