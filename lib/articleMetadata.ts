@@ -5,10 +5,14 @@ import { Article } from "@/types"
 
 const SITE_URL  = "https://www.laoforextrader.com"
 const SITE_NAME = "LaoForexTrader"
+const OG_IMAGE_VERSION = 2
 
 export function buildArticleMetadata(article: Article, pathname: string): Metadata {
-  const url  = `${SITE_URL}${pathname.startsWith("/") ? pathname : "/" + pathname}`
-  const imageUrl = article.coverImage ? urlFor(article.coverImage).url() : undefined
+  const path = pathname.startsWith("/") ? pathname : "/" + pathname
+  const url  = `${SITE_URL}${path}`
+  const coverUrl = article.coverImage ? urlFor(article.coverImage).url() : undefined
+  const fallbackOg = `${SITE_URL}${path}/opengraph-image?v=${OG_IMAGE_VERSION}`
+  const imageUrl = coverUrl ?? fallbackOg
   const desc = article.excerpt || article.title
 
   return {
@@ -24,12 +28,13 @@ export function buildArticleMetadata(article: Article, pathname: string): Metada
       locale:      "lo_LA",
       publishedTime: article.publishedAt,
       authors:     [article.author?.name || "LFT Team"],
-      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
+      images: [{ url: imageUrl, width: 1200, height: 630, type: "image/png" }],
     },
     twitter: {
       card:        "summary_large_image",
       title:       article.title,
       description: desc,
+      images:      [imageUrl],
     },
   }
 }
