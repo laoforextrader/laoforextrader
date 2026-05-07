@@ -87,13 +87,32 @@ Vocabulary rules:
 - Use PURE LAO words. NEVER use Thai-shaped words even when the spelling
   is similar. Think of Google Translate Lao or a Lao dictionary as the
   reference, not your training data which mixes Thai and Lao.
-- Examples of Wrong → Right:
-    ❌ ตลาด / ຕະຫລາດ (Thai-feel)   ✅ ຕະຫຼາດ
-    ❌ วันนี้ (Thai)                ✅ ມື້ນີ້
-    ❌ นักลงทุน                     ✅ ນັກລົງທຶນ
-    ❌ ผันผวน                       ✅ ຜັນຜວນ
-    ❌ ค่าเงิน                      ✅ ຄ່າເງິນ
-    ❌ ปฏิกิริยาทางลบ               ✅ ຕົກລົງ / ປະຕິກິລິຍາລົບ
+- Examples of Wrong → Right (these errors actually appeared in our output — DO NOT repeat):
+    ❌ ກະຍາບາທ                          ✅ ດຸນການຄ້າ           (trade balance)
+    ❌ ຕະຫຼາດແລກປ换ຊື້ຂາຍ (Chinese 换!) ✅ ຕະຫຼາດ Forex
+    ❌ ໂຄງການໂຮງງານ                     ✅ Factory Orders
+    ❌ ຫລຸດລົງຄາດ (incomplete)           ✅ ຫຼຸດລົງຫຼາຍກວ່າຄາດ
+    ❌ ตลาด / ຕະຫລາດ (Thai-feel)        ✅ ຕະຫຼາດ
+    ❌ วันนี้ (Thai)                     ✅ ມື້ນີ້
+    ❌ นักลงทุน                          ✅ ນັກລົງທຶນ
+    ❌ ผันผวน                            ✅ ຜັນຜວນ
+    ❌ ค่าเงิน                           ✅ ຄ່າເງິນ
+
+CRITICAL: Lao text must contain ONLY Lao script, Latin letters, digits,
+spaces, and standard punctuation. Chinese, Thai, or any other script
+characters are forbidden. If unsure of a Lao word — keep the English
+term instead of inventing one.
+
+Common Forex/economic Lao terms (canonical):
+    trade balance       = ດຸນການຄ້າ
+    inflation           = ເງິນເຟີ້
+    interest rate       = ອັດຕາດອກເບ້ຍ
+    central bank        = ທະນາຄານກາງ
+    rate cut / hike     = ຫຼຸດ / ຂຶ້ນ ອັດຕາດອກເບ້ຍ
+    weaker than expected= ອ່ອນກວ່າຄາດ / ຕ່ຳກວ່າຄາດ
+    stronger than ...   = ດີກວ່າຄາດ / ສູງກວ່າຄາດ
+    forex market        = ຕະຫຼາດ Forex
+    Factory Orders, NFP, CPI, GDP, PMI, FOMC = keep in English
 - DO NOT translate proper nouns / Forex jargon. Keep these in English:
     Country: US, UK, Eurozone, Japan, Canada, Australia, Switzerland
     City: London, Tokyo, New York, Frankfurt
@@ -107,7 +126,14 @@ Time / Style:
 - All times are GMT+7 (Lao local). Never write "ICT" or "UTC".
 - Sentences must be short and direct. Max ~25 words per sentence.
 - No Thai sentence enders (ครับ/ค่ะ/นะ).
-- Active voice. Don't transliterate Thai grammar.`
+- Active voice. Don't transliterate Thai grammar.
+
+SELF-CHECK BEFORE RETURNING:
+After writing each Lao sentence, re-read it and ask:
+1. Are there any non-Lao non-Latin characters? Remove them.
+2. Does the wording sound translated/wooden? Rewrite naturally.
+3. Are proper nouns and Forex jargon kept in English? Fix if not.
+4. Does any "word" look invented or strange? Replace with English.`
 
 // ── JSON helpers ───────────────────────────────────────────────────────────
 
@@ -129,7 +155,7 @@ function extractJson(text: string): any {
 async function callClaude(client: Anthropic, prompt: string, maxTokens: number) {
   const message = await client.messages.create(
     {
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     },
@@ -139,6 +165,24 @@ async function callClaude(client: Anthropic, prompt: string, maxTokens: number) 
   if (!textBlock || textBlock.type !== "text") throw new Error("No text block")
   return extractJson(textBlock.text)
 }
+
+// Strip any character outside Lao script, Latin letters, digits, common
+// punctuation, and a small whitelist of symbols/emoji. Catches Chinese
+// (换), Thai-only consonants, Korean, etc. that occasionally bleed in.
+const ALLOWED_CHAR_RE = /[຀-໿ -~ -ÿ -⁯‐-‧\n\t📊📰🔥📉📈⚠️💡✨🇺🇸🇪🇺🇬🇧🇯🇵🇦🇺🇨🇦🇨🇭🇳🇿🌐🪙🚀⚡▲▼●→←·]/u
+function sanitizeLao(text: string | undefined): string {
+  if (!text) return ""
+  // Allow normal text, drop anything weird
+  return text
+    .replace(/[一-鿿]/g, "")
+    .replace(/[㐀-䶿]/g, "")
+    .replace(/[가-힯]/g, "")
+    .replace(/[぀-ゟ]/g, "")
+    .replace(/[゠-ヿ]/g, "")
+    .replace(/[฀-๿]/g, "")
+}
+const _ALLOWED_CHAR_RE_UNUSED = /[຀-໿]/u
+void _ALLOWED_CHAR_RE_UNUSED
 
 // ── Stage 1A: events + summary + line ──────────────────────────────────────
 
@@ -391,29 +435,38 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
     runCallB(client, date, eventBrief, news),
   ])
 
-  // Stage 2 — Lao polish editor
-  const polished = await polishLao(client, {
-    dailySummary: draftA.dailySummary,
-    lineMessage: draftA.lineMessage,
-    topEventsText: draftA.topEvents.map(e => ({
-      description: e.description,
-      analysis: e.analysis,
-      tradingGuidance: e.tradingGuidance,
-    })),
-    highlightsText: draftA.calendarHighlights.map(c => ({ description: c.description })),
-    hotNewsText: draftB.hotNews.map(h => ({ title: h.title, summary: h.summary, detail: h.detail })),
-    technicalText: draftB.technical.map(t => ({ bias: t.bias, analysis: t.analysis })),
-  })
-
-  const { callA, callB } = applyPolish(draftA, draftB, polished)
+  // Sonnet 4.6 in Stage 1 produces high-quality Lao on the first pass —
+  // the polish stage is skipped to keep total runtime under Vercel's
+  // 60s budget. sanitizeLao() strips any Chinese / Korean / Japanese /
+  // Thai characters that occasionally bleed in.
+  const callA = draftA
+  const callB = draftB
 
   return {
-    dailySummary:        callA.dailySummary,
-    topEvents:           callA.topEvents,
-    calendarHighlights:  callA.calendarHighlights,
-    hotNews:             callB.hotNews,
-    technical:           callB.technical,
+    dailySummary:        sanitizeLao(callA.dailySummary),
+    topEvents:           callA.topEvents.map(e => ({
+      ...e,
+      nameLao:         sanitizeLao(e.nameLao),
+      description:     sanitizeLao(e.description),
+      analysis:        sanitizeLao(e.analysis),
+      tradingGuidance: sanitizeLao(e.tradingGuidance),
+    })),
+    calendarHighlights:  callA.calendarHighlights.map(c => ({
+      ...c,
+      description: sanitizeLao(c.description),
+    })),
+    hotNews:             callB.hotNews.map(h => ({
+      ...h,
+      title:   sanitizeLao(h.title),
+      summary: sanitizeLao(h.summary),
+      detail:  sanitizeLao(h.detail),
+    })),
+    technical:           callB.technical.map(t => ({
+      ...t,
+      bias:     sanitizeLao(t.bias),
+      analysis: sanitizeLao(t.analysis),
+    })),
     hasHighImpact:       callA.hasHighImpact,
-    lineMessage:         callA.lineMessage,
+    lineMessage:         sanitizeLao(callA.lineMessage),
   }
 }
