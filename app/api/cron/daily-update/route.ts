@@ -63,16 +63,25 @@ async function handle(req: Request) {
     const summary = await summarizeDailyUpdate({ date, calendar, news })
     timing.claudeMs = Date.now() - tClaude
 
-    // Prefix slugs with date so detail-page URLs are stable across days
-    const topEvents = summary.topEvents.map((e, i) => ({
+    // Prefix slugs with date so detail-page URLs are stable across days.
+    // Defensive: Haiku occasionally omits an optional array.
+    const topEvents = (summary.topEvents ?? []).map((e, i) => ({
       _key: `te-${i}`,
       ...e,
-      id: `${date}-${e.id}`,
+      id: `${date}-${e.id ?? `event-${i}`}`,
     }))
-    const hotNews = summary.hotNews.map((n, i) => ({
+    const hotNews = (summary.hotNews ?? []).map((n, i) => ({
       _key: `hn-${i}`,
       ...n,
-      id: `${date}-${n.id}`,
+      id: `${date}-${n.id ?? `news-${i}`}`,
+    }))
+    const calendarHighlights = (summary.calendarHighlights ?? []).map((c, i) => ({
+      _key: `cal-${i}`,
+      ...c,
+    }))
+    const technical = (summary.technical ?? []).map((t, i) => ({
+      _key: `tech-${i}`,
+      ...t,
     }))
 
     const tSanity = Date.now()
@@ -80,19 +89,13 @@ async function handle(req: Request) {
       _id: docId,
       _type: "dailyUpdate",
       date,
-      dailySummary: summary.dailySummary,
+      dailySummary: summary.dailySummary ?? "",
       topEvents,
       hotNews,
-      calendarHighlights: summary.calendarHighlights.map((c, i) => ({
-        _key: `cal-${i}`,
-        ...c,
-      })),
-      technical: summary.technical.map((t, i) => ({
-        _key: `tech-${i}`,
-        ...t,
-      })),
-      hasHighImpact: summary.hasHighImpact,
-      lineMessage:   summary.lineMessage,
+      calendarHighlights,
+      technical,
+      hasHighImpact: !!summary.hasHighImpact,
+      lineMessage:   summary.lineMessage ?? "",
       rawCalendar: calendar.slice(0, 80).map((e, i) => ({ _key: `raw-${i}`, ...e })),
       rawNews:     news.slice(0, 8).map((n, i) => ({ _key: `n-${i}`, ...n })),
       createdAt: new Date().toISOString(),
@@ -119,10 +122,10 @@ async function handle(req: Request) {
       docId,
       eventsCount: calendar.length,
       newsCount: news.length,
-      hasHighImpact: summary.hasHighImpact,
+      hasHighImpact: !!summary.hasHighImpact,
       topEventsCount: topEvents.length,
       hotNewsCount: hotNews.length,
-      technicalCount: summary.technical.length,
+      technicalCount: technical.length,
       lineStatus,
       timing,
       totalMs: Date.now() - t0,
