@@ -1,9 +1,11 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Search } from "lucide-react"
 import LoginButton from "@/components/LoginButton"
+import { SearchBar } from "@/components/layout/SearchBar"
 
 const NAV = [
   { label:"ໂບຣກເກີ",  href:"/broker"    },
@@ -19,7 +21,21 @@ const NAV = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const [mobileQ, setMobileQ] = useState("")
   const { data: session } = useSession()
+  const router = useRouter()
+
+  const submitMobile = (e: React.FormEvent) => {
+    e.preventDefault()
+    const t = mobileQ.trim()
+    if (t.length >= 2) {
+      setMobileSearchOpen(false)
+      setOpen(false)
+      router.push(`/search?q=${encodeURIComponent(t)}`)
+    }
+  }
+
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200"
       style={{ background:"rgba(255,255,255,0.96)", backdropFilter:"blur(12px)" }}>
@@ -29,21 +45,61 @@ export function Navbar() {
           <span className="font-sans font-extrabold text-[20px] tracking-tight"
             style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>LFT</span>
         </Link>
-        <ul className="hidden md:flex items-center gap-5">
+        <ul className="hidden lg:flex items-center gap-4">
           {NAV.map(item => (
             <li key={item.href}>
               <Link href={item.href}
-                className="text-gray-500 hover:text-blue-600 text-[11px] font-semibold uppercase tracking-widest transition-colors font-sans">
+                className="text-gray-500 hover:text-blue-600 text-[11px] font-semibold uppercase tracking-widest transition-colors font-sans whitespace-nowrap">
                 {item.label}
               </Link>
             </li>
           ))}
         </ul>
-        <div className="hidden md:flex items-center"><LoginButton /></div>
-        <button onClick={() => setOpen(!open)} className="md:hidden text-gray-500 hover:text-gray-800">
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          <SearchBar />
+          <LoginButton />
+        </div>
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            className="text-gray-500 hover:text-gray-800"
+            aria-label="Search"
+          >
+            <Search size={20} />
+          </button>
+          <button onClick={() => setOpen(!open)} className="text-gray-500 hover:text-gray-800">
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile search bar */}
+      {mobileSearchOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 px-6 py-3">
+          <form onSubmit={submitMobile} className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            <input
+              autoFocus
+              type="text"
+              value={mobileQ}
+              onChange={e => setMobileQ(e.target.value)}
+              placeholder="ຄົ້ນຫາ…"
+              className="w-full pl-9 pr-9 py-2 bg-gray-50 border border-gray-200 rounded-full text-[13px] font-lao text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-blue-500"
+            />
+            {mobileQ && (
+              <button
+                type="button"
+                onClick={() => setMobileQ("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </form>
+        </div>
+      )}
+
       {open && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-3">
           {NAV.map(item => (
