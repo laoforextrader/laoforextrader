@@ -110,7 +110,13 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
 
   const prompt = `ທ່ານເປັນນັກວິເຄາະ Forex ມືອາຊີບ ຂຽນພາສາລາວສັ້ນກະຊັບ. ມື້ນີ້ ${date}.
 
-Economic events (high/medium):
+ຂໍ້ກຳນົດສຳຄັນ:
+- ເວລາທຸກອັນທີ່ສະແດງໃຫ້ຜູ້ອ່ານ ຕ້ອງເປັນ "ເວລາລາວ ICT (UTC+7)" — ໃນຮູບແບບ HH:MM
+- ຫ້າມໃຊ້ເວລາ UTC ຫຼື timezone ອື່ນເດັດຂາດ
+- ໃນ field "time" ຂອງ topEvents ແລະ calendarHighlights — ໃຊ້ HH:MM ICT
+- ໃນ "lineMessage" — ຖ້າເອ່ຍເຖິງເວລາ ໃຫ້ລະບຸ "HH:MM ICT" ແລະ ບໍ່ໃຊ້ UTC
+
+ຂໍ້ມູນເຫດການ ICT (ເວລາລາວແລ້ວ — high/medium):
 ${importantEvents || "(ບໍ່ມີ event ສຳຄັນ)"}
 
 Forex news:

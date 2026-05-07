@@ -22,15 +22,18 @@ const IMPACT_DOT: Record<string, string> = {
   low:    "#10B981",
 }
 
+// Major-pair currencies + we keep CN/HK because they move USD pairs heavily.
 const COUNTRY_TO_CURRENCY: Record<string, string> = {
   US: "USD", EU: "EUR", GB: "GBP", UK: "GBP", JP: "JPY", AU: "AUD", CA: "CAD",
-  CH: "CHF", NZ: "NZD", CN: "CNY",
+  CH: "CHF", NZ: "NZD",
 }
 
 const CURRENCY_FLAG: Record<string, string> = {
   USD: "🇺🇸", EUR: "🇪🇺", GBP: "🇬🇧", JPY: "🇯🇵", AUD: "🇦🇺", CAD: "🇨🇦",
-  CHF: "🇨🇭", NZD: "🇳🇿", CNY: "🇨🇳",
+  CHF: "🇨🇭", NZD: "🇳🇿",
 }
+
+const MAJOR_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CHF", "AUD", "CAD", "NZD"]
 
 const IMPACT_LABEL: Record<string, string> = {
   high:   "ສູງ",
@@ -47,22 +50,32 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
   const [impactFilter, setImpactFilter] = useState<"all" | "high" | "medium">("all")
   const [currencyFilter, setCurrencyFilter] = useState<string>("all")
 
-  const allCurrencies = useMemo(() => {
-    const set = new Set<string>()
-    rows.forEach(r => { const c = rowCurrency(r); if (c) set.add(c) })
-    return Array.from(set).sort()
+  // Pre-filter to majors only so the dropdown stays clean.
+  const majorOnly = useMemo(() => {
+    return rows.filter(r => MAJOR_CURRENCIES.includes(rowCurrency(r)))
   }, [rows])
 
+  const allCurrencies = useMemo(() => {
+    const set = new Set<string>()
+    majorOnly.forEach(r => { const c = rowCurrency(r); if (c) set.add(c) })
+    return MAJOR_CURRENCIES.filter(c => set.has(c))
+  }, [majorOnly])
+
   const filtered = useMemo(() => {
-    return rows
+    const impactOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
+    return majorOnly
       .filter(r => impactFilter === "all" ? true : r.impact === impactFilter)
       .filter(r => currencyFilter === "all" ? true : rowCurrency(r) === currencyFilter)
       .sort((a, b) => {
+        // Time first (chronological), but pin high-impact rows up if same hour
         const at = new Date(a.time || 0).getTime()
         const bt = new Date(b.time || 0).getTime()
-        return at - bt
+        if (at !== bt) return at - bt
+        const ai = impactOrder[(a.impact ?? "low").toLowerCase()] ?? 9
+        const bi = impactOrder[(b.impact ?? "low").toLowerCase()] ?? 9
+        return ai - bi
       })
-  }, [rows, impactFilter, currencyFilter])
+  }, [majorOnly, impactFilter, currencyFilter])
 
   if (!rows || rows.length === 0) return null
 
@@ -103,13 +116,13 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
           <table className="w-full text-[12px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr className="text-left">
-                <th className="px-4 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-20">ເວລາ</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-14 text-center">Imp</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-16">Cur</th>
+                <th className="px-4 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">ເວລາ ICT</th>
+                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-12 text-center">Imp</th>
+                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">Cur</th>
                 <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500">Event</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-16">Forecast</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-16">Previous</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-16">Actual</th>
+                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-20">Forecast</th>
+                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-20">Previous</th>
+                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-20">Actual</th>
               </tr>
             </thead>
             <tbody>
@@ -125,19 +138,20 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
                 const imp = (r.impact ?? "low").toLowerCase()
                 return (
                   <tr key={r._key ?? i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-mono text-gray-700">
+                    <td className="px-4 py-2.5 font-mono font-semibold text-gray-700">
                       {formatLaoTime(r.time) || "—"}
                     </td>
-                    <td className="px-2 py-2.5">
+                    <td className="px-2 py-2.5 text-center">
                       <span
-                        className="inline-block w-2 h-2 rounded-full"
+                        className="inline-block w-2.5 h-2.5 rounded-full"
                         title={IMPACT_LABEL[imp] || imp}
                         style={{ background: IMPACT_DOT[imp] || IMPACT_DOT.low }}
                       />
                     </td>
-                    <td className="px-2 py-2.5">
-                      <span className="font-mono font-semibold text-gray-700">
-                        {CURRENCY_FLAG[cur] ?? ""} {cur}
+                    <td className="px-3 py-2.5">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="text-[14px]">{CURRENCY_FLAG[cur] ?? "🌐"}</span>
+                        <span className="font-mono font-bold text-[12px] text-gray-800">{cur}</span>
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-gray-900 font-lao">
@@ -149,7 +163,7 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
                     <td className="px-2 py-2.5 text-right font-mono text-gray-500">
                       {r.previous || "—"}
                     </td>
-                    <td className="px-2 py-2.5 text-right font-mono">
+                    <td className="px-3 py-2.5 text-right font-mono">
                       {r.actual ? (
                         <span className="font-semibold text-blue-600">{r.actual}</span>
                       ) : (

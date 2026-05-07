@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@sanity/client"
-import { fetchEconomicCalendar, fetchForexNews, todayInVientiane } from "@/lib/news/sources"
+import { fetchEconomicCalendar, fetchForexNews, todayInVientiane, type CalendarEvent } from "@/lib/news/sources"
 import { summarizeDailyUpdate } from "@/lib/news/summarize"
 import { broadcastLineMessages, lineConfigured } from "@/lib/broadcast/line"
+
+// Major-pair currencies + gold (XAU). Country codes that map to these.
+const MAJOR_COUNTRIES = new Set(["US", "EU", "GB", "UK", "JP", "CH", "AU", "CA", "NZ"])
+
+function filterMajorEvents(events: CalendarEvent[]): CalendarEvent[] {
+  return events
+    .filter(e => MAJOR_COUNTRIES.has((e.country || "").toUpperCase()))
+    .filter(e => e.impact === "high" || e.impact === "medium" || e.impact === "low")
+    .slice(0, 60)
+}
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -96,7 +106,7 @@ async function handle(req: Request) {
       technical,
       hasHighImpact: !!summary.hasHighImpact,
       lineMessage:   summary.lineMessage ?? "",
-      rawCalendar: calendar.slice(0, 80).map((e, i) => ({ _key: `raw-${i}`, ...e })),
+      rawCalendar: filterMajorEvents(calendar).map((e, i) => ({ _key: `raw-${i}`, ...e })),
       rawNews:     news.slice(0, 8).map((n, i) => ({ _key: `n-${i}`, ...n })),
       createdAt: new Date().toISOString(),
       lastError: null,

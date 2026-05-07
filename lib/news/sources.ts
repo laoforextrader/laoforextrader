@@ -2,6 +2,9 @@
 // Kept out of the API route so the route stays small and testable.
 
 import Parser from "rss-parser"
+// Re-export shared client-safe helpers so server code can keep using
+// the single import path.
+export { formatLaoTime, formatDateDDMMYYYY } from "./sources-shared"
 
 export interface CalendarEvent {
   event: string
@@ -24,17 +27,6 @@ export interface NewsItem {
 export function todayInVientiane(now = new Date()): string {
   const lao = new Date(now.getTime() + 7 * 60 * 60 * 1000)
   return lao.toISOString().split("T")[0]
-}
-
-// Format ISO timestamp as HH:MM in Lao local time
-export function formatLaoTime(iso: string | undefined): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return ""
-  const lao = new Date(d.getTime() + 7 * 60 * 60 * 1000)
-  const h = String(lao.getUTCHours()).padStart(2, "0")
-  const m = String(lao.getUTCMinutes()).padStart(2, "0")
-  return `${h}:${m}`
 }
 
 export async function fetchEconomicCalendar(date: string): Promise<CalendarEvent[]> {
