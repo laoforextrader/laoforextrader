@@ -65,18 +65,28 @@ interface SummarizeArgs {
 }
 
 function extractJson(text: string): any {
-  // Claude often wraps JSON in ```json fences. Strip them.
-  const cleaned = text
+  // Strip markdown fences and trim
+  const noFences = text
     .replace(/```json\s*/g, "")
-    .replace(/```\s*$/g, "")
+    .replace(/```\s*/g, "")
     .trim()
-  // Find first { ... } block
-  const start = cleaned.indexOf("{")
-  const end = cleaned.lastIndexOf("}")
+  // Find first balanced { ... } block
+  const start = noFences.indexOf("{")
+  const end = noFences.lastIndexOf("}")
   if (start === -1 || end === -1) {
     throw new Error("No JSON object found in Claude response")
   }
-  return JSON.parse(cleaned.slice(start, end + 1))
+  let body = noFences.slice(start, end + 1)
+  // Repair common Claude JSON quirks: trailing commas, smart quotes
+  body = body
+    .replace(/,(\s*[}\]])/g, "$1")              // trailing commas
+    .replace(/[“”]/g, '"')            // smart double quotes
+    .replace(/[‘’]/g, "'")            // smart single quotes
+  try {
+    return JSON.parse(body)
+  } catch (e: any) {
+    throw new Error(`JSON parse failed: ${e.message}. Snippet: ${body.slice(0, 200)}`)
+  }
 }
 
 export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeArgs): Promise<DailySummary> {
@@ -141,27 +151,21 @@ ${newsLines || "(ບໍ່ມີຂ່າວ)"}
     }
   ],
   "technical": [
-    {
-      "symbol": "XAUUSD",
-      "trend": "bullish|bearish|neutral",
-      "bias": "ລາວ ສັ້ນ",
-      "support": "ຕົວເລກ",
-      "resistance": "ຕົວເລກ",
-      "analysis": "2 ປະໂຫຍກ ລາວ"
-    },
-    { "symbol": "EURUSD", ... }
+    { "symbol": "XAUUSD", "trend": "bullish|bearish|neutral", "bias": "ລາວ ສັ້ນ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "2 ປະໂຫຍກ ລາວ" },
+    { "symbol": "EURUSD", "trend": "bullish|bearish|neutral", "bias": "ລາວ ສັ້ນ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "2 ປະໂຫຍກ ລາວ" }
   ],
-  "hasHighImpact": true|false,
-  "lineMessage": "string — ສັ້ນ ມີ Emoji"
+  "hasHighImpact": true,
+  "lineMessage": "string ສັ້ນ ມີ Emoji"
 }
 
 ກົດ:
 - topEvents: 2 ຕົວ (ຖ້າມີ high impact). ຫາກບໍ່ມີ ໃຫ້ array ຫວ່າງ.
 - hotNews: 2 ຕົວ
 - technical: 2 ຕົວ (XAUUSD ແລະ EURUSD)
-- ID slugs: ສັ້ນ kebab-case (no date)
+- ID slugs: ສັ້ນ kebab-case ບໍ່ມີວັນທີ
+- ຫ້າມໃຊ້ trailing comma. ຫ້າມໃຊ້ ... ໃນ output. ຫ້າມເພີ່ມ comment.
 
-Return ONLY the JSON object. No markdown, no explanation.`
+Return ONLY ONE valid JSON object. No markdown fences. No prose before/after.`
 
   const message = await client.messages.create(
     {
