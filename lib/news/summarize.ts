@@ -155,7 +155,7 @@ function extractJson(text: string): any {
 async function callClaude(client: Anthropic, prompt: string, maxTokens: number) {
   const message = await client.messages.create(
     {
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     },
@@ -172,14 +172,45 @@ async function callClaude(client: Anthropic, prompt: string, maxTokens: number) 
 const ALLOWED_CHAR_RE = /[຀-໿ -~ -ÿ -⁯‐-‧\n\t📊📰🔥📉📈⚠️💡✨🇺🇸🇪🇺🇬🇧🇯🇵🇦🇺🇨🇦🇨🇭🇳🇿🌐🪙🚀⚡▲▼●→←·]/u
 function sanitizeLao(text: string | undefined): string {
   if (!text) return ""
-  // Allow normal text, drop anything weird
-  return text
-    .replace(/[一-鿿]/g, "")
-    .replace(/[㐀-䶿]/g, "")
-    .replace(/[가-힯]/g, "")
-    .replace(/[぀-ゟ]/g, "")
-    .replace(/[゠-ヿ]/g, "")
-    .replace(/[฀-๿]/g, "")
+  // Whitelist approach: keep Lao + Latin + digits + standard punctuation
+  // + emoji + general punctuation, strip everything else (CJK, Korean,
+  // Japanese, Thai, Khmer, Devanagari, Tamil, Bengali, Tibetan, Myanmar,
+  // Hebrew, Arabic, etc.)
+  let out = ""
+  for (const ch of text) {
+    const code = ch.codePointAt(0) ?? 0
+    if (
+      // ASCII printable + whitespace
+      (code >= 0x20 && code <= 0x7E) || code === 0x0A || code === 0x09 ||
+      // Latin-1 supplement / Latin Extended
+      (code >= 0xA0 && code <= 0x024F) ||
+      // Combining diacritical marks
+      (code >= 0x0300 && code <= 0x036F) ||
+      // Lao block
+      (code >= 0x0E80 && code <= 0x0EFF) ||
+      // General punctuation (em-dash, smart quotes, ellipsis, etc.)
+      (code >= 0x2000 && code <= 0x206F) ||
+      // Currency symbols
+      (code >= 0x20A0 && code <= 0x20CF) ||
+      // Letterlike symbols
+      (code >= 0x2100 && code <= 0x214F) ||
+      // Arrows
+      (code >= 0x2190 && code <= 0x21FF) ||
+      // Math operators (subset)
+      (code >= 0x2200 && code <= 0x22FF) ||
+      // Misc symbols + dingbats
+      (code >= 0x2600 && code <= 0x27BF) ||
+      // Variation selectors
+      (code >= 0xFE00 && code <= 0xFE0F) ||
+      // Emoji (extended pictographic ranges)
+      (code >= 0x1F000 && code <= 0x1FBFF) ||
+      // Regional indicator symbols (flags)
+      (code >= 0x1F1E6 && code <= 0x1F1FF)
+    ) {
+      out += ch
+    }
+  }
+  return out
 }
 const _ALLOWED_CHAR_RE_UNUSED = /[຀-໿]/u
 void _ALLOWED_CHAR_RE_UNUSED
@@ -249,7 +280,7 @@ async function runCallA(client: Anthropic, date: string, calendar: CalendarEvent
     .map(e => `- ${formatLaoTime(e.time)} ${e.country}/${e.impact}: ${e.event} (forecast=${e.forecast || "—"}, prev=${e.previous || "—"}, iso=${e.time})`)
     .join("\n")
 
-  const data = await callClaude(client, buildPromptA(date, eventLines), 2200)
+  const data = await callClaude(client, buildPromptA(date, eventLines), 1700)
   return {
     dailySummary: data.dailySummary ?? "",
     topEvents: Array.isArray(data.topEvents) ? data.topEvents : [],
@@ -316,7 +347,7 @@ async function runCallB(client: Anthropic, date: string, eventBrief: string, new
     `[${i + 1}] ${n.title}\n${(n.summary || "").slice(0, 200)}\nURL: ${n.link}\nIMG: ${n.imageUrl || ""}`,
   ).join("\n\n")
 
-  const data = await callClaude(client, buildPromptB(date, eventBrief, newsLines), 1800)
+  const data = await callClaude(client, buildPromptB(date, eventBrief, newsLines), 1400)
   // Hard-correct image + source URLs from the original feed so Claude
   // can't accidentally drop or fabricate them.
   const hot: HotNewsItem[] = (Array.isArray(data.hotNews) ? data.hotNews : []).map((h: HotNewsItem) => {
