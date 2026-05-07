@@ -40,7 +40,11 @@ async function handle(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
   const url = new URL(req.url)
+  // Two flags both mean "don't push to LINE", whichever the operator
+  // remembers. Save still happens so the /news page reflects the test.
   const sendLine = url.searchParams.get("send") !== "false"
+                && url.searchParams.get("test") !== "true"
+                && url.searchParams.get("dry") !== "true"
   const debug = url.searchParams.get("debug") === "true"
 
   const date = todayInVientiane()

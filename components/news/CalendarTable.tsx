@@ -47,7 +47,9 @@ function rowCurrency(r: RawCalRow): string {
 }
 
 export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
-  const [impactFilter, setImpactFilter] = useState<"all" | "high" | "medium">("all")
+  // Default to High so the user lands on what matters most. They can flip
+  // to All / Medium via the dropdown.
+  const [impactFilter, setImpactFilter] = useState<"all" | "high" | "medium">("high")
   const [currencyFilter, setCurrencyFilter] = useState<string>("all")
 
   // Pre-filter to majors only so the dropdown stays clean.
