@@ -3,14 +3,13 @@
 // run in a Vercel Node.js function (cron handler).
 
 import puppeteer, { Browser } from "puppeteer-core"
-import chromium from "@sparticuz/chromium-min"
+import chromium from "@sparticuz/chromium"
 import fs from "node:fs"
 import path from "node:path"
 
-// Pin to the chromium build that matches @sparticuz/chromium-min major.
-// Update both together.
-const CHROMIUM_PACK_URL =
-  "https://github.com/Sparticuz/chromium/releases/download/v138.0.0/chromium-v138.0.0-pack.x64.tar"
+// Use the bundled chromium binary so cold-start fits in cron-job.org's
+// 30s free-tier timeout. The binary inflates a Brotli pack from inside
+// node_modules instead of downloading from a CDN.
 
 let browserPromise: Promise<Browser> | null = null
 
@@ -26,7 +25,7 @@ async function getBrowser(): Promise<Browser> {
   browserPromise = puppeteer.launch({
     args: [...chromium.args, "--font-render-hinting=none"],
     defaultViewport: { width: 1080, height: 1080, deviceScaleFactor: 1 },
-    executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
+    executablePath: await chromium.executablePath(),
   })
   return browserPromise
 }
