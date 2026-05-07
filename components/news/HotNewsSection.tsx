@@ -1,8 +1,7 @@
-// Section 3 — 2 hot news cards. Click → /news/hot/[id] for the
-// article-style detail page. Renders source image when available.
+// Section 3 — Hot Story horizontal cards: image LEFT, title + summary RIGHT.
+// Click → /news/hot/[id] for the article-style detail page.
 
 import Link from "next/link"
-import Image from "next/image"
 
 export interface HotNewsItem {
   _key?: string
@@ -19,10 +18,10 @@ export interface HotNewsItem {
 export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
   if (!items || items.length === 0) return null
   return (
-    <section className="mb-12">
+    <section className="mb-10">
       <div className="mb-4">
         <div className="text-[10px] font-bold uppercase tracking-widest text-orange-600 mb-1 flex items-center gap-1.5">
-          🔥 Hot Story
+          🔥 News / Hot Story
         </div>
         <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
           ຂ່າວສຳຄັນຂອງມື້
@@ -34,40 +33,41 @@ export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
           <Link
             key={item._key ?? item.id}
             href={`/news/hot/${encodeURIComponent(item.id)}`}
-            className="group block bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all"
+            className="group flex bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all"
           >
-            {item.imageUrl ? (
-              <div className="relative w-full bg-gray-100 overflow-hidden" style={{ height: 180 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* Image LEFT — square */}
+            <div className="flex-shrink-0 w-[140px] h-[140px] bg-gray-100 overflow-hidden">
+              {item.imageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={item.imageUrl}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
-              </div>
-            ) : (
-              <div
-                className="relative w-full overflow-hidden flex items-center justify-center"
-                style={{ height: 100, background: "linear-gradient(135deg,#FFF7ED,#FEE2E2)" }}
-              >
-                <div className="text-[40px] opacity-60">📰</div>
-              </div>
-            )}
-            <div className="p-5">
-              <h3 className="font-lao text-[18px] font-bold text-gray-900 group-hover:text-orange-600 transition-colors leading-snug mb-2 line-clamp-2">
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg,#FFF7ED,#FEE2E2)" }}
+                >
+                  <span className="text-[36px] opacity-60">📰</span>
+                </div>
+              )}
+            </div>
+
+            {/* Content RIGHT — title + summary stacked */}
+            <div className="flex-1 min-w-0 p-4 flex flex-col">
+              <h3 className="font-lao text-[15px] font-bold text-gray-900 group-hover:text-orange-600 transition-colors leading-snug mb-1.5 line-clamp-2">
                 {item.title}
               </h3>
               {item.summary && (
-                <p className="font-lao text-[13px] text-gray-600 leading-relaxed line-clamp-3 mb-3">
+                <p className="font-lao text-[12px] text-gray-600 leading-relaxed line-clamp-3 flex-1">
                   {item.summary}
                 </p>
               )}
-              <div className="flex items-center gap-3 text-[10px] text-gray-400">
-                <span className="font-bold uppercase tracking-widest text-orange-600">
-                  ອ່ານຕໍ່
-                </span>
-                <span className="text-gray-300">→</span>
+              <div className="flex items-center gap-1.5 text-[10px] text-orange-600 font-bold uppercase tracking-widest mt-2">
+                <span>ອ່ານຕໍ່</span>
+                <span>→</span>
               </div>
             </div>
           </Link>

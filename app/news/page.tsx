@@ -46,30 +46,26 @@ export default async function NewsPage() {
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
       <div style={{ maxWidth: 1060, margin: "0 auto", padding: "32px 24px" }}>
-        {/* ── Hero ── */}
-        <div className="mb-8">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-[11px] font-bold text-blue-600 tracking-widest uppercase mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse-dot" />
-            📰 ຂ່າວ Forex
-          </div>
-          <h1 className="font-sans font-extrabold text-[32px] tracking-tight text-gray-900 mb-2">
-            ຂ່າວ &amp; <span style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Economic Calendar</span>
+        {/* ── Hero (centered, simple per wireframe) ── */}
+        <div className="text-center mb-8">
+          <h1 className="font-sans font-extrabold text-[32px] md:text-[36px] tracking-tight text-gray-900 mb-2">
+            ຂ່າວ <span className="text-gray-300 font-light">/</span>{" "}
+            <span style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Economic Calendar</span>
           </h1>
-          <p className="font-lao text-sm text-gray-500">
-            ອັບເດດປະຈຳວັນ {daily?.date ? `· ${formatDateDDMMYYYY(daily.date)}` : ""}
-          </p>
+          {daily?.date && (
+            <p className="font-mono text-[12px] text-gray-400">
+              {formatDateDDMMYYYY(daily.date)}
+            </p>
+          )}
         </div>
 
-        {/* Daily summary banner */}
+        {/* Daily summary — compact, only shown when present */}
         {daily?.dailySummary && (
           <div
-            className="rounded-2xl p-6 mb-10"
-            style={{ background: "linear-gradient(135deg,#EEF3FF,#F5F3FF,#FFF7ED)", border: "1px solid #DDE3F2" }}
+            className="rounded-xl p-4 mb-8 text-center"
+            style={{ background: "linear-gradient(135deg,#EEF3FF,#F5F3FF)", border: "1px solid #DDE3F2" }}
           >
-            <div className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-2">
-              ✨ ສະຫຼຸບປະຈຳວັນ
-            </div>
-            <p className="font-lao text-[15px] leading-relaxed text-gray-800">
+            <p className="font-lao text-[13px] leading-relaxed text-gray-700 max-w-3xl mx-auto">
               {daily.dailySummary}
             </p>
           </div>
