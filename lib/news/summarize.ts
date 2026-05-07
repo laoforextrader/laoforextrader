@@ -2,6 +2,7 @@
 // generation snappy enough to fit Vercel's 60s nodejs cap.
 
 import Anthropic from "@anthropic-ai/sdk"
+import { jsonrepair } from "jsonrepair"
 import type { CalendarEvent, NewsItem } from "./sources"
 import { formatLaoTime } from "./sources"
 
@@ -70,22 +71,23 @@ function extractJson(text: string): any {
     .replace(/```json\s*/g, "")
     .replace(/```\s*/g, "")
     .trim()
-  // Find first balanced { ... } block
   const start = noFences.indexOf("{")
   const end = noFences.lastIndexOf("}")
   if (start === -1 || end === -1) {
     throw new Error("No JSON object found in Claude response")
   }
-  let body = noFences.slice(start, end + 1)
-  // Repair common Claude JSON quirks: trailing commas, smart quotes
-  body = body
-    .replace(/,(\s*[}\]])/g, "$1")              // trailing commas
-    .replace(/[“”]/g, '"')            // smart double quotes
-    .replace(/[‘’]/g, "'")            // smart single quotes
+  const body = noFences.slice(start, end + 1)
+  // Try strict JSON first, then fall back to jsonrepair which handles
+  // missing commas, trailing commas, smart quotes, unescaped newlines, etc.
   try {
     return JSON.parse(body)
-  } catch (e: any) {
-    throw new Error(`JSON parse failed: ${e.message}. Snippet: ${body.slice(0, 200)}`)
+  } catch {
+    try {
+      const repaired = jsonrepair(body)
+      return JSON.parse(repaired)
+    } catch (e: any) {
+      throw new Error(`JSON parse failed: ${e.message}. Snippet: ${body.slice(0, 240)}`)
+    }
   }
 }
 

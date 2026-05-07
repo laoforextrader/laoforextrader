@@ -20,6 +20,7 @@
     "chart.js": "^4.4.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "jsonrepair": "^3.14.0",
     "lucide-react": "^0.400.0",
     "next": "15.5.15",
     "next-auth": "^4.24.7",
