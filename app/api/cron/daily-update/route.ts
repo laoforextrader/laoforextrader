@@ -31,17 +31,37 @@ async function handle(req: Request) {
   }
   const url = new URL(req.url)
   const sendLine = url.searchParams.get("send") !== "false"
+  const debug = url.searchParams.get("debug") === "true"
 
   const date = todayInVientiane()
   const docId = `daily-${date}`
+  const t0 = Date.now()
+  const timing: Record<string, number> = {}
 
   try {
+    const tFetch = Date.now()
     const [calendar, news] = await Promise.all([
       fetchEconomicCalendar(date),
       fetchForexNews(),
     ])
+    timing.fetchMs = Date.now() - tFetch
 
+    if (debug) {
+      return NextResponse.json({
+        ok: true,
+        debug: true,
+        date,
+        eventsCount: calendar.length,
+        newsCount: news.length,
+        sampleNews: news.slice(0, 2).map(n => ({ title: n.title, link: n.link })),
+        timing,
+        totalMs: Date.now() - t0,
+      })
+    }
+
+    const tClaude = Date.now()
     const summary = await summarizeDailyUpdate({ date, calendar, news })
+    timing.claudeMs = Date.now() - tClaude
 
     // Prefix slugs with date so detail-page URLs are stable across days
     const topEvents = summary.topEvents.map((e, i) => ({
@@ -55,6 +75,7 @@ async function handle(req: Request) {
       id: `${date}-${n.id}`,
     }))
 
+    const tSanity = Date.now()
     await sanity.createOrReplace({
       _id: docId,
       _type: "dailyUpdate",
@@ -77,6 +98,7 @@ async function handle(req: Request) {
       createdAt: new Date().toISOString(),
       lastError: null,
     })
+    timing.sanityMs = Date.now() - tSanity
 
     let lineStatus: string = "skipped"
     if (sendLine && summary.hasHighImpact) {
@@ -102,6 +124,8 @@ async function handle(req: Request) {
       hotNewsCount: hotNews.length,
       technicalCount: summary.technical.length,
       lineStatus,
+      timing,
+      totalMs: Date.now() - t0,
     })
   } catch (e: any) {
     const msg = (e?.message || String(e)).slice(0, 400)
