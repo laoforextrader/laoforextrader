@@ -62,7 +62,7 @@ export default function HighImpactSection({ events }: { events: TopEvent[] }) {
                 )}
                 <span className="text-gray-300 text-[10px]">·</span>
                 <span className="font-mono text-[11px] font-bold text-gray-700">
-                  {e.time} ICT
+                  {e.time} GMT+7
                 </span>
               </div>
               <div className="font-lao text-[13px] text-gray-800 leading-snug line-clamp-1 group-hover:text-red-700 transition-colors">

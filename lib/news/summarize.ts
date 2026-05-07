@@ -67,17 +67,54 @@ interface SummarizeArgs {
 }
 
 // ── Lao language guidelines shared by both prompts ─────────────────────────
-// These are intentionally specific; Claude tends to slide into Thai-flavoured
-// Lao without an explicit reminder. Add concrete do/don't pairs here when
-// the operator spots problems.
-const LAO_STYLE = `ກົດການຂຽນພາສາລາວ (ສຳຄັນ):
-- ໃຊ້ພາສາລາວແທ້ ຫ້າມປົນຄຳໄທ ຫຼື ບາລີ-ສັນສະກິດ
-- ໃຊ້ຄຳສາມັນ ກະຊັບ ບໍ່ໃຊ້ສຳນວນຍາວ
-- ໃຊ້ "ມື້ນີ້", "ຄາດວ່າ", "ສົ່ງຜົນຕໍ່", "ຄວນຈັບຕາ" — ບໍ່ໃຊ້ "วันนี้", "คาดว่า"
-- ບໍ່ແປຄຳ Forex jargon (NFP, GDP, CPI, FOMC, Fed, ECB, USD ແລະ pair ຕ່າງໆ ໃຫ້ຄົງ EN)
-- ຕົວເລກໃຊ້ Arabic numeral (07:30, 4.5%) ບໍ່ໃຊ້ເລກລາວ
-- ເວລາທຸກອັນ = ICT (UTC+7 / GMT+7) — ຫ້າມໃຊ້ UTC ຫຼື timezone ອື່ນ
-- ປະໂຫຍກສັ້ນ — ຫ້າມຍາວເກີນ 25 ຄຳຕໍ່ປະໂຫຍກ`
+// User feedback (native Lao speaker): translate vocabulary like a Lao
+// dictionary / Google Translate would (pure Lao, no Thai loanwords);
+// AI's job is grammar + sentence flow, not word choice.
+const LAO_STYLE = `LAO LANGUAGE RULES (very strict — native Lao reader will judge):
+
+1. Vocabulary policy
+   - Translate every word with PURE LAO equivalents (think: Lao dictionary
+     or Google Translate Lao output). No Thai loanwords, ever.
+   - If you would write a Thai word in Lao script, STOP and use the Lao
+     word instead. Examples of WRONG → RIGHT:
+       ❌ "วันนี้" / "ມື້ນີ້" written with Thai feel
+       ✅ "ມື້ນີ້"
+       ❌ "ตลาด" / "ຕະຫລາດ" (Thai-shaped)
+       ✅ "ຕະຫຼາດ"
+       ❌ "นักลงทุน"
+       ✅ "ນັກລົງທຶນ"
+       ❌ "ผันผวน"
+       ✅ "ຜັນຜວນ"
+       ❌ "ค่าเงิน"
+       ✅ "ຄ່າເງິນ"
+   - Use everyday Lao, not flowery Pali/Sanskrit.
+
+2. AI's role
+   - Your job is to ARRANGE the Lao words into correct, natural sentences.
+     Do NOT invent vocabulary. If a word doesn't exist in pure Lao, keep
+     the English term.
+
+3. Keep in English (do NOT translate)
+   - Country / city / region names (US, UK, Eurozone, London, Tokyo)
+   - Person names (Powell, Lagarde, de Guindos)
+   - Company / brand names (Fed, ECB, BoE, Reuters, Investing.com)
+   - Forex jargon: NFP, CPI, GDP, PMI, FOMC, USD, EUR, GBP, JPY, AUD, NZD,
+     CAD, CHF, XAUUSD, EURUSD, etc.
+   - Numbers: Arabic numerals only (07:30, 4.5%, 1.0850), never Lao digits.
+
+4. Time
+   - Always write times as "HH:MM GMT+7". Do NOT write "ICT" or "UTC".
+   - Input times below are already GMT+7 (Lao local).
+
+5. Sentence style
+   - Short. Max ~25 words per sentence.
+   - Active voice. No passive constructions transliterated from Thai.
+   - End sentences with "." — not "ครับ/ค่ะ" or other Thai closers.
+
+6. Banned (will fail review)
+   - Any string containing "วันนี้" "ครับ" "ค่ะ" "ขอ" or other clearly-Thai
+     particles in their Thai-script form (occasionally Claude renders
+     Lao with subtly Thai grammar/word choice — avoid).`
 
 // ── JSON helpers ───────────────────────────────────────────────────────────
 
@@ -125,7 +162,7 @@ function buildPromptA(date: string, eventLines: string): string {
 
 ${LAO_STYLE}
 
-Economic events (ICT, high/medium):
+Economic events (already GMT+7, high/medium):
 ${eventLines || "(ບໍ່ມີ event ສຳຄັນ)"}
 
 Return ONE valid JSON ດ້ວຍ schema ນີ້:
@@ -139,7 +176,7 @@ Return ONE valid JSON ດ້ວຍ schema ນີ້:
       "nameEn": "EN name",
       "currency": "USD/EUR/GBP/...",
       "country": "US/EU/GB/...",
-      "time": "HH:MM ICT",
+      "time": "HH:MM GMT+7",
       "timeISO": "ISO ຈາກ events ຂ້າງເທິງ (field iso)",
       "impact": "high",
       "forecast": "string ຫຼື —",
@@ -153,7 +190,7 @@ Return ONE valid JSON ດ້ວຍ schema ນີ້:
     { "name": "ຊື່ ສັ້ນ", "time": "HH:MM", "impact": "high|medium|low", "description": "1 ປະໂຫຍກລາວ" }
   ],
   "hasHighImpact": true,
-  "lineMessage": "ສັ້ນ ມີ Emoji ບໍ່ເກີນ 5 ບັນທັດ — ຖ້າເອ່ຍເຖິງເວລາ ໃຫ້ໃສ່ ICT"
+  "lineMessage": "ສັ້ນ ມີ Emoji ບໍ່ເກີນ 5 ບັນທັດ — ຖ້າເອ່ຍເຖິງເວລາ ໃຫ້ໃສ່ GMT+7"
 }
 
 ກົດ:
@@ -208,9 +245,9 @@ Return ONE valid JSON:
       "title": "ຫົວຂໍ້ລາວສັ້ນ ດຶງດູດ",
       "summary": "1 ປະໂຫຍກລາວ",
       "detail": "3 ປະໂຫຍກລາວ — ຄວາມເປັນມາ + ຄວາມໝາຍຕໍ່ Trader",
-      "source": "URL ຈາກຂ່າວ",
+      "source": "ໃຊ້ URL ຈາກ field 'URL:' ຂອງຂ່າວທີ່ເລືອກ",
       "sourceTitle": "EN original title",
-      "imageUrl": "",
+      "imageUrl": "ໃຊ້ string ຈາກ field 'IMG:' ຂອງຂ່າວທີ່ເລືອກ (ຫຼື '' ຖ້າຫວ່າງ)",
       "pubDate": ""
     }
   ],
@@ -231,12 +268,18 @@ Return ONLY the JSON object.`
 
 async function runCallB(client: Anthropic, date: string, eventBrief: string, news: NewsItem[]): Promise<CallBResult> {
   const newsLines = news.slice(0, 4).map((n, i) =>
-    `[${i + 1}] ${n.title}\n${(n.summary || "").slice(0, 200)}\nURL: ${n.link}`,
+    `[${i + 1}] ${n.title}\n${(n.summary || "").slice(0, 200)}\nURL: ${n.link}\nIMG: ${n.imageUrl || ""}`,
   ).join("\n\n")
 
   const data = await callClaude(client, buildPromptB(date, eventBrief, newsLines), 1800)
+  // Hard-correct image URLs from the source items so Claude can't make
+  // them up: match by source URL and overwrite imageUrl from the feed.
+  const hot: HotNewsItem[] = (Array.isArray(data.hotNews) ? data.hotNews : []).map((h: HotNewsItem) => {
+    const src = news.find(n => n.link === h.source)
+    return { ...h, imageUrl: src?.imageUrl || h.imageUrl || "" }
+  })
   return {
-    hotNews: Array.isArray(data.hotNews) ? data.hotNews : [],
+    hotNews: hot,
     technical: Array.isArray(data.technical) ? data.technical : [],
   }
 }

@@ -116,7 +116,7 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
           <table className="w-full text-[12px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr className="text-left">
-                <th className="px-4 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">ເວລາ ICT</th>
+                <th className="px-4 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">ເວລາ GMT+7</th>
                 <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-12 text-center">Imp</th>
                 <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">Cur</th>
                 <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500">Event</th>

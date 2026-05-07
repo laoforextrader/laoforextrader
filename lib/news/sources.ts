@@ -21,6 +21,7 @@ export interface NewsItem {
   summary: string
   link: string
   pubDate: string
+  imageUrl: string
 }
 
 // Convert UTC date offset for Asia/Vientiane (UTC+7) and return YYYY-MM-DD
@@ -54,6 +55,34 @@ export async function fetchEconomicCalendar(date: string): Promise<CalendarEvent
   }
 }
 
+// Extract the first usable image URL from an RSS item.
+// Different feeds put images in different fields, so check the common ones.
+function extractImage(item: any): string {
+  // 1) media:content / media:thumbnail
+  const mc = item["media:content"]
+  if (mc) {
+    if (Array.isArray(mc)) {
+      for (const m of mc) {
+        const u = m?.$?.url || m?.url
+        if (u) return u
+      }
+    } else if (mc.$?.url) {
+      return mc.$.url
+    }
+  }
+  const mt = item["media:thumbnail"]
+  if (mt?.$?.url) return mt.$.url
+  // 2) enclosure (RSS 2.0)
+  if (item.enclosure?.url && /^image\//.test(item.enclosure.type ?? "image/")) {
+    return item.enclosure.url
+  }
+  // 3) <img src="..."> inside the content / description
+  const html: string = item["content:encoded"] ?? item.content ?? item.description ?? ""
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i)
+  if (m?.[1]) return m[1]
+  return ""
+}
+
 export async function fetchForexNews(): Promise<NewsItem[]> {
   // Tight 4s per-feed timeout so a stuck source doesn't burn the whole
   // 60s function budget. Two feeds is enough — if both fail we just
@@ -62,7 +91,17 @@ export async function fetchForexNews(): Promise<NewsItem[]> {
     "https://www.fxstreet.com/rss/news",
     "https://www.forexlive.com/feed/news",
   ]
-  const parser = new Parser({ timeout: 4000, headers: { "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0" } })
+  const parser = new Parser({
+    timeout: 4000,
+    headers: { "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0" },
+    customFields: {
+      item: [
+        ["media:content", "media:content", { keepArray: true }],
+        ["media:thumbnail", "media:thumbnail"],
+        ["content:encoded", "content:encoded"],
+      ],
+    },
+  })
   for (const url of feeds) {
     try {
       const feed = await parser.parseURL(url)
@@ -71,6 +110,7 @@ export async function fetchForexNews(): Promise<NewsItem[]> {
         summary: (item.contentSnippet ?? item.content ?? "").trim().slice(0, 350),
         link: item.link ?? "",
         pubDate: item.pubDate ?? item.isoDate ?? "",
+        imageUrl: extractImage(item),
       })).filter(i => i.title)
       if (items.length > 0) return items
     } catch {

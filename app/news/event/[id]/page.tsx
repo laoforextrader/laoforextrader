@@ -95,7 +95,7 @@ export default async function EventPage({ params }: Props) {
             {/* Stats + countdown row */}
             <div className="rounded-xl p-4 mb-6" style={{ background: "linear-gradient(135deg,#FEF2F2,#FFF7ED)", border: "1px solid #FECACA" }}>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-                <Stat label="ເວລາ ICT" value={e.time} mono />
+                <Stat label="ເວລາ GMT+7" value={e.time} mono />
                 <Stat label="Forecast" value={e.forecast || "—"} mono />
                 <Stat label="Previous" value={e.previous || "—"} mono />
               </div>
