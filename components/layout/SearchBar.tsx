@@ -94,7 +94,7 @@ export function SearchBar() {
   }
 
   return (
-    <div ref={wrapRef} className="relative w-full max-w-[260px]">
+    <div ref={wrapRef} className="relative w-[170px] xl:w-[220px]">
       <form onSubmit={handleSubmit}>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
@@ -104,7 +104,7 @@ export function SearchBar() {
             onChange={e => { setQuery(e.target.value); setIsOpen(true); setActiveIdx(-1) }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKey}
-            placeholder="ຄົ້ນຫາ Broker, ບົດຮຽນ, ຂ່າວ…"
+            placeholder="ຄົ້ນຫາ…"
             className="w-full pl-8 pr-8 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-[12px] font-lao text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
           />
           {query && (

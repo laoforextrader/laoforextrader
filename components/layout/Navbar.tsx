@@ -45,17 +45,17 @@ export function Navbar() {
           <span className="font-sans font-extrabold text-[20px] tracking-tight"
             style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>LFT</span>
         </Link>
-        <ul className="hidden lg:flex items-center gap-4">
+        <ul className="hidden lg:flex items-center gap-3">
           {NAV.map(item => (
             <li key={item.href}>
               <Link href={item.href}
-                className="text-gray-500 hover:text-blue-600 text-[11px] font-semibold uppercase tracking-widest transition-colors font-sans whitespace-nowrap">
+                className="text-gray-500 hover:text-blue-600 text-[10.5px] font-semibold uppercase tracking-wider transition-colors font-sans whitespace-nowrap">
                 {item.label}
               </Link>
             </li>
           ))}
         </ul>
-        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+        <div className="hidden md:flex items-center gap-2 flex-shrink-0">
           <SearchBar />
           <LoginButton />
         </div>

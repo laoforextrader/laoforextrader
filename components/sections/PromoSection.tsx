@@ -170,12 +170,13 @@ export default function PromoSection() {
       <style>{`
         .promo-card{
           position:relative;overflow:hidden;
-          background:linear-gradient(135deg,rgba(37,99,235,0.16),rgba(79,70,229,0.16));
-          border:1px solid rgba(99,102,241,0.32);
+          background:linear-gradient(135deg,rgba(37,99,235,0.45),rgba(79,70,229,0.50));
+          border:1px solid rgba(129,140,248,0.55);
+          box-shadow:0 14px 44px rgba(79,70,229,0.28),inset 0 1px 0 rgba(255,255,255,0.08);
           border-radius:20px;padding:36px 44px;margin-bottom:20px;
           display:flex;align-items:center;gap:44px;
         }
-        .promo-divider{width:1px;height:88px;background:rgba(99,102,241,0.25);flex-shrink:0}
+        .promo-divider{width:1px;height:88px;background:rgba(165,180,252,0.45);flex-shrink:0}
         .promo-num{flex-shrink:0;text-align:center}
         .promo-num-val{font-size:88px;font-weight:900;line-height:1;letter-spacing:-0.05em;background:linear-gradient(135deg,#60A5FA,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .promo-info{flex:1;min-width:0}

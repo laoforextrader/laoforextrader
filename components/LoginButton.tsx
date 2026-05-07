@@ -7,7 +7,7 @@ export default function LoginButton() {
 
   if (status === 'loading') {
     return (
-      <div style={{ width: 120, height: 36, borderRadius: 8, background: '#F3F4F6' }} />
+      <div style={{ width: 100, height: 32, borderRadius: 8, background: '#F3F4F6' }} />
     )
   }
 
@@ -76,9 +76,10 @@ export default function LoginButton() {
         color: '#fff',
         border: 'none',
         borderRadius: 8,
-        padding: '8px 16px',
-        fontSize: 13,
+        padding: '7px 12px',
+        fontSize: 12,
         fontWeight: 700,
+        whiteSpace: 'nowrap',
         cursor: 'pointer',
         fontFamily: "'Noto Sans Lao', sans-serif",
         textDecoration: 'none',
