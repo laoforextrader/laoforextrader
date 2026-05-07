@@ -1,4 +1,5 @@
 import { sanityClient, QUERIES } from "@/lib/sanity"
+import { getGoldSnapshot } from "@/lib/gold"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { HeroCanvas } from "@/components/ui/HeroCanvas"
 import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
@@ -73,6 +74,11 @@ export default async function HomePage() {
     console.error("Sanity fetch error:", err)
   }
 
+  // Pre-fetch gold so the widget paints with a real number on first load
+  // (avoids the "Loading…" flash). Cached upstream via revalidate=60 inside
+  // the helper, so this doesn't add latency on warm requests.
+  const goldSnapshot = await getGoldSnapshot().catch(() => null)
+
   const featured = latest.featured
   const popularPick = popular.find(p => p._id !== featured?._id) ?? null
   const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
@@ -119,7 +125,7 @@ export default async function HomePage() {
             </div>
           </div>
           {/* Live price + Lao gold widget */}
-          <GoldWidget />
+          <GoldWidget initial={goldSnapshot} />
         </div>
       </section>
 

@@ -1,78 +1,53 @@
-'use client'
-import { useEffect, useRef, useState } from 'react'
+"use client"
+import { useEffect, useRef, useState } from "react"
+import type { GoldSnapshot } from "@/lib/gold"
 
-// 1 Lao Baht (ບາດ) ≈ 0.49 Troy Oz
-const LAO_BAHT_OZ_FRACTION = 0.49
-const FALLBACK_USD_LAK     = 22000
+const REFRESH_MS = 60_000
 
-async function fetchSpotGold(): Promise<number | null> {
-  // 1) Direct from gold-api.com (free, CORS-enabled, no key required)
+async function fetchSnapshot(): Promise<GoldSnapshot | null> {
   try {
-    const res = await fetch('https://api.gold-api.com/price/XAU', { cache: 'no-store' })
-    if (res.ok) {
-      const d: any = await res.json()
-      const p = Number(d?.price)
-      if (p && !isNaN(p)) return p
-    }
-  } catch {}
-
-  // 2) Fallback: server proxy /api/gold (which also uses gold-api.com)
-  try {
-    const res = await fetch('/api/gold', { cache: 'no-store' })
-    if (res.ok) {
-      const d: any = await res.json()
-      const p = Number(d?.price)
-      if (p && !isNaN(p)) return p
-    }
-  } catch {}
-
-  return null
+    const res = await fetch("/api/gold", { cache: "no-store" })
+    if (!res.ok) return null
+    return (await res.json()) as GoldSnapshot
+  } catch {
+    return null
+  }
 }
 
-async function fetchUsdLak(): Promise<number> {
-  try {
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { cache: 'no-store' })
-    if (res.ok) {
-      const d: any = await res.json()
-      const r = Number(d?.rates?.LAK)
-      if (r) return r
-    }
-  } catch {}
-  return FALLBACK_USD_LAK
+interface UseGoldArgs {
+  initial?: GoldSnapshot | null
 }
 
-export function useGoldPrice() {
-  const [xauusd, setXauusd]         = useState<number | null>(null)
-  const [laoGoldLAK, setLaoGoldLAK] = useState<number | null>(null)
-  const [change, setChange]         = useState<number>(0)
-  const [changePct, setChangePct]   = useState<number>(0)
-  const [isLive, setIsLive]         = useState(false)
-  const prevPrice                    = useRef<number | null>(null)
+export function useGoldPrice(args: UseGoldArgs = {}) {
+  const [snap, setSnap] = useState<GoldSnapshot | null>(args.initial ?? null)
+  const [isLive, setIsLive] = useState<boolean>(!!args.initial)
+  const mounted = useRef(false)
 
-  const fetchPrices = async () => {
-    const [spot, usdLak] = await Promise.all([fetchSpotGold(), fetchUsdLak()])
-    if (!spot) return // keep last known values, do not show fake price
-
-    if (prevPrice.current !== null) {
-      const ch = spot - prevPrice.current
-      setChange(ch)
-      setChangePct(prevPrice.current ? (ch / prevPrice.current) * 100 : 0)
+  const refresh = async () => {
+    const s = await fetchSnapshot()
+    if (s) {
+      setSnap(s)
+      setIsLive(true)
     }
-    prevPrice.current = spot
-
-    const pricePerBahtUSD = spot * LAO_BAHT_OZ_FRACTION
-    const pricePerBahtLAK = Math.round(pricePerBahtUSD * usdLak)
-
-    setXauusd(spot)
-    setLaoGoldLAK(pricePerBahtLAK)
-    setIsLive(true)
   }
 
   useEffect(() => {
-    fetchPrices()
-    const id = setInterval(fetchPrices, 60_000)
+    if (mounted.current) return
+    mounted.current = true
+    // If we already have an SSR snapshot, refresh in the background;
+    // otherwise fetch once immediately so the user isn't stuck on "Loading…".
+    refresh()
+    const id = setInterval(refresh, REFRESH_MS)
     return () => clearInterval(id)
   }, [])
 
-  return { xauusd, laoGoldLAK, change, changePct, isLive }
+  return {
+    xauusd: snap?.price ?? null,
+    laoGoldLAK: snap?.laoGoldLAK ?? null,
+    change: snap?.change ?? 0,
+    changePct: snap?.changePct ?? 0,
+    previousClose: snap?.previousClose ?? null,
+    updatedAt: snap?.updatedAt ?? null,
+    isLive,
+  }
 }
