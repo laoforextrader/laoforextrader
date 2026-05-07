@@ -5,7 +5,11 @@ import { HeroCanvas } from "@/components/ui/HeroCanvas"
 import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
 import { GoldWidget } from "@/components/ui/GoldWidget"
 import CalendarPills from "@/components/news/CalendarPills"
-import type { DailyUpdate } from "@/components/news/DailyUpdateSection"
+
+interface DailyUpdate {
+  date: string
+  calendarHighlights?: Array<{ _key?: string; name: string; time: string; impact: string }>
+}
 import { BrokerSection } from "@/components/broker/BrokerSection"
 import { LessonsPreview } from "@/components/lessons/LessonsPreview"
 import MerchSection from "@/components/sections/MerchSection"

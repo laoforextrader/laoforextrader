@@ -6,22 +6,62 @@ import Anthropic from "@anthropic-ai/sdk"
 import type { CalendarEvent, NewsItem } from "./sources"
 import { formatLaoTime } from "./sources"
 
+export interface TopEvent {
+  id: string                   // slug like "nfp-usd"
+  nameLao: string
+  nameEn: string
+  currency: string
+  country: string
+  time: string                 // HH:MM Lao
+  timeISO: string              // ISO from raw Finnhub event
+  impact: "high" | "medium" | "low"
+  forecast: string
+  previous: string
+  description: string          // 1-2 sentences ลาว
+  analysis: string             // 3-4 sentences ลาว
+  tradingGuidance: string      // 2-3 sentences ลาว
+}
+
+export interface HotNewsItem {
+  id: string
+  title: string                // ລາວ
+  summary: string              // ລາວ short
+  detail: string               // ລາວ longer (article body style)
+  source: string
+  sourceTitle: string          // EN original
+  imageUrl: string
+  pubDate: string
+}
+
+export interface TechAnalysis {
+  symbol: string               // "XAUUSD" | "EURUSD"
+  trend: "bullish" | "bearish" | "neutral"
+  bias: string                 // ลาวสั้น
+  support: string
+  resistance: string
+  analysis: string             // ลาว 2-3 sentences
+}
+
+export interface CalendarHighlight {
+  name: string
+  time: string
+  impact: "high" | "medium" | "low"
+  description: string
+}
+
 export interface DailySummary {
   dailySummary: string
-  hotNews: { title: string; summary: string }
-  calendarHighlights: Array<{
-    name: string
-    time: string
-    impact: "high" | "medium" | "low"
-    description: string
-  }>
+  topEvents: TopEvent[]
+  calendarHighlights: CalendarHighlight[]
+  hotNews: HotNewsItem[]
+  technical: TechAnalysis[]
   hasHighImpact: boolean
   lineMessage: string
 }
 
 const SUMMARY_TOOL: Anthropic.Tool = {
   name: "save_daily_summary",
-  description: "Save the daily Forex summary for laoforextrader.com followers in the required structure.",
+  description: "Save the comprehensive daily Forex summary for laoforextrader.com followers in Lao language.",
   input_schema: {
     type: "object",
     properties: {
@@ -29,43 +69,94 @@ const SUMMARY_TOOL: Anthropic.Tool = {
         type: "string",
         description: "ສະຫຼຸບລວມ 2-3 ປະໂຫຍກ ພາສາລາວ ງ່າຍໆ ບອກວ່າມື້ນີ້ Trader ຄວນຈັບຕາຫຍັງ",
       },
-      hotNews: {
-        type: "object",
-        properties: {
-          title: { type: "string", description: "ຫົວຂໍ້ຂ່າວ ພາສາລາວ ສັ້ນ" },
-          summary: { type: "string", description: "ສະຫຼຸບຂ່າວ 2 ປະໂຫຍກ ພາສາລາວ" },
-        },
-        required: ["title", "summary"],
-      },
-      calendarHighlights: {
+
+      topEvents: {
         type: "array",
-        description: "Events ສຳຄັນ 3 ອັນ (ເລືອກ high/medium impact ກ່ອນ)",
+        description: "2 high-impact events ທີ່ສຳຄັນທີ່ສຸດໃນວັນນີ້ — ໃຫ້ analysis + trading guidance ລະອຽດ ຖ້າບໍ່ມີ high impact ໃຫ້ array ຫວ່າງ",
         items: {
           type: "object",
           properties: {
-            name: { type: "string", description: "ຊື່ event ເປັນ ENG ຫຼື ສັ້ນລາວ" },
-            time: { type: "string", description: "HH:MM (ເວລາລາວ ICT)" },
-            impact: { type: "string", enum: ["high", "medium", "low"] },
-            description: { type: "string", description: "ຄຳອະທິບາຍ 1 ປະໂຫຍກ ພາສາລາວ" },
+            id: { type: "string", description: "kebab-case slug (no date), e.g. nfp-usd or trade-balance-aud" },
+            nameLao: { type: "string", description: "ຊື່ event ພາສາລາວ" },
+            nameEn: { type: "string", description: "Event name in English (from raw)" },
+            currency: { type: "string", description: "USD/EUR/GBP/etc" },
+            country: { type: "string" },
+            time: { type: "string", description: "HH:MM ICT" },
+            timeISO: { type: "string", description: "Pass through the original ISO time from raw" },
+            impact: { type: "string", enum: ["high", "medium"] },
+            forecast: { type: "string" },
+            previous: { type: "string" },
+            description: { type: "string", description: "1-2 ປະໂຫຍກ ບອກວ່າ event ນີ້ຄືຫຍັງ ມີຜົນຕໍ່ Forex ແນວໃດ" },
+            analysis: { type: "string", description: "3-4 ປະໂຫຍກ ລາວ ວິເຄາະ Forecast vs Previous ແລະ scenario ຕ່າງໆ" },
+            tradingGuidance: { type: "string", description: "2-3 ປະໂຫຍກ ລາວ ບອກແນວທາງເທຣດ pair ໃດ ເວລາໃດ ຄວບຄຸມ Risk ແນວໃດ" },
           },
-          required: ["name", "time", "impact", "description"],
+          required: ["id", "nameLao", "nameEn", "currency", "time", "timeISO", "impact", "description", "analysis", "tradingGuidance"],
         },
       },
-      hasHighImpact: {
-        type: "boolean",
-        description: "ມີ event ທີ່ມີ impact = high ໃນລາຍການມື້ນີ້ ຫຼື ບໍ່",
+
+      calendarHighlights: {
+        type: "array",
+        description: "3 events ສຳຄັນສຳລັບ pills ໃນໜ້າຫຼັກ (ສັ້ນ)",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "ສັ້ນ EN ຫຼື ລາວ" },
+            time: { type: "string", description: "HH:MM ICT" },
+            impact: { type: "string", enum: ["high", "medium", "low"] },
+            description: { type: "string", description: "1 ປະໂຫຍກ ລາວ" },
+          },
+          required: ["name", "time", "impact"],
+        },
       },
+
+      hotNews: {
+        type: "array",
+        description: "2 hot news ສຳຄັນທີ່ສຸດ ແປເປັນລາວ + detail ສຳລັບໜ້າລະອຽດ",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string", description: "kebab-case slug (no date)" },
+            title: { type: "string", description: "ຫົວຂໍ້ ລາວ ສັ້ນ ດຶງດູດ" },
+            summary: { type: "string", description: "ສະຫຼຸບ 2 ປະໂຫຍກ ລາວ" },
+            detail: { type: "string", description: "ເນື້ອຫາ 4-6 ປະໂຫຍກ ລາວ ຄ້າຍບົດຄວາມ ມີ context ແລະ implication ສຳລັບ Trader" },
+            source: { type: "string", description: "Source URL — pass through" },
+            sourceTitle: { type: "string", description: "Original EN title — pass through" },
+            imageUrl: { type: "string", description: "Image URL ຖ້າມີ ຫຼື ຫວ່າງ" },
+            pubDate: { type: "string" },
+          },
+          required: ["id", "title", "summary", "detail"],
+        },
+      },
+
+      technical: {
+        type: "array",
+        description: "Technical analysis ສຳລັບ XAUUSD ແລະ EURUSD (ໃຊ້ knowledge ຂອງເຈົ້າ + context ຂ່າວ)",
+        items: {
+          type: "object",
+          properties: {
+            symbol: { type: "string", enum: ["XAUUSD", "EURUSD"] },
+            trend: { type: "string", enum: ["bullish", "bearish", "neutral"] },
+            bias: { type: "string", description: "ລາວ 1 ປະໂຫຍກ ສັ້ນ ບອກ trend overall" },
+            support: { type: "string", description: "ຕົວເລກ support level ປະມານ" },
+            resistance: { type: "string", description: "ຕົວເລກ resistance level ປະມານ" },
+            analysis: { type: "string", description: "ລາວ 2-3 ປະໂຫຍກ ວິເຄາະ momentum + ການເຊື່ອມໂຍງກັບຂ່າວ" },
+          },
+          required: ["symbol", "trend", "bias", "support", "resistance", "analysis"],
+        },
+      },
+
+      hasHighImpact: { type: "boolean" },
       lineMessage: {
         type: "string",
         description: "ຂໍ້ຄວາມສຳລັບ LINE Broadcast — ສັ້ນ ດຶງດູດ ມີ Emoji ບໍ່ເກີນ 5 ບັນທັດ",
       },
     },
-    required: ["dailySummary", "hotNews", "calendarHighlights", "hasHighImpact", "lineMessage"],
+    required: ["dailySummary", "topEvents", "calendarHighlights", "hotNews", "technical", "hasHighImpact", "lineMessage"],
   },
 }
 
 interface SummarizeArgs {
-  date: string                    // YYYY-MM-DD (Lao)
+  date: string
   calendar: CalendarEvent[]
   news: NewsItem[]
 }
@@ -76,42 +167,50 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
 
   const client = new Anthropic({ apiKey })
 
-  // Pre-filter to keep prompt tight: high-impact calendar entries first
+  // Pre-filter to keep prompt tight
   const importantEvents = calendar
     .filter(e => e.impact === "high" || e.impact === "medium")
-    .slice(0, 8)
+    .slice(0, 12)
     .map(e => ({
       ...e,
-      time: formatLaoTime(e.time),
+      time_lao: formatLaoTime(e.time),
     }))
 
-  const newsForPrompt = news.slice(0, 6).map(n => ({
+  const newsForPrompt = news.slice(0, 8).map(n => ({
     title: n.title,
-    summary: n.summary?.slice(0, 280) ?? "",
+    summary: n.summary?.slice(0, 320) ?? "",
+    link: n.link,
+    pubDate: n.pubDate,
   }))
 
-  const prompt = `ທ່ານເປັນນັກວິເຄາະ Forex ທີ່ຂຽນໃຫ້ Trader ລາວ ໃຊ້ພາສາລາວທີ່ສະອາດ ຖືກຕ້ອງ ບໍ່ປົນຄຳໄທ.
-
+  const prompt = `ທ່ານເປັນນັກວິເຄາະ Forex ມືອາຊີບທີ່ຂຽນໃຫ້ Trader ລາວ ໃຊ້ພາສາລາວທີ່ສະອາດ ຖືກຕ້ອງ ບໍ່ປົນຄຳໄທ.
 ມື້ນີ້ (${date}):
 
-🗓 Economic Calendar (impact ສຳຄັນ):
+🗓 Economic Calendar (high/medium impact):
 ${importantEvents.length ? JSON.stringify(importantEvents, null, 2) : "(ບໍ່ມີ event ສຳຄັນ)"}
 
-📰 ຂ່າວ Forex ຫຼ້າສຸດ:
-${newsForPrompt.length ? newsForPrompt.map((n, i) => `[${i+1}] ${n.title}\n   ${n.summary}`).join("\n\n") : "(ຍັງບໍ່ມີຂ່າວໃໝ່)"}
+📰 Forex News:
+${newsForPrompt.length ? newsForPrompt.map((n, i) => `[${i+1}] ${n.title}\n   URL: ${n.link}\n   ${n.summary}`).join("\n\n") : "(ຍັງບໍ່ມີຂ່າວໃໝ່)"}
 
-ກະລຸນາ:
-1. ສ້າງ "dailySummary" 2-3 ປະໂຫຍກ ພາສາລາວ
-2. ເລືອກ 1 ຂ່າວທີ່ສຳຄັນທີ່ສຸດ → ສ້າງ "hotNews" (ຫົວຂໍ້ + ສະຫຼຸບ)
-3. ເລືອກ events ສຳຄັນ 3 ອັນ (high impact ກ່ອນ) → "calendarHighlights"
-4. ກຳນົດ "hasHighImpact" — true ຖ້າມີ high impact event
-5. ຂຽນ "lineMessage" — ສັ້ນ ດຶງດູດ ໃຊ້ Emoji ສຳລັບສົ່ງ LINE Broadcast
+ກະລຸນາສ້າງ:
 
-ໃຫ້ call tool save_daily_summary ດ້ວຍຜົນລັບທັງໝົດ.`
+1. dailySummary — 2-3 ປະໂຫຍກ ສະຫຼຸບລວມ
+2. topEvents — 2 events ທີ່ມີ impact ສູງສຸດ ໃຫ້ description (1-2 ປະໂຫຍກ) + analysis (3-4 ປະໂຫຍກ) + tradingGuidance (2-3 ປະໂຫຍກ). ຖ້າບໍ່ມີ high impact ໃຫ້ array ຫວ່າງ.
+3. calendarHighlights — 3 events ສຳຄັນສຳລັບ pills (ສັ້ນ)
+4. hotNews — 2 ຂ່າວ ສຳຄັນທີ່ສຸດ ແປເປັນລາວ ມີ summary ສັ້ນ + detail ຍາວ (ຄ້າຍບົດຄວາມ 4-6 ປະໂຫຍກ)
+5. technical — ວິເຄາະ XAUUSD ແລະ EURUSD: trend, bias, support, resistance, analysis (ໃຊ້ context ຈາກຂ່າວ + economic events ຂ້າງເທິງ)
+6. hasHighImpact — true ຖ້າມີ event ທີ່ impact = high
+7. lineMessage — ຂໍ້ຄວາມ LINE Broadcast ສັ້ນ Emoji
+
+ສຳຄັນ:
+- ID slugs: kebab-case ບໍ່ມີວັນທີ ບໍ່ມີຍາວເກີນ 40 ຕົວ — e.g. "nfp-usd", "fed-rate-cut"
+- timeISO ໃນ topEvents: ໃຊ້ ISO timestamp ຈາກ raw event ຂ້າງເທິງ (field: time)
+- imageUrl: ຖ້າບໍ່ມີໃຫ້ string ຫວ່າງ
+- ໃຫ້ call tool save_daily_summary ດ້ວຍ output ທັງໝົດ`
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 2000,
+    max_tokens: 4000,
     tools: [SUMMARY_TOOL],
     tool_choice: { type: "tool", name: "save_daily_summary" },
     messages: [{ role: "user", content: prompt }],

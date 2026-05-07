@@ -122,13 +122,37 @@ export const QUERIES = {
     }
   `,
   latestDailyUpdate: `*[_type == "dailyUpdate"] | order(date desc) [0] {
-    _id, date, dailySummary, hotNews, calendarHighlights,
+    _id, date, dailySummary,
+    topEvents[]{ _key, id, nameLao, nameEn, currency, country, time, timeISO, impact, forecast, previous, description, analysis, tradingGuidance },
+    calendarHighlights[]{ _key, name, time, impact, description },
+    hotNews[]{ _key, id, title, summary, detail, source, sourceTitle, imageUrl, pubDate },
+    technical[]{ _key, symbol, trend, bias, support, resistance, analysis },
+    rawCalendar[]{ _key, event, time, impact, forecast, previous, actual, country },
     hasHighImpact, lineMessage, createdAt
   }`,
   dailyUpdateByDate: (date: string) => `
     *[_type == "dailyUpdate" && date == "${date}"][0] {
-      _id, date, dailySummary, hotNews, calendarHighlights,
+      _id, date, dailySummary,
+      topEvents[]{ _key, id, nameLao, nameEn, currency, country, time, timeISO, impact, forecast, previous, description, analysis, tradingGuidance },
+      calendarHighlights[]{ _key, name, time, impact, description },
+      hotNews[]{ _key, id, title, summary, detail, source, sourceTitle, imageUrl, pubDate },
+      technical[]{ _key, symbol, trend, bias, support, resistance, analysis },
+      rawCalendar[]{ _key, event, time, impact, forecast, previous, actual, country },
       hasHighImpact, lineMessage, createdAt
+    }
+  `,
+  // Find which dailyUpdate contains a given event id (id is "<date>-<slug>")
+  dailyUpdateByEventId: (id: string) => `
+    *[_type == "dailyUpdate" && $id in topEvents[].id][0] {
+      _id, date,
+      "event": topEvents[id == $id][0],
+      technical[]{ symbol, trend, bias, support, resistance, analysis }
+    }
+  `,
+  dailyUpdateByHotNewsId: (id: string) => `
+    *[_type == "dailyUpdate" && $id in hotNews[].id][0] {
+      _id, date,
+      "item": hotNews[id == $id][0]
     }
   `,
 }

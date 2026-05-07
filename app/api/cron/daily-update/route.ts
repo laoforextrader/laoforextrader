@@ -8,16 +8,11 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-// Vercel cron entry: 0 23 * * * (= 06:00 Asia/Vientiane).
-// Vercel attaches Authorization: Bearer <CRON_SECRET> automatically when
-// it triggers the cron. Manual triggers can use the same header.
-
 function authorized(req: Request): boolean {
   const expected = process.env.CRON_SECRET || process.env.BROADCAST_SECRET
-  if (!expected) return true // no secret configured, allow (dev)
+  if (!expected) return true
   const got = req.headers.get("authorization")
   if (got === `Bearer ${expected}`) return true
-  // also accept ?secret= for manual browser/curl testing
   const url = new URL(req.url)
   return url.searchParams.get("secret") === expected
 }
@@ -48,30 +43,37 @@ async function handle(req: Request) {
 
     const summary = await summarizeDailyUpdate({ date, calendar, news })
 
+    // Prefix slugs with date so detail-page URLs are stable across days
+    const topEvents = summary.topEvents.map((e, i) => ({
+      _key: `te-${i}`,
+      ...e,
+      id: `${date}-${e.id}`,
+    }))
+    const hotNews = summary.hotNews.map((n, i) => ({
+      _key: `hn-${i}`,
+      ...n,
+      id: `${date}-${n.id}`,
+    }))
+
     await sanity.createOrReplace({
       _id: docId,
       _type: "dailyUpdate",
       date,
       dailySummary: summary.dailySummary,
-      hotNews: {
-        title:   summary.hotNews.title,
-        summary: summary.hotNews.summary,
-        source:  news[0]?.link ?? "",
-      },
+      topEvents,
+      hotNews,
       calendarHighlights: summary.calendarHighlights.map((c, i) => ({
         _key: `cal-${i}`,
-        name:        c.name,
-        time:        c.time,
-        impact:      c.impact,
-        description: c.description,
+        ...c,
+      })),
+      technical: summary.technical.map((t, i) => ({
+        _key: `tech-${i}`,
+        ...t,
       })),
       hasHighImpact: summary.hasHighImpact,
       lineMessage:   summary.lineMessage,
-      rawCalendar: calendar
-        .filter(e => e.impact === "high" || e.impact === "medium")
-        .slice(0, 12)
-        .map((e, i) => ({ _key: `raw-${i}`, ...e })),
-      rawNews: news.slice(0, 6).map((n, i) => ({ _key: `n-${i}`, ...n })),
+      rawCalendar: calendar.slice(0, 80).map((e, i) => ({ _key: `raw-${i}`, ...e })),
+      rawNews:     news.slice(0, 8).map((n, i) => ({ _key: `n-${i}`, ...n })),
       createdAt: new Date().toISOString(),
       lastError: null,
     })
@@ -96,12 +98,13 @@ async function handle(req: Request) {
       eventsCount: calendar.length,
       newsCount: news.length,
       hasHighImpact: summary.hasHighImpact,
+      topEventsCount: topEvents.length,
+      hotNewsCount: hotNews.length,
+      technicalCount: summary.technical.length,
       lineStatus,
-      lineMessage: summary.lineMessage,
     })
   } catch (e: any) {
     const msg = (e?.message || String(e)).slice(0, 400)
-    // Persist the error onto the day's doc so we can see it in Studio
     try {
       await sanity.createOrReplace({
         _id: docId,
