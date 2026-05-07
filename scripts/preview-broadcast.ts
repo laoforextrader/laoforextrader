@@ -43,6 +43,8 @@ function mmyyyy(d: Date): string {
 interface SanityEAStats {
   eaId: string
   profitTotalPct?: number
+  balance?: number
+  currency?: string
   monthlyReturns?: { month: string; profitPct: number }[]
   dailyReturns?: { date: string; profitPct: number }[]
   updateMode?: string
@@ -92,7 +94,7 @@ async function fetchStats(eaId: string): Promise<SanityEAStats | null> {
   try {
     const r = await sanity.fetch<SanityEAStats>(
       `*[_type == "eaStats" && eaId == $eaId][0] {
-        eaId, updateMode, profitTotalPct,
+        eaId, updateMode, profitTotalPct, balance, currency,
         monthlyReturns[] { month, profitPct },
         dailyReturns[] { date, profitPct }
       }`,
@@ -103,6 +105,50 @@ async function fetchStats(eaId: string): Promise<SanityEAStats | null> {
   } catch {
     return null
   }
+}
+
+function periodPctNumber(s: SanityEAStats | null, period: Period): number | null {
+  if (!s) return null
+  if (period === "daily") {
+    const d = s.dailyReturns ?? []
+    const v = d[d.length - 1]?.profitPct
+    return typeof v === "number" && !isNaN(v) ? v : null
+  }
+  if (period === "weekly") {
+    const d = s.dailyReturns ?? []
+    if (d.length === 0) return null
+    return d.slice(-7).reduce((acc, r) => acc + (r.profitPct ?? 0), 0)
+  }
+  const m = s.monthlyReturns ?? []
+  const v = m[m.length - 1]?.profitPct
+  return typeof v === "number" && !isNaN(v) ? v : null
+}
+
+const CENT_CURRENCIES: Record<string, string> = { USC: "USD", CNT: "USD", EUC: "EUR" }
+
+function periodAmount(s: SanityEAStats | null, period: Period): { amount: number; currency: string } | null {
+  if (!s?.balance || s.balance <= 0) return null
+  const pct = periodPctNumber(s, period)
+  if (pct === null || pct <= -100) return null
+  let amount = (s.balance * pct) / (100 + pct)
+  let currency = s.currency || "USD"
+  if (CENT_CURRENCIES[currency]) {
+    amount = amount / 100
+    currency = CENT_CURRENCIES[currency]
+  }
+  return { amount, currency }
+}
+
+function fmtMoney(amount: number, currency: string): string {
+  const sign = amount >= 0 ? "+" : "-"
+  const abs = Math.abs(amount)
+  const formatted = abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const symbol = currency === "USD" ? "$"
+              : currency === "EUR" ? "€"
+              : currency === "GBP" ? "£"
+              : currency === "JPY" ? "¥"
+              : ""
+  return symbol ? `${sign}${symbol}${formatted}` : `${sign}${formatted} ${currency}`
 }
 
 function periodPctFor(s: SanityEAStats | null, period: Period, fallbacks: EAConfig["fallbacks"]): string {
@@ -148,22 +194,32 @@ function monthsSince(monthStr: string | undefined): number {
   return Math.max(1, months)
 }
 
-function buildText(period: Period, dateLabelStr: string, sgridePeriod: string, sgrideTotal: string, megiPeriod: string, megiTotal: string): string {
+function buildText(
+  period: Period, dateLabelStr: string,
+  sgridePeriod: string, sgrideTotal: string, sgrideAmount: string | null,
+  megiPeriod: string, megiTotal: string, megiAmount: string | null,
+): string {
   const periodLabelLao =
     period === "daily" ? "ມື້ນີ້" : period === "weekly" ? "ອາທິດນີ້" : "ເດືອນນີ້"
   const titleLao =
     period === "daily" ? "ຜົນງານປະຈຳວັນ"
   : period === "weekly" ? "ສະຫຼຸບປະຈຳອາທິດ"
                         : "ສະຫຼຸບປະຈຳເດືອນ"
+  const sgrideLine = sgrideAmount
+    ? `   ${periodLabelLao}: ${sgridePeriod} (${sgrideAmount})`
+    : `   ${periodLabelLao}: ${sgridePeriod}`
+  const megiLine = megiAmount
+    ? `   ${periodLabelLao}: ${megiPeriod} (${megiAmount})`
+    : `   ${periodLabelLao}: ${megiPeriod}`
   return [
     `📊 ${titleLao} TheRocket EA · ${dateLabelStr}`,
     ``,
     `🚀 SGride`,
-    `   ${periodLabelLao}: ${sgridePeriod}`,
+    sgrideLine,
     `   ລວມ: ${sgrideTotal}`,
     ``,
     `⚡ MegiHedge`,
-    `   ${periodLabelLao}: ${megiPeriod}`,
+    megiLine,
     `   ລວມ: ${megiTotal}`,
     ``,
     `▶ ເບິ່ງລາຍລະອຽດ: https://www.laoforextrader.com/ea-system`,
@@ -268,10 +324,14 @@ async function main() {
       console.log(`[preview] ${period}/${ea.shortName}: jpg ${(sizes.jpg / 1024).toFixed(1)} KB`)
     }
 
+    const sgrideAmt = periodAmount(statsByEa.get("sgride") ?? null, period)
+    const megiAmt   = periodAmount(statsByEa.get("megihedge") ?? null, period)
+    const sgrideAmtStr = sgrideAmt ? fmtMoney(sgrideAmt.amount, sgrideAmt.currency) : null
+    const megiAmtStr   = megiAmt   ? fmtMoney(megiAmt.amount,   megiAmt.currency)   : null
     const text = buildText(
       period, dl,
-      periodPcts["sgride"], totalPcts["sgride"],
-      periodPcts["megihedge"], totalPcts["megihedge"],
+      periodPcts["sgride"], totalPcts["sgride"], sgrideAmtStr,
+      periodPcts["megihedge"], totalPcts["megihedge"], megiAmtStr,
     )
     const txtPath = join(OUT_DIR, `${period}.txt`)
     await writeFile(txtPath, text, "utf8")

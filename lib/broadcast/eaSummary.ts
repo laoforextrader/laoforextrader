@@ -15,7 +15,9 @@ import {
   fetchEAStats,
   uploadBroadcastAsset,
   fmtPct,
+  fmtMoney,
   periodPctFor,
+  periodAmountFor,
   monthsSinceFirstReturn,
 } from "./sanity"
 import type { BroadcastPeriod, BroadcastResult } from "./types"
@@ -85,20 +87,26 @@ function periodLabelLao(period: BroadcastPeriod): string {
 function buildText(
   period: BroadcastPeriod,
   dateStr: string,
-  sgridePct: string, sgrideTotal: string,
-  megiPct: string, megiTotal: string,
+  sgridePct: string, sgrideTotal: string, sgrideAmount: string | null,
+  megiPct: string, megiTotal: string, megiAmount: string | null,
 ): string {
   const periodLabel = periodLabelLao(period)
   const title = periodTitleLao(period)
+  const sgrideLine = sgrideAmount
+    ? `   ${periodLabel}: ${sgridePct} (${sgrideAmount})`
+    : `   ${periodLabel}: ${sgridePct}`
+  const megiLine = megiAmount
+    ? `   ${periodLabel}: ${megiPct} (${megiAmount})`
+    : `   ${periodLabel}: ${megiPct}`
   return [
     `📊 ${title} TheRocket EA · ${dateStr}`,
     ``,
     `🚀 SGride`,
-    `   ${periodLabel}: ${sgridePct}`,
+    sgrideLine,
     `   ລວມ: ${sgrideTotal}`,
     ``,
     `⚡ MegiHedge`,
-    `   ${periodLabel}: ${megiPct}`,
+    megiLine,
     `   ລວມ: ${megiTotal}`,
     ``,
     `▶ ເບິ່ງລາຍລະອຽດ: https://www.laoforextrader.com/ea-system`,
@@ -134,7 +142,15 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
   const sgrideTotal  = fmtPct(sgrideStats?.profitTotalPct, sgrideCfg.fallbacks.total)
   const megiPeriod   = periodPctFor(megiStats,   period, megiCfg.fallbacks[period])
   const megiTotal    = fmtPct(megiStats?.profitTotalPct, megiCfg.fallbacks.total)
-  const textPreview  = buildText(period, dl, sgridePeriod, sgrideTotal, megiPeriod, megiTotal)
+  const sgrideAmount = periodAmountFor(sgrideStats, period)
+  const megiAmount   = periodAmountFor(megiStats, period)
+  const sgrideAmountStr = sgrideAmount ? fmtMoney(sgrideAmount.amount, sgrideAmount.currency) : null
+  const megiAmountStr   = megiAmount   ? fmtMoney(megiAmount.amount,   megiAmount.currency)   : null
+  const textPreview  = buildText(
+    period, dl,
+    sgridePeriod, sgrideTotal, sgrideAmountStr,
+    megiPeriod,   megiTotal,   megiAmountStr,
+  )
 
   // Render both EA cards
   const cardInputs: EACardInput[] = [sgrideCfg, megiCfg].map(cfg => {
