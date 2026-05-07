@@ -213,17 +213,18 @@ ${newsForPrompt.length ? newsForPrompt.map((n, i) => `[${i+1}] ${n.title}\n   UR
 - imageUrl: ຖ້າບໍ່ມີໃຫ້ string ຫວ່າງ
 - ໃຫ້ call tool save_daily_summary ດ້ວຍ output ທັງໝົດ`
 
-  // 45s SDK timeout leaves headroom for Sanity write + LINE call within
-  // Vercel's 60s nodejs function budget.
+  // Haiku 4.5: ~3x faster than Sonnet for the same prompt and still
+  // produces clean Lao. Sonnet was tipping the route over Vercel's
+  // 60s nodejs function ceiling.
   const message = await client.messages.create(
     {
-      model: "claude-sonnet-4-6",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 3000,
       tools: [SUMMARY_TOOL],
       tool_choice: { type: "tool", name: "save_daily_summary" },
       messages: [{ role: "user", content: prompt }],
     },
-    { timeout: 45_000 },
+    { timeout: 40_000 },
   )
 
   const toolUse = message.content.find(b => b.type === "tool_use")
