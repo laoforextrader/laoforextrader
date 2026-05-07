@@ -63,20 +63,20 @@ export async function fetchEconomicCalendar(date: string): Promise<CalendarEvent
 }
 
 export async function fetchForexNews(): Promise<NewsItem[]> {
-  // Try several feeds — Investing/FXStreet/Reuters — first one that responds
-  // wins. RSS feeds occasionally rate limit, so fallbacks reduce flakiness.
+  // Tight 4s per-feed timeout so a stuck source doesn't burn the whole
+  // 60s function budget. Two feeds is enough — if both fail we just
+  // run with no news and Claude still has the calendar to summarise.
   const feeds = [
     "https://www.fxstreet.com/rss/news",
-    "https://www.investing.com/rss/news_25.rss",
     "https://www.forexlive.com/feed/news",
   ]
-  const parser = new Parser({ timeout: 8000, headers: { "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0" } })
+  const parser = new Parser({ timeout: 4000, headers: { "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0" } })
   for (const url of feeds) {
     try {
       const feed = await parser.parseURL(url)
       const items = (feed.items ?? []).slice(0, 8).map(item => ({
         title: (item.title ?? "").trim(),
-        summary: (item.contentSnippet ?? item.content ?? "").trim().slice(0, 400),
+        summary: (item.contentSnippet ?? item.content ?? "").trim().slice(0, 350),
         link: item.link ?? "",
         pubDate: item.pubDate ?? item.isoDate ?? "",
       })).filter(i => i.title)

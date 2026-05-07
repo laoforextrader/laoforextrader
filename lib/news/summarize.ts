@@ -167,20 +167,25 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
 
   const client = new Anthropic({ apiKey })
 
-  // Pre-filter to keep prompt tight
+  // Pre-filter aggressively — anything Claude doesn't see costs zero tokens
+  // and shaves seconds off generation time
   const importantEvents = calendar
     .filter(e => e.impact === "high" || e.impact === "medium")
-    .slice(0, 12)
+    .slice(0, 8)
     .map(e => ({
-      ...e,
+      event: e.event,
+      time: e.time,
+      impact: e.impact,
+      forecast: e.forecast,
+      previous: e.previous,
+      country: e.country,
       time_lao: formatLaoTime(e.time),
     }))
 
-  const newsForPrompt = news.slice(0, 8).map(n => ({
+  const newsForPrompt = news.slice(0, 5).map(n => ({
     title: n.title,
-    summary: n.summary?.slice(0, 320) ?? "",
+    summary: n.summary?.slice(0, 240) ?? "",
     link: n.link,
-    pubDate: n.pubDate,
   }))
 
   const prompt = `ທ່ານເປັນນັກວິເຄາະ Forex ມືອາຊີບທີ່ຂຽນໃຫ້ Trader ລາວ ໃຊ້ພາສາລາວທີ່ສະອາດ ຖືກຕ້ອງ ບໍ່ປົນຄຳໄທ.
@@ -208,13 +213,18 @@ ${newsForPrompt.length ? newsForPrompt.map((n, i) => `[${i+1}] ${n.title}\n   UR
 - imageUrl: ຖ້າບໍ່ມີໃຫ້ string ຫວ່າງ
 - ໃຫ້ call tool save_daily_summary ດ້ວຍ output ທັງໝົດ`
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 4000,
-    tools: [SUMMARY_TOOL],
-    tool_choice: { type: "tool", name: "save_daily_summary" },
-    messages: [{ role: "user", content: prompt }],
-  })
+  // 45s SDK timeout leaves headroom for Sanity write + LINE call within
+  // Vercel's 60s nodejs function budget.
+  const message = await client.messages.create(
+    {
+      model: "claude-sonnet-4-6",
+      max_tokens: 3000,
+      tools: [SUMMARY_TOOL],
+      tool_choice: { type: "tool", name: "save_daily_summary" },
+      messages: [{ role: "user", content: prompt }],
+    },
+    { timeout: 45_000 },
+  )
 
   const toolUse = message.content.find(b => b.type === "tool_use")
   if (!toolUse || toolUse.type !== "tool_use") {
