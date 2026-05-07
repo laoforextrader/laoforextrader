@@ -55,6 +55,35 @@ export async function fetchEconomicCalendar(date: string): Promise<CalendarEvent
   }
 }
 
+// Fetch the og:image (or twitter:image) from a news article URL.
+// Most major outlets including FXStreet/ForexLive expose this meta tag
+// even when their RSS feeds don't carry an image.
+async function fetchOgImage(url: string): Promise<string> {
+  if (!url) return ""
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0",
+        "Accept": "text/html,application/xhtml+xml",
+      },
+      signal: AbortSignal.timeout(3500),
+    })
+    if (!res.ok) return ""
+    const html = await res.text()
+    // Try og:image first, then twitter:image
+    const og = html.match(/<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i)
+    if (og?.[1]) return og[1]
+    const tw = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+    if (tw?.[1]) return tw[1]
+    // Sometimes content first, then property
+    const og2 = html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    if (og2?.[1]) return og2[1]
+    return ""
+  } catch {
+    return ""
+  }
+}
+
 // Extract the first usable image URL from an RSS item.
 // Different feeds put images in different fields, so check the common ones.
 function extractImage(item: any): string {
@@ -112,7 +141,19 @@ export async function fetchForexNews(): Promise<NewsItem[]> {
         pubDate: item.pubDate ?? item.isoDate ?? "",
         imageUrl: extractImage(item),
       })).filter(i => i.title)
-      if (items.length > 0) return items
+      if (items.length === 0) continue
+      // For the top 4 items (the ones Claude is likely to surface), fetch
+      // the article's og:image in parallel so hot stories ship with a
+      // hero image even when the RSS feed has no media tags.
+      const topN = Math.min(4, items.length)
+      const fetched = await Promise.all(
+        items.slice(0, topN).map(async it => {
+          if (it.imageUrl) return it
+          const img = await fetchOgImage(it.link)
+          return { ...it, imageUrl: img }
+        }),
+      )
+      return [...fetched, ...items.slice(topN)]
     } catch {
       // fall through to next feed
     }

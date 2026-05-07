@@ -5,6 +5,7 @@ import HighImpactSection, { type TopEvent } from "@/components/news/HighImpactSe
 import CalendarTable, { type RawCalRow } from "@/components/news/CalendarTable"
 import HotNewsSection, { type HotNewsItem } from "@/components/news/HotNewsSection"
 import TechnicalSection, { type TechItem } from "@/components/news/TechnicalSection"
+import { LiveClock } from "@/components/news/LiveClock"
 import { formatDateDDMMYYYY } from "@/lib/news/sources-shared"
 import { Article } from "@/types"
 import type { Metadata } from "next"
@@ -53,10 +54,11 @@ export default async function NewsPage() {
             <span style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Economic Calendar</span>
           </h1>
           {daily?.date && (
-            <p className="font-mono text-[12px] text-gray-400">
-              {formatDateDDMMYYYY(daily.date)}
+            <p className="font-mono text-[12px] text-gray-400 mb-3">
+              ອັບເດດເມື່ອ {formatDateDDMMYYYY(daily.date)}
             </p>
           )}
+          <LiveClock />
         </div>
 
         {/* Daily summary — compact, only shown when present */}
