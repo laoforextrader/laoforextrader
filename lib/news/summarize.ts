@@ -1,6 +1,13 @@
-// Claude-powered Lao summary. Runs two smaller calls in parallel
-// instead of one large call so neither one fills its max_tokens
-// budget mid-generation. Plain JSON output with jsonrepair fallback.
+// Two-stage Claude pipeline for the daily news/calendar summary.
+//
+// Stage 1 — two parallel writers (events/summary + hot news/technical)
+// read the English source and *rewrite* (not translate) into rough Lao.
+// Stage 2 — a polisher pass reviews every Lao field and produces a
+// cleaner native version, fixing Thai-shaped words, awkward grammar,
+// and unnatural literal translations.
+//
+// Both stages use Haiku 4.5 for speed; the prompts are scoped so each
+// call stays small.
 
 import Anthropic from "@anthropic-ai/sdk"
 import { jsonrepair } from "jsonrepair"
@@ -66,55 +73,41 @@ interface SummarizeArgs {
   news: NewsItem[]
 }
 
-// ── Lao language guidelines shared by both prompts ─────────────────────────
-// User feedback (native Lao speaker): translate vocabulary like a Lao
-// dictionary / Google Translate would (pure Lao, no Thai loanwords);
-// AI's job is grammar + sentence flow, not word choice.
-const LAO_STYLE = `LAO LANGUAGE RULES (very strict — native Lao reader will judge):
+// ── Lao writing philosophy (shared by all prompts) ─────────────────────────
+const LAO_PHILOSOPHY = `LAO LANGUAGE PHILOSOPHY (read carefully — this is the most important rule):
 
-1. Vocabulary policy
-   - Translate every word with PURE LAO equivalents (think: Lao dictionary
-     or Google Translate Lao output). No Thai loanwords, ever.
-   - If you would write a Thai word in Lao script, STOP and use the Lao
-     word instead. Examples of WRONG → RIGHT:
-       ❌ "วันนี้" / "ມື້ນີ້" written with Thai feel
-       ✅ "ມື້ນີ້"
-       ❌ "ตลาด" / "ຕະຫລາດ" (Thai-shaped)
-       ✅ "ຕະຫຼາດ"
-       ❌ "นักลงทุน"
-       ✅ "ນັກລົງທຶນ"
-       ❌ "ผันผวน"
-       ✅ "ຜັນຜວນ"
-       ❌ "ค่าเงิน"
-       ✅ "ຄ່າເງິນ"
-   - Use everyday Lao, not flowery Pali/Sanskrit.
+Do NOT translate word-by-word. Translating literally produces broken Lao.
 
-2. AI's role
-   - Your job is to ARRANGE the Lao words into correct, natural sentences.
-     Do NOT invent vocabulary. If a word doesn't exist in pure Lao, keep
-     the English term.
+Instead:
+1. READ and UNDERSTAND the English source.
+2. WRITE in Lao the way a Lao journalist would explain it to a Lao reader.
+3. Use natural Lao phrasing — even if the structure differs from English.
 
-3. Keep in English (do NOT translate)
-   - Country / city / region names (US, UK, Eurozone, London, Tokyo)
-   - Person names (Powell, Lagarde, de Guindos)
-   - Company / brand names (Fed, ECB, BoE, Reuters, Investing.com)
-   - Forex jargon: NFP, CPI, GDP, PMI, FOMC, USD, EUR, GBP, JPY, AUD, NZD,
-     CAD, CHF, XAUUSD, EURUSD, etc.
-   - Numbers: Arabic numerals only (07:30, 4.5%, 1.0850), never Lao digits.
+Vocabulary rules:
+- Use PURE LAO words. NEVER use Thai-shaped words even when the spelling
+  is similar. Think of Google Translate Lao or a Lao dictionary as the
+  reference, not your training data which mixes Thai and Lao.
+- Examples of Wrong → Right:
+    ❌ ตลาด / ຕະຫລາດ (Thai-feel)   ✅ ຕະຫຼາດ
+    ❌ วันนี้ (Thai)                ✅ ມື້ນີ້
+    ❌ นักลงทุน                     ✅ ນັກລົງທຶນ
+    ❌ ผันผวน                       ✅ ຜັນຜວນ
+    ❌ ค่าเงิน                      ✅ ຄ່າເງິນ
+    ❌ ปฏิกิริยาทางลบ               ✅ ຕົກລົງ / ປະຕິກິລິຍາລົບ
+- DO NOT translate proper nouns / Forex jargon. Keep these in English:
+    Country: US, UK, Eurozone, Japan, Canada, Australia, Switzerland
+    City: London, Tokyo, New York, Frankfurt
+    People: Powell, Lagarde, de Guindos, Collins
+    Brand: Fed, ECB, BoE, RBA, BoJ, FOMC, NBC, BBH, BNY, Reuters, FXStreet
+    Indicator: NFP, CPI, GDP, PMI, GDP, ISM
+    Currency: USD, EUR, GBP, JPY, AUD, NZD, CAD, CHF, XAUUSD, EURUSD, etc.
+    Numbers: Always Arabic (07:30, 4.5%, 1.0850).
 
-4. Time
-   - Always write times as "HH:MM GMT+7". Do NOT write "ICT" or "UTC".
-   - Input times below are already GMT+7 (Lao local).
-
-5. Sentence style
-   - Short. Max ~25 words per sentence.
-   - Active voice. No passive constructions transliterated from Thai.
-   - End sentences with "." — not "ครับ/ค่ะ" or other Thai closers.
-
-6. Banned (will fail review)
-   - Any string containing "วันนี้" "ครับ" "ค่ะ" "ขอ" or other clearly-Thai
-     particles in their Thai-script form (occasionally Claude renders
-     Lao with subtly Thai grammar/word choice — avoid).`
+Time / Style:
+- All times are GMT+7 (Lao local). Never write "ICT" or "UTC".
+- Sentences must be short and direct. Max ~25 words per sentence.
+- No Thai sentence enders (ครับ/ค่ะ/นะ).
+- Active voice. Don't transliterate Thai grammar.`
 
 // ── JSON helpers ───────────────────────────────────────────────────────────
 
@@ -147,7 +140,7 @@ async function callClaude(client: Anthropic, prompt: string, maxTokens: number) 
   return extractJson(textBlock.text)
 }
 
-// ── Call A: events / summary / line ─────────────────────────────────────────
+// ── Stage 1A: events + summary + line ──────────────────────────────────────
 
 interface CallAResult {
   dailySummary: string
@@ -158,47 +151,51 @@ interface CallAResult {
 }
 
 function buildPromptA(date: string, eventLines: string): string {
-  return `ທ່ານເປັນນັກວິເຄາະ Forex ຂຽນພາສາລາວ. ມື້ນີ້ ${date}.
+  return `You are writing the daily Forex briefing for native Lao traders. Today is ${date}.
 
-${LAO_STYLE}
+${LAO_PHILOSOPHY}
 
-Economic events (already GMT+7, high/medium):
-${eventLines || "(ບໍ່ມີ event ສຳຄັນ)"}
+Approach:
+- Read the English economic events below.
+- For each high-impact event, EXPLAIN to a Lao trader: what it is, what it could mean, how to handle risk.
+- Write naturally in Lao — do not translate sentence-for-sentence.
 
-Return ONE valid JSON ດ້ວຍ schema ນີ້:
+Economic events (already shifted to GMT+7):
+${eventLines || "(no important event today)"}
+
+Return ONE valid JSON with this schema:
 
 {
-  "dailySummary": "2 ປະໂຫຍກສັ້ນ ສະຫຼຸບລວມມື້ນີ້",
+  "dailySummary": "2 short Lao sentences — what to watch today",
   "topEvents": [
     {
-      "id": "kebab-case ສັ້ນ ບໍ່ມີວັນທີ",
-      "nameLao": "ຊື່ event ເປັນລາວ ສັ້ນ",
+      "id": "kebab-case slug, no date",
+      "nameLao": "Lao name (or keep EN if proper noun)",
       "nameEn": "EN name",
-      "currency": "USD/EUR/GBP/...",
-      "country": "US/EU/GB/...",
+      "currency": "USD/EUR/GBP/etc.",
+      "country": "US/EU/GB/etc.",
       "time": "HH:MM GMT+7",
-      "timeISO": "ISO ຈາກ events ຂ້າງເທິງ (field iso)",
+      "timeISO": "ISO from event field 'iso'",
       "impact": "high",
-      "forecast": "string ຫຼື —",
-      "previous": "string ຫຼື —",
-      "description": "1 ປະໂຫຍກລາວ ບອກວ່າ event ນີ້ຄືຫຍັງ ມີຜົນຫຍັງ",
-      "analysis": "2 ປະໂຫຍກລາວ ວິເຄາະ Forecast vs Previous ແລະ scenario",
-      "tradingGuidance": "1 ປະໂຫຍກລາວ ແນວທາງເທຣດ + Manage Risk"
+      "forecast": "string or —",
+      "previous": "string or —",
+      "description": "1 Lao sentence — what this event is and why it matters",
+      "analysis": "2 Lao sentences — interpret forecast vs previous + scenarios",
+      "tradingGuidance": "1 Lao sentence — how to trade + manage risk"
     }
   ],
   "calendarHighlights": [
-    { "name": "ຊື່ ສັ້ນ", "time": "HH:MM", "impact": "high|medium|low", "description": "1 ປະໂຫຍກລາວ" }
+    { "name": "short", "time": "HH:MM", "impact": "high|medium|low", "description": "1 Lao sentence" }
   ],
   "hasHighImpact": true,
-  "lineMessage": "ສັ້ນ ມີ Emoji ບໍ່ເກີນ 5 ບັນທັດ — ຖ້າເອ່ຍເຖິງເວລາ ໃຫ້ໃສ່ GMT+7"
+  "lineMessage": "Short Lao broadcast with emoji, ≤5 lines. If you mention time, write GMT+7"
 }
 
-ກົດ:
-- topEvents: 2 ຕົວ (ຖ້າມີ high impact). ຫາກບໍ່ມີ ໃຫ້ array ຫວ່າງ [].
-- calendarHighlights: 3 ຕົວ
-- ຫ້າມ trailing comma. ຫ້າມ ... ໃນ output. ຫ້າມ comment.
-
-Return ONLY the JSON object. No markdown fences. No prose.`
+Constraints:
+- topEvents: 2 items if there is high impact, otherwise [].
+- calendarHighlights: 3 items.
+- No trailing commas, no "...", no comments.
+- Return only the JSON object — no markdown fences, no prose around it.`
 }
 
 async function runCallA(client: Anthropic, date: string, calendar: CalendarEvent[]): Promise<CallAResult> {
@@ -218,7 +215,7 @@ async function runCallA(client: Anthropic, date: string, calendar: CalendarEvent
   }
 }
 
-// ── Call B: hot news + technical ────────────────────────────────────────────
+// ── Stage 1B: hot news + technical ─────────────────────────────────────────
 
 interface CallBResult {
   hotNews: HotNewsItem[]
@@ -226,44 +223,48 @@ interface CallBResult {
 }
 
 function buildPromptB(date: string, eventBrief: string, newsLines: string): string {
-  return `ທ່ານເປັນນັກວິເຄາະ Forex ຂຽນພາສາລາວ. ມື້ນີ້ ${date}.
+  return `You are writing for Lao Forex traders. Today is ${date}.
 
-${LAO_STYLE}
+${LAO_PHILOSOPHY}
 
-ບໍລິບົດ events ມື້ນີ້:
-${eventBrief || "(ບໍ່ມີ event ສຳຄັນ)"}
+Approach:
+- Pick the 2 most important news items.
+- READ each English article carefully and REWRITE in Lao as a Lao journalist would.
+- Don't translate sentence-for-sentence — explain the meaning and impact.
 
-Forex news (ໃຫ້ເລືອກ 2 ຂ່າວທີ່ສຳຄັນທີ່ສຸດ):
-${newsLines || "(ບໍ່ມີຂ່າວ)"}
+Today's important events for context:
+${eventBrief || "(no important event)"}
+
+Forex news (English source):
+${newsLines || "(no news)"}
 
 Return ONE valid JSON:
 
 {
   "hotNews": [
     {
-      "id": "kebab-case ສັ້ນ",
-      "title": "ຫົວຂໍ້ລາວສັ້ນ ດຶງດູດ",
-      "summary": "1 ປະໂຫຍກລາວ",
-      "detail": "3 ປະໂຫຍກລາວ — ຄວາມເປັນມາ + ຄວາມໝາຍຕໍ່ Trader",
-      "source": "ໃຊ້ URL ຈາກ field 'URL:' ຂອງຂ່າວທີ່ເລືອກ",
+      "id": "kebab-case slug, no date",
+      "title": "Catchy Lao headline",
+      "summary": "1 Lao sentence",
+      "detail": "3 Lao sentences — context + meaning for Lao trader",
+      "source": "Use the URL: field of the chosen news",
       "sourceTitle": "EN original title",
-      "imageUrl": "ໃຊ້ string ຈາກ field 'IMG:' ຂອງຂ່າວທີ່ເລືອກ (ຫຼື '' ຖ້າຫວ່າງ)",
+      "imageUrl": "Use the IMG: field of the chosen news (or '' if empty)",
       "pubDate": ""
     }
   ],
   "technical": [
-    { "symbol": "XAUUSD", "trend": "bullish|bearish|neutral", "bias": "ລາວສັ້ນ 1 ປະໂຫຍກ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "1 ປະໂຫຍກລາວ ເຊື່ອມໂຍງກັບຂ່າວ/events" },
-    { "symbol": "EURUSD", "trend": "bullish|bearish|neutral", "bias": "ລາວສັ້ນ 1 ປະໂຫຍກ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "1 ປະໂຫຍກລາວ ເຊື່ອມໂຍງກັບຂ່າວ/events" }
+    { "symbol": "XAUUSD", "trend": "bullish|bearish|neutral", "bias": "1 short Lao sentence", "support": "number", "resistance": "number", "analysis": "1 Lao sentence linking news/events" },
+    { "symbol": "EURUSD", "trend": "bullish|bearish|neutral", "bias": "1 short Lao sentence", "support": "number", "resistance": "number", "analysis": "1 Lao sentence linking news/events" }
   ]
 }
 
-ກົດ:
-- hotNews: 2 ຕົວສະເໝີ
-- technical: ຕ້ອງມີທັງ XAUUSD ແລະ EURUSD
-- ID ສັ້ນ kebab-case ບໍ່ມີວັນທີ
-- ຫ້າມ trailing comma, ຫ້າມ ..., ຫ້າມ comment
-
-Return ONLY the JSON object.`
+Constraints:
+- Always 2 hotNews items.
+- Always XAUUSD + EURUSD in technical.
+- ID slugs short, no dates.
+- No trailing commas, no "...", no comments.
+- Return only the JSON object.`
 }
 
 async function runCallB(client: Anthropic, date: string, eventBrief: string, news: NewsItem[]): Promise<CallBResult> {
@@ -272,11 +273,16 @@ async function runCallB(client: Anthropic, date: string, eventBrief: string, new
   ).join("\n\n")
 
   const data = await callClaude(client, buildPromptB(date, eventBrief, newsLines), 1800)
-  // Hard-correct image URLs from the source items so Claude can't make
-  // them up: match by source URL and overwrite imageUrl from the feed.
+  // Hard-correct image + source URLs from the original feed so Claude
+  // can't accidentally drop or fabricate them.
   const hot: HotNewsItem[] = (Array.isArray(data.hotNews) ? data.hotNews : []).map((h: HotNewsItem) => {
     const src = news.find(n => n.link === h.source)
-    return { ...h, imageUrl: src?.imageUrl || h.imageUrl || "" }
+    return {
+      ...h,
+      source: src?.link || h.source || "",
+      imageUrl: src?.imageUrl || h.imageUrl || "",
+      pubDate: src?.pubDate || h.pubDate || "",
+    }
   })
   return {
     hotNews: hot,
@@ -284,24 +290,122 @@ async function runCallB(client: Anthropic, date: string, eventBrief: string, new
   }
 }
 
-// ── Public entry — runs both calls in parallel ──────────────────────────────
+// ── Stage 2: Lao language polish ───────────────────────────────────────────
+
+interface PolishInput {
+  dailySummary: string
+  lineMessage: string
+  topEventsText: Array<{ description: string; analysis: string; tradingGuidance: string }>
+  hotNewsText: Array<{ title: string; summary: string; detail: string }>
+  technicalText: Array<{ bias: string; analysis: string }>
+  highlightsText: Array<{ description: string }>
+}
+
+async function polishLao(client: Anthropic, input: PolishInput): Promise<PolishInput> {
+  const prompt = `You are a senior Lao language editor reviewing a forex briefing draft. Your job is to make every sentence sound like genuine native Lao writing.
+
+${LAO_PHILOSOPHY}
+
+Editor instructions:
+1. For every Lao sentence below, check:
+   - Does it use Thai-shaped words? Replace them with pure Lao.
+   - Does it sound translated/wooden? Rewrite naturally.
+   - Is the grammar correct?
+   - Does it keep proper nouns / Forex jargon in English?
+2. Preserve the meaning. Do not add or remove information.
+3. Keep the same length roughly. Do not expand into long paragraphs.
+4. Return the polished version in EXACTLY the same JSON structure as the input.
+
+Draft to polish:
+${JSON.stringify(input, null, 2)}
+
+Return ONE valid JSON object with the same shape (dailySummary, lineMessage, topEventsText[], hotNewsText[], technicalText[], highlightsText[]). Polished Lao only. No prose, no markdown fences.`
+
+  try {
+    const data = await callClaude(client, prompt, 2500)
+    return {
+      dailySummary: data.dailySummary ?? input.dailySummary,
+      lineMessage: data.lineMessage ?? input.lineMessage,
+      topEventsText: Array.isArray(data.topEventsText) ? data.topEventsText : input.topEventsText,
+      hotNewsText: Array.isArray(data.hotNewsText) ? data.hotNewsText : input.hotNewsText,
+      technicalText: Array.isArray(data.technicalText) ? data.technicalText : input.technicalText,
+      highlightsText: Array.isArray(data.highlightsText) ? data.highlightsText : input.highlightsText,
+    }
+  } catch {
+    // If polish fails, fall back to the unpolished draft so the run
+    // still produces a usable output.
+    return input
+  }
+}
+
+function applyPolish(callA: CallAResult, callB: CallBResult, polished: PolishInput): { callA: CallAResult; callB: CallBResult } {
+  return {
+    callA: {
+      ...callA,
+      dailySummary: polished.dailySummary,
+      lineMessage: polished.lineMessage,
+      topEvents: callA.topEvents.map((e, i) => ({
+        ...e,
+        description: polished.topEventsText[i]?.description ?? e.description,
+        analysis: polished.topEventsText[i]?.analysis ?? e.analysis,
+        tradingGuidance: polished.topEventsText[i]?.tradingGuidance ?? e.tradingGuidance,
+      })),
+      calendarHighlights: callA.calendarHighlights.map((c, i) => ({
+        ...c,
+        description: polished.highlightsText[i]?.description ?? c.description,
+      })),
+    },
+    callB: {
+      ...callB,
+      hotNews: callB.hotNews.map((h, i) => ({
+        ...h,
+        title: polished.hotNewsText[i]?.title ?? h.title,
+        summary: polished.hotNewsText[i]?.summary ?? h.summary,
+        detail: polished.hotNewsText[i]?.detail ?? h.detail,
+      })),
+      technical: callB.technical.map((t, i) => ({
+        ...t,
+        bias: polished.technicalText[i]?.bias ?? t.bias,
+        analysis: polished.technicalText[i]?.analysis ?? t.analysis,
+      })),
+    },
+  }
+}
+
+// ── Public entry ───────────────────────────────────────────────────────────
 
 export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeArgs): Promise<DailySummary> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set")
   const client = new Anthropic({ apiKey })
 
-  // Compact event brief for Call B context
   const eventBrief = calendar
     .filter(e => e.impact === "high" || e.impact === "medium")
     .slice(0, 4)
     .map(e => `${formatLaoTime(e.time)} ${e.country}: ${e.event}`)
     .join(" · ")
 
-  const [callA, callB] = await Promise.all([
+  // Stage 1 — parallel writers
+  const [draftA, draftB] = await Promise.all([
     runCallA(client, date, calendar),
     runCallB(client, date, eventBrief, news),
   ])
+
+  // Stage 2 — Lao polish editor
+  const polished = await polishLao(client, {
+    dailySummary: draftA.dailySummary,
+    lineMessage: draftA.lineMessage,
+    topEventsText: draftA.topEvents.map(e => ({
+      description: e.description,
+      analysis: e.analysis,
+      tradingGuidance: e.tradingGuidance,
+    })),
+    highlightsText: draftA.calendarHighlights.map(c => ({ description: c.description })),
+    hotNewsText: draftB.hotNews.map(h => ({ title: h.title, summary: h.summary, detail: h.detail })),
+    technicalText: draftB.technical.map(t => ({ bias: t.bias, analysis: t.analysis })),
+  })
+
+  const { callA, callB } = applyPolish(draftA, draftB, polished)
 
   return {
     dailySummary:        callA.dailySummary,
