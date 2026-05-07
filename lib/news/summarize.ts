@@ -108,7 +108,7 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
     `[${i + 1}] ${n.title}\n${(n.summary || "").slice(0, 200)}\nURL: ${n.link}`,
   ).join("\n\n")
 
-  const prompt = `ທ່ານເປັນນັກວິເຄາະ Forex ມືອາຊີບ ຂຽນພາສາລາວ. ມື້ນີ້ ${date}.
+  const prompt = `ທ່ານເປັນນັກວິເຄາະ Forex ມືອາຊີບ ຂຽນພາສາລາວສັ້ນກະຊັບ. ມື້ນີ້ ${date}.
 
 Economic events (high/medium):
 ${importantEvents || "(ບໍ່ມີ event ສຳຄັນ)"}
@@ -116,66 +116,69 @@ ${importantEvents || "(ບໍ່ມີ event ສຳຄັນ)"}
 Forex news:
 ${newsLines || "(ບໍ່ມີຂ່າວ)"}
 
-ສ້າງ JSON object ດ້ວຍ schema ນີ້ (ພາສາລາວທັງໝົດ ຍົກເວັ້ນ field ຊື່ຫຼື technical):
+Return ONE valid JSON object — ATTENTION: ຄຳຕອບຕ້ອງມີ topEvents + calendarHighlights + hotNews + technical ຄົບທຸກ field. ຖ້າຕົກ field ໃດ ການແກ້ໄຂຈະຫຼົ້ມເຫຼວ.
 
+Schema:
 {
-  "dailySummary": "string — 2 ປະໂຫຍກ ສະຫຼຸບລວມ",
+  "dailySummary": "2 ປະໂຫຍກສັ້ນ ສະຫຼຸບລວມ",
   "topEvents": [
     {
-      "id": "kebab-case ບໍ່ມີວັນທີ",
-      "nameLao": "ຊື່ ລາວ",
-      "nameEn": "name EN",
-      "currency": "USD/EUR/GBP/...",
-      "country": "US/EU/GB/...",
-      "time": "HH:MM ICT",
-      "timeISO": "ISO ຈາກ events ຂ້າງເທິງ (field iso)",
-      "impact": "high|medium",
+      "id": "kebab-case ສັ້ນ",
+      "nameLao": "ຊື່ລາວສັ້ນ",
+      "nameEn": "EN name",
+      "currency": "USD",
+      "country": "US",
+      "time": "HH:MM",
+      "timeISO": "ISO ຈາກ events ດ້ານເທິງ",
+      "impact": "high",
       "forecast": "string",
       "previous": "string",
-      "description": "1-2 ປະໂຫຍກ ລາວ",
-      "analysis": "3 ປະໂຫຍກ ລາວ",
-      "tradingGuidance": "2 ປະໂຫຍກ ລາວ"
+      "description": "1 ປະໂຫຍກລາວ",
+      "analysis": "2 ປະໂຫຍກລາວ",
+      "tradingGuidance": "1 ປະໂຫຍກລາວ"
     }
   ],
   "calendarHighlights": [
-    { "name": "string", "time": "HH:MM", "impact": "high|medium|low", "description": "1 ປະໂຫຍກ ລາວ" }
+    { "name": "string", "time": "HH:MM", "impact": "high", "description": "1 ປະໂຫຍກລາວສັ້ນ" }
   ],
   "hotNews": [
     {
-      "id": "kebab-case",
-      "title": "ຫົວຂໍ້ ລາວ",
-      "summary": "2 ປະໂຫຍກ ລາວ",
-      "detail": "4 ປະໂຫຍກ ລາວ",
+      "id": "kebab-case ສັ້ນ",
+      "title": "ຫົວຂໍ້ລາວສັ້ນ",
+      "summary": "1 ປະໂຫຍກລາວ",
+      "detail": "3 ປະໂຫຍກລາວ",
       "source": "URL ຈາກຂ່າວ",
-      "sourceTitle": "EN original title",
+      "sourceTitle": "EN original",
       "imageUrl": "",
       "pubDate": ""
     }
   ],
   "technical": [
-    { "symbol": "XAUUSD", "trend": "bullish|bearish|neutral", "bias": "ລາວ ສັ້ນ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "2 ປະໂຫຍກ ລາວ" },
-    { "symbol": "EURUSD", "trend": "bullish|bearish|neutral", "bias": "ລາວ ສັ້ນ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "2 ປະໂຫຍກ ລາວ" }
+    { "symbol": "XAUUSD", "trend": "bullish", "bias": "ລາວສັ້ນ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "1 ປະໂຫຍກລາວ" },
+    { "symbol": "EURUSD", "trend": "neutral", "bias": "ລາວສັ້ນ", "support": "ເລກ", "resistance": "ເລກ", "analysis": "1 ປະໂຫຍກລາວ" }
   ],
   "hasHighImpact": true,
-  "lineMessage": "string ສັ້ນ ມີ Emoji"
+  "lineMessage": "ສັ້ນ ມີ Emoji"
 }
 
 ກົດ:
-- topEvents: 2 ຕົວ (ຖ້າມີ high impact). ຫາກບໍ່ມີ ໃຫ້ array ຫວ່າງ.
-- hotNews: 2 ຕົວ
-- technical: 2 ຕົວ (XAUUSD ແລະ EURUSD)
-- ID slugs: ສັ້ນ kebab-case ບໍ່ມີວັນທີ
-- ຫ້າມໃຊ້ trailing comma. ຫ້າມໃຊ້ ... ໃນ output. ຫ້າມເພີ່ມ comment.
+- topEvents: 2 ຕົວ (ຫາກບໍ່ມີ high impact ໃຫ້ array ຫວ່າງ [])
+- calendarHighlights: 3 ຕົວ
+- hotNews: 2 ຕົວ (ຕ້ອງມີ)
+- technical: 2 ຕົວ XAUUSD ແລະ EURUSD (ຕ້ອງມີ)
+- IDs ສັ້ນ kebab-case ບໍ່ມີວັນທີ
+- ຫ້າມ trailing comma, ຫ້າມ ..., ຫ້າມ comment
+- ສັ້ນທີ່ສຸດ ໃນທຸກ field
 
-Return ONLY ONE valid JSON object. No markdown fences. No prose before/after.`
+Output: ONLY the JSON object. No markdown fences. No prose.`
 
   const message = await client.messages.create(
     {
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 2500,
+      max_tokens: 3500,
       messages: [{ role: "user", content: prompt }],
     },
-    { timeout: 40_000 },
+    { timeout: 50_000 },
   )
 
   const textBlock = message.content.find(b => b.type === "text")
