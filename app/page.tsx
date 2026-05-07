@@ -4,6 +4,8 @@ import { Sidebar } from "@/components/layout/Sidebar"
 import { HeroCanvas } from "@/components/ui/HeroCanvas"
 import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
 import { GoldWidget } from "@/components/ui/GoldWidget"
+import CalendarPills from "@/components/news/CalendarPills"
+import type { DailyUpdate } from "@/components/news/DailyUpdateSection"
 import { BrokerSection } from "@/components/broker/BrokerSection"
 import { LessonsPreview } from "@/components/lessons/LessonsPreview"
 import MerchSection from "@/components/sections/MerchSection"
@@ -79,6 +81,16 @@ export default async function HomePage() {
   // the helper, so this doesn't add latency on warm requests.
   const goldSnapshot = await getGoldSnapshot().catch(() => null)
 
+  // Today's economic calendar pills shown above the category tabs
+  let dailyUpdate: DailyUpdate | null = null
+  try {
+    dailyUpdate = await sanityClient.fetch<DailyUpdate | null>(
+      QUERIES.latestDailyUpdate,
+      {},
+      { next: { revalidate: 60 } },
+    )
+  } catch {}
+
   const featured = latest.featured
   const popularPick = popular.find(p => p._id !== featured?._id) ?? null
   const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
@@ -128,6 +140,11 @@ export default async function HomePage() {
           <GoldWidget initial={goldSnapshot} />
         </div>
       </section>
+
+      {/* ── ECONOMIC CALENDAR PILLS ── */}
+      {dailyUpdate?.calendarHighlights && dailyUpdate.calendarHighlights.length > 0 && (
+        <CalendarPills items={dailyUpdate.calendarHighlights} date={dailyUpdate.date} />
+      )}
 
       {/* ── CATEGORY TABS ── */}
       <div className="bg-white border-b border-gray-200">

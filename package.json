@@ -10,6 +10,7 @@
     "prerender-og": "node scripts/prerender-og-images.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.0",
     "@next/third-parties": "^16.2.4",
     "@portabletext/react": "^3.1.0",
     "@sanity/client": "^6.22.1",
@@ -26,6 +27,7 @@
     "puppeteer-core": "^24.43.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "rss-parser": "^3.13.0",
     "styled-components": "^6.4.1",
     "tailwind-merge": "^2.5.2",
     "zod": "^3.23.8"

@@ -121,4 +121,14 @@ export const QUERIES = {
       badge { text, color, show }
     }
   `,
+  latestDailyUpdate: `*[_type == "dailyUpdate"] | order(date desc) [0] {
+    _id, date, dailySummary, hotNews, calendarHighlights,
+    hasHighImpact, lineMessage, createdAt
+  }`,
+  dailyUpdateByDate: (date: string) => `
+    *[_type == "dailyUpdate" && date == "${date}"][0] {
+      _id, date, dailySummary, hotNews, calendarHighlights,
+      hasHighImpact, lineMessage, createdAt
+    }
+  `,
 }
