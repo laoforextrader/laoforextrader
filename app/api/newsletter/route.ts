@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
+import { upsertSubscriber } from "@/lib/subscribers"
+
+export const runtime = "nodejs"
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { email } = body
-    if (!email || !email.includes("@")) {
+    const body = await req.json().catch(() => ({}))
+    const email: string | undefined = body?.email
+    if (!email || !EMAIL_RE.test(email)) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 })
+    }
+    const ok = await upsertSubscriber({
+      email,
+      name: body?.name,
+      source: "newsletter",
+      verified: false,
+    })
+    if (!ok) {
+      return NextResponse.json({ error: "Could not save subscription" }, { status: 500 })
     }
     return NextResponse.json({ success: true, message: "Subscribed!" })
   } catch {
