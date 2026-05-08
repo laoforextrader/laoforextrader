@@ -1,11 +1,14 @@
 // Decide which schedules should fire right now and dispatch them.
-// Times in Sanity are local Asia/Vientiane (UTC+7).
+// Times in Sanity are local Asia/Bangkok = Asia/Vientiane (UTC+7, no DST).
+// cron-job.org auto-detects this timezone, so a schedule entered as
+// "21:00" there triggers when Bangkok clock hits 21:00 — and the matcher
+// below reads the same Bangkok hour, so values line up 1:1.
 
 import type { BroadcastSchedule, BroadcastResult } from "./types"
 import { listBroadcastSchedules, markBroadcastRun } from "./sanity"
 import { runEaSummaryBroadcast } from "./eaSummary"
 
-const ASIA_VIENTIANE_OFFSET_MS = 7 * 60 * 60 * 1000
+const TIMEZONE = "Asia/Bangkok"
 const IDEMPOTENCY_WINDOW_MIN = 50
 
 interface LocalTime {
@@ -14,12 +17,23 @@ interface LocalTime {
   dayOfMonth: number  // 1-31
 }
 
+const DOW: Record<string, number> = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+}
+
 function toLocalTime(nowUTC: Date): LocalTime {
-  const local = new Date(nowUTC.getTime() + ASIA_VIENTIANE_OFFSET_MS)
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
+    hour: "2-digit",
+    weekday: "short",
+    day: "2-digit",
+    hour12: false,
+  }).formatToParts(nowUTC)
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? ""
   return {
-    hour: local.getUTCHours(),
-    dayOfWeek: local.getUTCDay(),
-    dayOfMonth: local.getUTCDate(),
+    hour: parseInt(get("hour"), 10) % 24, // Intl can emit "24" at midnight
+    dayOfWeek: DOW[get("weekday")] ?? 0,
+    dayOfMonth: parseInt(get("day"), 10),
   }
 }
 

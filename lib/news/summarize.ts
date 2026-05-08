@@ -215,6 +215,27 @@ function sanitizeLao(text: string | undefined): string {
 const _ALLOWED_CHAR_RE_UNUSED = /[຀-໿]/u
 void _ALLOWED_CHAR_RE_UNUSED
 
+// ── Calendar filter / ranking ──────────────────────────────────────────────
+// We only feed Claude majors (USD/EUR/GBP/JPY/CHF/AUD/CAD/NZD pairs +
+// gold) and rank high-impact above medium so flagship releases like NFP
+// don't get pushed out of the prompt by quieter morning events.
+const MAJOR_COUNTRIES = new Set(["US", "EU", "GB", "UK", "JP", "CH", "AU", "CA", "NZ"])
+const IMPACT_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 }
+
+function pickPromptEvents(calendar: CalendarEvent[], limit: number): CalendarEvent[] {
+  return calendar
+    .filter(e => MAJOR_COUNTRIES.has((e.country || "").toUpperCase()))
+    .filter(e => e.impact === "high" || e.impact === "medium")
+    .slice() // copy before sort
+    .sort((a, b) => {
+      const ra = IMPACT_RANK[a.impact] ?? 9
+      const rb = IMPACT_RANK[b.impact] ?? 9
+      if (ra !== rb) return ra - rb
+      return (a.time || "").localeCompare(b.time || "")
+    })
+    .slice(0, limit)
+}
+
 // ── Stage 1A: events + summary + line ──────────────────────────────────────
 
 interface CallAResult {
@@ -267,26 +288,44 @@ Return ONE valid JSON with this schema:
 }
 
 Constraints:
-- topEvents: 2 items if there is high impact, otherwise [].
-- calendarHighlights: 3 items.
+- hasHighImpact: MUST be true if ANY event line above has "/high:" tag. Do not guess — check the impact tag literally.
+- topEvents: 2 items if there is any high impact event (pick the most market-moving high-impact ones, e.g. NFP > Fed speech). Otherwise [].
+- calendarHighlights: 3 items, and EVERY high-impact event must be among them.
+- lineMessage: REQUIRED whenever hasHighImpact=true. Mention the high-impact event name + currency + time.
 - No trailing commas, no "...", no comments.
 - Return only the JSON object — no markdown fences, no prose around it.`
 }
 
 async function runCallA(client: Anthropic, date: string, calendar: CalendarEvent[]): Promise<CallAResult> {
-  const eventLines = calendar
-    .filter(e => e.impact === "high" || e.impact === "medium")
-    .slice(0, 6)
+  const promptEvents = pickPromptEvents(calendar, 8)
+  const eventLines = promptEvents
     .map(e => `- ${formatLaoTime(e.time)} ${e.country}/${e.impact}: ${e.event} (forecast=${e.forecast || "—"}, prev=${e.previous || "—"}, iso=${e.time})`)
     .join("\n")
 
   const data = await callClaude(client, buildPromptA(date, eventLines), 1700)
+
+  // Don't trust Claude alone for the high-impact flag — Finnhub already
+  // tells us authoritatively. If any major-country event is impact=high,
+  // force the flag so the LINE broadcast never gets silently skipped.
+  const highMajors = promptEvents.filter(e => e.impact === "high")
+  const hasHighImpact = highMajors.length > 0 || !!data.hasHighImpact
+
+  // If Claude returned hasHighImpact=true but no lineMessage (or vice
+  // versa), synthesise a fallback so the broadcast carries something.
+  let lineMessage = (data.lineMessage ?? "").toString()
+  if (hasHighImpact && !lineMessage.trim()) {
+    const headline = highMajors[0]
+    if (headline) {
+      lineMessage = `📊 ມື້ນີ້ ${formatLaoTime(headline.time)} GMT+7 — ${headline.country} ${headline.event} (high impact). ລະວັງຄວາມຜັນຜວນຂອງຄ່າເງິນ.`
+    }
+  }
+
   return {
     dailySummary: data.dailySummary ?? "",
     topEvents: Array.isArray(data.topEvents) ? data.topEvents : [],
     calendarHighlights: Array.isArray(data.calendarHighlights) ? data.calendarHighlights : [],
-    hasHighImpact: !!data.hasHighImpact,
-    lineMessage: data.lineMessage ?? "",
+    hasHighImpact,
+    lineMessage,
   }
 }
 
@@ -347,7 +386,11 @@ async function runCallB(client: Anthropic, date: string, eventBrief: string, new
     `[${i + 1}] ${n.title}\n${(n.summary || "").slice(0, 200)}\nURL: ${n.link}\nIMG: ${n.imageUrl || ""}`,
   ).join("\n\n")
 
-  const data = await callClaude(client, buildPromptB(date, eventBrief, newsLines), 1400)
+  // Lao text is token-heavy (~1.5x ASCII) and the response carries 2
+  // hotNews (≈3-sentence detail each) + 2 technical entries. 1400 was
+  // truncating mid-JSON, jsonrepair recovered hotNews[0] but technical
+  // got lost. 2400 is safer; still well under the per-call budget.
+  const data = await callClaude(client, buildPromptB(date, eventBrief, newsLines), 2400)
   // Hard-correct image + source URLs from the original feed so Claude
   // can't accidentally drop or fabricate them.
   const hot: HotNewsItem[] = (Array.isArray(data.hotNews) ? data.hotNews : []).map((h: HotNewsItem) => {
@@ -359,10 +402,17 @@ async function runCallB(client: Anthropic, date: string, eventBrief: string, new
       pubDate: src?.pubDate || h.pubDate || "",
     }
   })
-  return {
-    hotNews: hot,
-    technical: Array.isArray(data.technical) ? data.technical : [],
-  }
+
+  // Final-resort placeholder so the Technical section on /news never
+  // disappears even when Claude returns an empty/truncated response.
+  const technical: TechAnalysis[] = Array.isArray(data.technical) && data.technical.length > 0
+    ? data.technical
+    : [
+        { symbol: "XAUUSD", trend: "neutral", bias: "ລໍຖ້າສັນຍານຊັດເຈນຈາກຕະຫຼາດກ່ອນເຂົ້າອອເດີ.", support: "—", resistance: "—", analysis: "ຍັງບໍ່ມີຂໍ້ມູນພຽງພໍ — ຕິດຕາມຂ່າວ US ກ່ອນເຄື່ອນໄຫວ." },
+        { symbol: "EURUSD", trend: "neutral", bias: "ບໍ່ຄວນຈັບສັນຍານໄວເກີນໄປ.", support: "—", resistance: "—", analysis: "ລໍຖ້າຕົວເລກເສດຖະກິດໃໝ່ກ່ອນຕັດສິນທິດທາງ." },
+      ]
+
+  return { hotNews: hot, technical }
 }
 
 // ── Stage 2: Lao language polish ───────────────────────────────────────────
@@ -454,9 +504,7 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set")
   const client = new Anthropic({ apiKey })
 
-  const eventBrief = calendar
-    .filter(e => e.impact === "high" || e.impact === "medium")
-    .slice(0, 4)
+  const eventBrief = pickPromptEvents(calendar, 4)
     .map(e => `${formatLaoTime(e.time)} ${e.country}: ${e.event}`)
     .join(" · ")
 
