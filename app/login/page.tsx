@@ -2,6 +2,14 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { LoginButton } from "@/components/auth/LoginButton"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "ເຂົ້າສູ່ລະບົບ",
+  description: "ເຂົ້າສູ່ລະບົບ LaoForexTrader ເພື່ອບັນທຶກບົດຄວາມ ແລະ ຮັບການອັບເດດການເທຣດປະຈຳວັນ.",
+  alternates: { canonical: "https://www.laoforextrader.com/login" },
+  robots: { index: false, follow: true },
+}
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions)

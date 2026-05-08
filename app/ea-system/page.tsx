@@ -1,8 +1,21 @@
 import Link from "next/link"
 import { Rocket, Zap } from "lucide-react"
 import EAShowcaseSection from "@/components/sections/EAShowcaseSection"
+import type { Metadata } from "next"
 
 export const revalidate = 60
+
+export const metadata: Metadata = {
+  title: "EA System — ລະບົບ EA ອັດຕະໂນມັດ",
+  description: "ລະບົບ Expert Advisor (EA) ສຳລັບການເທຣດ Forex ອັດຕະໂນມັດ ພ້ອມສະຖິຕິການເຮັດກຳໄລ Real-time ສຳລັບ Trader ລາວ.",
+  alternates: { canonical: "https://www.laoforextrader.com/ea-system" },
+  openGraph: {
+    title: "EA System — ລະບົບ EA ອັດຕະໂນມັດ | LaoForexTrader",
+    description: "ລະບົບ EA ສຳລັບເທຣດ Forex ອັດຕະໂນມັດ ພ້ອມສະຖິຕິ Real-time.",
+    url: "https://www.laoforextrader.com/ea-system",
+    type: "website",
+  },
+}
 
 const LINE_URL = "https://line.me/R/ti/p/@499dvtuz"
 

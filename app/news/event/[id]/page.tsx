@@ -45,11 +45,20 @@ async function fetchDoc(id: string): Promise<EventDoc | null> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const doc = await fetchDoc(decodeURIComponent(id))
-  const title = doc?.event?.nameLao
-    ? `${doc.event.nameLao} | LaoForexTrader`
-    : "Event | LaoForexTrader"
-  return { title, description: doc?.event?.description?.slice(0, 160) }
+  const decoded = decodeURIComponent(id)
+  const doc = await fetchDoc(decoded)
+  const ev = doc?.event
+  const title = ev?.nameLao ? `${ev.nameLao} | LaoForexTrader` : "ເຫດການເສດຖະກິດ | LaoForexTrader"
+  const description = ev?.description?.slice(0, 160)
+    ?? ev?.analysis?.slice(0, 160)
+    ?? `ການວິເຄາະເຫດການເສດຖະກິດ ${ev?.country ?? ""} ${ev?.nameEn ?? ""} ສຳລັບເທຣດເດີລາວ`.trim()
+  const canonical = `https://www.laoforextrader.com/news/event/${encodeURIComponent(decoded)}`
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical, type: "article" },
+  }
 }
 
 export default async function EventPage({ params }: Props) {

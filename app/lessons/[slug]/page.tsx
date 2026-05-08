@@ -7,6 +7,7 @@ import { Article } from "@/types"
 import { ArrowLeft, ArrowRight, Clock, BookOpen } from "lucide-react"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata } from "@/lib/articleMetadata"
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/structuredData"
 import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
 import CTASelector from "@/components/cta/CTASelector"
 import QuizSidebar from "@/components/quiz/QuizSidebar"
@@ -67,9 +68,20 @@ export default async function LessonDetailPage({ params }: Props) {
   const hasSidebar = articleHasSidebar(article)
   const showInlineQuiz = shouldRenderQuizInline(article)
 
+  const path = `/lessons/${article.slug?.current ?? ""}`
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
       <ViewTracker slug={article.slug?.current ?? ""} />
+      <JsonLd
+        data={[
+          articleLd(article, path),
+          breadcrumbLd([
+            { name: "ໜ້າຫຼັກ", url: "/" },
+            { name: "ບົດຮຽນ", url: "/lessons" },
+            { name: article.title, url: path },
+          ]),
+        ]}
+      />
       <div className={
         hasSidebar
           ? "max-w-[1080px] mx-auto px-6 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8 lg:items-start"

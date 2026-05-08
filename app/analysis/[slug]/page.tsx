@@ -8,6 +8,7 @@ import { ArrowLeft, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata } from "@/lib/articleMetadata"
+import { JsonLd, articleLd, breadcrumbLd } from "@/lib/structuredData"
 import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
 import CTASelector from "@/components/cta/CTASelector"
 import ViewTracker from "@/components/article/ViewTracker"
@@ -49,9 +50,20 @@ export default async function ArticleDetailPage({ params }: Props) {
   const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) notFound()
 
+  const path = `/analysis/${article.slug?.current ?? ""}`
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
       <ViewTracker slug={article.slug?.current ?? ""} />
+      <JsonLd
+        data={[
+          articleLd(article, path),
+          breadcrumbLd([
+            { name: "ໜ້າຫຼັກ", url: "/" },
+            { name: "ວິເຄາະ", url: "/analysis" },
+            { name: article.title, url: path },
+          ]),
+        ]}
+      />
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
 
         <Link href="/analysis"

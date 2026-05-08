@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle, XCircle, Clock, Calendar } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import PostEngagement from "@/components/sections/PostEngagement"
 import { buildArticleMetadata, buildBrokerMetadata } from "@/lib/articleMetadata"
+import { JsonLd, brokerReviewLd, breadcrumbLd, articleLd } from "@/lib/structuredData"
 import { TrackedBrokerLink } from "@/components/broker/TrackedBrokerLink"
 import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
 import CTASelector from "@/components/cta/CTASelector"
@@ -75,8 +76,19 @@ export default async function BrokerSlugPage({ params }: Props) {
 
   if (broker) {
     const rb = broker.ratingBreakdown ?? {}
+    const path = `/broker/${broker.slug?.current ?? slug}`
     return (
       <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+        <JsonLd
+          data={[
+            brokerReviewLd(broker, path),
+            breadcrumbLd([
+              { name: "ໜ້າຫຼັກ", url: "/" },
+              { name: "Broker", url: "/broker" },
+              { name: broker.name, url: path },
+            ]),
+          ]}
+        />
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
 
           <Link href="/broker"
@@ -248,8 +260,19 @@ export default async function BrokerSlugPage({ params }: Props) {
   const article = await sanityClient.fetch<Article>(QUERIES.articleBySlug(slug), {}, { next: { revalidate: 60 } })
   if (!article) notFound()
 
+  const articlePath = `/broker/${article.slug?.current ?? slug}`
   return (
     <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+      <JsonLd
+        data={[
+          articleLd(article, articlePath),
+          breadcrumbLd([
+            { name: "ໜ້າຫຼັກ", url: "/" },
+            { name: "Broker", url: "/broker" },
+            { name: article.title, url: articlePath },
+          ]),
+        ]}
+      />
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
 
         <Link href="/broker"

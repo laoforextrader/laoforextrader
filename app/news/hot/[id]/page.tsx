@@ -33,10 +33,20 @@ async function fetchDoc(id: string): Promise<HotDoc | null> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const doc = await fetchDoc(decodeURIComponent(id))
+  const decoded = decodeURIComponent(id)
+  const doc = await fetchDoc(decoded)
+  const item = doc?.item
+  const title = item?.title ? `${item.title} | LaoForexTrader` : "ຂ່າວ Forex | LaoForexTrader"
+  const description = item?.summary?.slice(0, 160)
+    ?? item?.detail?.slice(0, 160)
+    ?? "ສະຫຼຸບຂ່າວ Forex ສຳຄັນ ສຳລັບເທຣດເດີລາວ"
+  const canonical = `https://www.laoforextrader.com/news/hot/${encodeURIComponent(decoded)}`
+  const images = item?.imageUrl ? [{ url: item.imageUrl }] : undefined
   return {
-    title: doc?.item?.title ? `${doc.item.title} | LaoForexTrader` : "ຂ່າວ | LaoForexTrader",
-    description: doc?.item?.summary?.slice(0, 160),
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical, type: "article", images },
   }
 }
 

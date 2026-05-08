@@ -4,6 +4,14 @@ import { authOptions } from "@/lib/auth"
 import { Bookmark, Clock, MessageSquare, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "ໜ້າສ່ວນຕົວ LaoForexTrader — ບົດຄວາມທີ່ບັນທຶກໄວ້, ຄຳເຫັນຂອງທ່ານ ແລະ ການອັບເດດ.",
+  alternates: { canonical: "https://www.laoforextrader.com/dashboard" },
+  robots: { index: false, follow: false },
+}
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)

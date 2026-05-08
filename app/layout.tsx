@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer"
 import { MarketTicker } from "@/components/market/MarketTicker"
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"
 import { GoogleAnalytics } from "@next/third-parties/google"
+import { JsonLd, organizationLd, websiteLd } from "@/lib/structuredData"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.laoforextrader.com"),
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <JsonLd data={[organizationLd(), websiteLd()]} />
       </head>
       <body style={{
         background: "#EDEEF2",
