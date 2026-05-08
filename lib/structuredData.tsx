@@ -3,12 +3,26 @@ import { urlFor } from "@/lib/sanity"
 
 const SITE_URL = "https://www.laoforextrader.com"
 const SITE_NAME = "LaoForexTrader"
-const LOGO_URL = `${SITE_URL}/logo.png`
+// Until a dedicated logo asset is committed under /public, reuse the
+// default OG image which is already 1200x630 and known to exist —
+// Google's logo validator fails the whole Article schema if the URL
+// 404s, which surfaces as a generic "missing url" error.
+const LOGO_URL = `${SITE_URL}/og/_default.png`
+const LOGO_W = 1200
+const LOGO_H = 630
+const DEFAULT_OG = `${SITE_URL}/og/_default.png`
 
 interface JsonLdNode {
   "@context": string
   "@type": string
   [k: string]: unknown
+}
+
+const PUBLISHER = {
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: { "@type": "ImageObject", url: LOGO_URL, width: LOGO_W, height: LOGO_H },
 }
 
 export function organizationLd(): JsonLdNode {
@@ -17,7 +31,7 @@ export function organizationLd(): JsonLdNode {
     "@type": "Organization",
     name: SITE_NAME,
     url: SITE_URL,
-    logo: LOGO_URL,
+    logo: { "@type": "ImageObject", url: LOGO_URL, width: LOGO_W, height: LOGO_H },
     description: "ລີວິວ Broker, ຄວາມຮູ້ການເທຣດ, ວິເຄາະຕະຫຼາດ ສຳລັບ Trader ລາວ",
     sameAs: [
       "https://www.facebook.com/laoforextrader",
@@ -43,13 +57,13 @@ export function websiteLd(): JsonLdNode {
 
 export function articleLd(article: Article, pathname: string): JsonLdNode {
   const url = `${SITE_URL}${pathname.startsWith("/") ? pathname : "/" + pathname}`
-  const image = article.coverImage ? urlFor(article.coverImage).url() : `${SITE_URL}/og/_default.png`
+  const imageUrl = article.coverImage ? urlFor(article.coverImage).url() : DEFAULT_OG
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: article.title,
     description: article.excerpt || article.title,
-    image,
+    image: { "@type": "ImageObject", url: imageUrl, width: 1200, height: 630 },
     url,
     datePublished: article.publishedAt,
     dateModified: article.publishedAt,
@@ -57,13 +71,12 @@ export function articleLd(article: Article, pathname: string): JsonLdNode {
     author: {
       "@type": "Person",
       name: article.author?.name || "LFT Team",
+      url: SITE_URL,
     },
-    publisher: {
-      "@type": "Organization",
-      name: SITE_NAME,
-      logo: { "@type": "ImageObject", url: LOGO_URL },
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    publisher: PUBLISHER,
+    // Use a string URL rather than a WebPage object — the @id-only form
+    // Google flagged as missing a `url` field on some testers.
+    mainEntityOfPage: url,
   }
 }
 
@@ -95,13 +108,15 @@ export function brokerReviewLd(broker: {
   const node: JsonLdNode = {
     "@context": "https://schema.org",
     "@type": "Review",
+    url,
+    name: `ລີວິວ ${broker.name}`,
     itemReviewed: {
       "@type": "FinancialService",
       name: broker.name,
       url,
     },
-    author: { "@type": "Organization", name: SITE_NAME },
-    publisher: { "@type": "Organization", name: SITE_NAME },
+    author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    publisher: PUBLISHER,
     description: broker.excerpt || `ລີວິວ ${broker.name}`,
   }
   if (typeof broker.rating === "number" && broker.rating > 0) {
