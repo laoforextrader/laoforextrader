@@ -296,10 +296,20 @@ Constraints:
 - Return only the JSON object — no markdown fences, no prose around it.`
 }
 
+// Finnhub returns "YYYY-MM-DD HH:MM:SS" (UTC). JS Date parses that as
+// browser-local, not UTC, which broke the countdown on /news. Reshape
+// to proper ISO 8601 with the Z suffix before handing it to Claude so
+// the value Claude copies into `timeISO` is unambiguous.
+function toIsoZ(finnhubTime: string): string {
+  if (!finnhubTime) return ""
+  if (finnhubTime.includes("T")) return finnhubTime // already ISO
+  return finnhubTime.replace(" ", "T") + "Z"
+}
+
 async function runCallA(client: Anthropic, date: string, calendar: CalendarEvent[]): Promise<CallAResult> {
   const promptEvents = pickPromptEvents(calendar, 8)
   const eventLines = promptEvents
-    .map(e => `- ${formatLaoTime(e.time)} ${e.country}/${e.impact}: ${e.event} (forecast=${e.forecast || "—"}, prev=${e.previous || "—"}, iso=${e.time})`)
+    .map(e => `- ${formatLaoTime(e.time)} ${e.country}/${e.impact}: ${e.event} (forecast=${e.forecast || "—"}, prev=${e.previous || "—"}, iso=${toIsoZ(e.time)})`)
     .join("\n")
 
   const data = await callClaude(client, buildPromptA(date, eventLines), 1700)
@@ -320,9 +330,18 @@ async function runCallA(client: Anthropic, date: string, calendar: CalendarEvent
     }
   }
 
+  // Normalise timeISO on every event Claude returns. Claude has been
+  // observed to pass through Finnhub's space-separated format even
+  // after we asked for iso=…Z — fix it here so callers can trust the
+  // field is parseable as UTC.
+  const topEvents = (Array.isArray(data.topEvents) ? data.topEvents : []).map((e: TopEvent) => ({
+    ...e,
+    timeISO: toIsoZ(e.timeISO ?? ""),
+  }))
+
   return {
     dailySummary: data.dailySummary ?? "",
-    topEvents: Array.isArray(data.topEvents) ? data.topEvents : [],
+    topEvents,
     calendarHighlights: Array.isArray(data.calendarHighlights) ? data.calendarHighlights : [],
     hasHighImpact,
     lineMessage,

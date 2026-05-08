@@ -22,7 +22,11 @@ export function Countdown({ target, passedLabel = "ປະກາດແລ້ວ" 
   const [ms, setMs] = useState<number | null>(null)
 
   useEffect(() => {
-    const t = new Date(target).getTime()
+    // Defensive: if upstream sent "YYYY-MM-DD HH:MM:SS" without timezone
+    // info (Finnhub's raw format), JS would parse it as browser-local.
+    // Reshape to ISO-with-Z so it's interpreted as UTC.
+    const iso = target.includes("T") ? target : target.replace(" ", "T") + "Z"
+    const t = new Date(iso).getTime()
     if (isNaN(t)) return
     const tick = () => setMs(t - Date.now())
     tick()
