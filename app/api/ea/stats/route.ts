@@ -64,9 +64,14 @@ export async function POST(req: Request) {
     if (mode === "off") {
       return NextResponse.json({ ok: true, skipped: "off" })
     }
+    // "daily" used to be once-per-24h, but that locked today's row to the
+    // first push of the day (which lands ~04:00 ICT, before forex opens),
+    // making the 21:00 ICT broadcast read 0% even after a full trading day.
+    // Now throttle to 60 min — MT5 can push hourly, today's row keeps
+    // refreshing, and Sanity write quota stays modest (~24 writes/day/EA).
     if (mode === "daily" && doc.lastUpdate) {
       const last = new Date(doc.lastUpdate).getTime()
-      if (Date.now() - last < 24 * 60 * 60 * 1000) {
+      if (Date.now() - last < 60 * 60 * 1000) {
         return NextResponse.json({ ok: true, skipped: "daily-throttled" })
       }
     }

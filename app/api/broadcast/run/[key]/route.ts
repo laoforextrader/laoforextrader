@@ -14,6 +14,11 @@ export const maxDuration = 60
 //
 // ?send=false renders the image and returns the asset URLs without
 // pushing to LINE — handy for previewing what would be sent.
+// ?force=true bypasses the idempotency window (use only for manual reruns).
+
+// Skip a real send if the same key fired recently — protects against
+// cron-job.org retries or accidental duplicate jobs double-broadcasting.
+const IDEMPOTENCY_WINDOW_MIN = 30
 
 function authorized(req: Request): boolean {
   const secret = process.env.BROADCAST_SECRET
@@ -31,6 +36,7 @@ async function handle(req: Request, params: { key: string }) {
   }
   const url = new URL(req.url)
   const send = url.searchParams.get("send") !== "false"
+  const force = url.searchParams.get("force") === "true"
 
   const schedule = await getBroadcastScheduleByKey(params.key)
   if (!schedule) {
@@ -38,6 +44,18 @@ async function handle(req: Request, params: { key: string }) {
   }
   if (schedule.template !== "ea-summary") {
     return NextResponse.json({ error: `template "${schedule.template}" not supported` }, { status: 400 })
+  }
+
+  if (send && !force && schedule.lastRunAt) {
+    const minsSince = (Date.now() - new Date(schedule.lastRunAt).getTime()) / 60000
+    if (minsSince < IDEMPOTENCY_WINDOW_MIN) {
+      return NextResponse.json({
+        ok: true,
+        key: schedule.key,
+        status: `skipped — ran ${minsSince.toFixed(0)}m ago (idempotency window ${IDEMPOTENCY_WINDOW_MIN}m)`,
+        skipped: true,
+      })
+    }
   }
 
   try {
