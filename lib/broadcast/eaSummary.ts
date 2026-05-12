@@ -126,7 +126,6 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
   const now = opts.now ?? new Date()
   const send = opts.send ?? true
 
-  const fontDataUri = await loadFontDataUri()
   const dl = dateLabel(period, now)
 
   // Fetch stats for both EAs in parallel
@@ -152,27 +151,32 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
     megiPeriod,   megiTotal,   megiAmountStr,
   )
 
-  // Render both EA cards
-  const cardInputs: EACardInput[] = [sgrideCfg, megiCfg].map(cfg => {
-    const stats = cfg.eaId === "sgride" ? sgrideStats : megiStats
-    const periodPct = periodPctFor(stats, period, cfg.fallbacks[period])
-    const totalPct  = fmtPct(stats?.profitTotalPct, cfg.fallbacks.total)
-    const monthsRunning = monthsSinceFirstReturn(stats, 7)
-    return {
-      ea: { name: cfg.name, icon: cfg.icon, theme: cfg.theme },
-      period, dateLabel: dl,
-      periodPct, totalPct,
-      monthsRunning, fontDataUri,
-    }
-  })
+  // Only monthly broadcasts include EA card images; daily/weekly are text-only.
+  const includeImages = period === "monthly"
 
   const imageUrls: string[] = []
-  for (let i = 0; i < cardInputs.length; i++) {
-    const html = buildEaCardHtml(cardInputs[i])
-    const { jpeg } = await renderHtmlToJpeg(html, 1080, 1080)
-    const filename = `broadcast-${period}-${EAS[i].shortName.toLowerCase()}-${Date.now()}.jpg`
-    const url = await uploadBroadcastAsset(jpeg, filename, "image/jpeg")
-    imageUrls.push(url)
+  if (includeImages) {
+    const fontDataUri = await loadFontDataUri()
+    const cardInputs: EACardInput[] = [sgrideCfg, megiCfg].map(cfg => {
+      const stats = cfg.eaId === "sgride" ? sgrideStats : megiStats
+      const periodPct = periodPctFor(stats, period, cfg.fallbacks[period])
+      const totalPct  = fmtPct(stats?.profitTotalPct, cfg.fallbacks.total)
+      const monthsRunning = monthsSinceFirstReturn(stats, 7)
+      return {
+        ea: { name: cfg.name, icon: cfg.icon, theme: cfg.theme },
+        period, dateLabel: dl,
+        periodPct, totalPct,
+        monthsRunning, fontDataUri,
+      }
+    })
+
+    for (let i = 0; i < cardInputs.length; i++) {
+      const html = buildEaCardHtml(cardInputs[i])
+      const { jpeg } = await renderHtmlToJpeg(html, 1080, 1080)
+      const filename = `broadcast-${period}-${EAS[i].shortName.toLowerCase()}-${Date.now()}.jpg`
+      const url = await uploadBroadcastAsset(jpeg, filename, "image/jpeg")
+      imageUrls.push(url)
+    }
   }
 
   // Send to LINE
@@ -183,11 +187,15 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
     return { key: `ea-${period}`, ok: true, status: "rendered, no LINE token", imageUrls, textPreview }
   }
 
-  const messages: LineMessage[] = [
-    { type: "image", originalContentUrl: imageUrls[0], previewImageUrl: imageUrls[0] },
-    { type: "image", originalContentUrl: imageUrls[1], previewImageUrl: imageUrls[1] },
-    { type: "text", text: textPreview },
-  ]
+  const messages: LineMessage[] = includeImages
+    ? [
+        { type: "image", originalContentUrl: imageUrls[0], previewImageUrl: imageUrls[0] },
+        { type: "image", originalContentUrl: imageUrls[1], previewImageUrl: imageUrls[1] },
+        { type: "text", text: textPreview },
+      ]
+    : [
+        { type: "text", text: textPreview },
+      ]
   const r = await broadcastLineMessages(messages)
   if (!r.ok) {
     return {
