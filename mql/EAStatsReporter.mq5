@@ -75,47 +75,31 @@ string Q(string s) { return "\"" + Esc(s) + "\""; }
 string F(double d) { return DoubleToString(d, 2); }
 
 //+------------------------------------------------------------------+
-//|  Gross deposits = sum of POSITIVE DEAL_TYPE_BALANCE only         |
-//|  (deposits + bonuses). Withdrawals are ignored — they shouldn't   |
-//|  shrink the denominator of the Gain% formula. This matches the    |
-//|  industry-standard "Gain%" used by MyFxBook/FXBlue/etc.           |
+//|  Cash-flow tally over full account history.                       |
+//|  deposits  = sum of POSITIVE balance/credit/bonus ops              |
+//|  withdraws = sum of NEGATIVE balance/credit/bonus ops (positive)   |
+//|  Different brokers post deposits under different deal types — we   |
+//|  capture BALANCE, CREDIT, and BONUS to cover the common cases.     |
+//|  Trading deals (BUY/SELL) and fees (CHARGE/COMMISSION) are NOT     |
+//|  counted as cash flows — they roll into the trading P&L instead.   |
 //+------------------------------------------------------------------+
-double GetGrossDeposits()
+void GetCashFlows(double &deposits, double &withdrawals)
 {
-   if(!HistorySelect(0, TimeCurrent())) return 0;
-   double sum = 0;
+   deposits = 0; withdrawals = 0;
+   if(!HistorySelect(0, TimeCurrent())) return;
    int total = HistoryDealsTotal();
    for(int i = 0; i < total; i++)
    {
       ulong ticket = HistoryDealGetTicket(i);
       if(ticket == 0) continue;
       long type = HistoryDealGetInteger(ticket, DEAL_TYPE);
-      if(type != DEAL_TYPE_BALANCE) continue;
+      if(type != DEAL_TYPE_BALANCE &&
+         type != DEAL_TYPE_CREDIT  &&
+         type != DEAL_TYPE_BONUS) continue;
       double amt = HistoryDealGetDouble(ticket, DEAL_PROFIT);
-      if(amt > 0) sum += amt; // only positive: deposits + bonuses
+      if(amt > 0)      deposits    += amt;
+      else if(amt < 0) withdrawals += -amt; // store as positive
    }
-   return sum;
-}
-
-//+------------------------------------------------------------------+
-//|  Total trading profit since account opened                        |
-//+------------------------------------------------------------------+
-double GetTotalTradingProfit()
-{
-   if(!HistorySelect(0, TimeCurrent())) return 0;
-   double sum = 0;
-   int total = HistoryDealsTotal();
-   for(int i = 0; i < total; i++)
-   {
-      ulong ticket = HistoryDealGetTicket(i);
-      if(ticket == 0) continue;
-      long type = HistoryDealGetInteger(ticket, DEAL_TYPE);
-      if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL) continue;
-      sum += HistoryDealGetDouble(ticket, DEAL_PROFIT);
-      sum += HistoryDealGetDouble(ticket, DEAL_SWAP);
-      sum += HistoryDealGetDouble(ticket, DEAL_COMMISSION);
-   }
-   return sum;
 }
 
 //+------------------------------------------------------------------+
@@ -164,10 +148,16 @@ string BuildPayload()
    string currency  = AccountInfoString(ACCOUNT_CURRENCY);
    double balance   = AccountInfoDouble(ACCOUNT_BALANCE);
    double equity    = AccountInfoDouble(ACCOUNT_EQUITY);
-   double grossDep  = GetGrossDeposits();      // total deposits + bonuses (ignore withdrawals)
-   double startBal  = grossDep > 0 ? grossDep : balance; // denominator + "Balance ເລີ່ມຕົ້ນ"
-   double profitTot = GetTotalTradingProfit(); // pure trading P&L (incl. swap + commission)
-   double profitPct = startBal > 0 ? (profitTot / startBal) * 100.0 : 0;
+
+   // Balance-derived P&L — agnostic to which EA/manual trades produced it.
+   // P&L = (what's left in account) + (what's been withdrawn) − (what was put in)
+   // This naturally includes swap, commission, and any deal category the
+   // broker uses, since it's reconstructed from raw cash flows + balance.
+   double totalDeposits = 0, totalWithdrawals = 0;
+   GetCashFlows(totalDeposits, totalWithdrawals);
+   double startBal  = totalDeposits > 0 ? totalDeposits : balance;
+   double profitTot = balance + totalWithdrawals - totalDeposits;
+   double profitPct = totalDeposits > 0 ? (profitTot / totalDeposits) * 100.0 : 0;
 
    // ── Monthly returns: last 12 months ──
    string monthly = "[";
@@ -223,9 +213,11 @@ string BuildPayload()
       + Q("currency")       + ":" + Q(currency)              + ","
       + Q("balance")        + ":" + F(balance)               + ","
       + Q("equity")         + ":" + F(equity)                + ","
-      + Q("startBalance")   + ":" + F(startBal)              + ","
-      + Q("profitTotal")    + ":" + F(profitTot)             + ","
-      + Q("profitTotalPct") + ":" + F(profitPct)             + ","
+      + Q("startBalance")     + ":" + F(startBal)            + ","
+      + Q("totalDeposits")    + ":" + F(totalDeposits)       + ","
+      + Q("totalWithdrawals") + ":" + F(totalWithdrawals)    + ","
+      + Q("profitTotal")      + ":" + F(profitTot)           + ","
+      + Q("profitTotalPct")   + ":" + F(profitPct)           + ","
       + Q("monthlyReturns") + ":" + monthly                  + ","
       + Q("dailyReturns")   + ":" + daily
       + "}";

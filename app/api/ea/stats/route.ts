@@ -22,6 +22,8 @@ interface Payload {
   balance?: number
   equity?: number
   startBalance?: number
+  totalDeposits?: number
+  totalWithdrawals?: number
   profitTotal?: number
   profitTotalPct?: number
   monthlyReturns?: Array<{ month: string; profitPct: number }>
@@ -81,6 +83,7 @@ export async function POST(req: Request) {
     const passthrough: Array<keyof Payload> = [
       "account", "server", "broker", "currency",
       "balance", "equity", "startBalance",
+      "totalDeposits", "totalWithdrawals",
       "profitTotal", "profitTotalPct",
     ]
     for (const k of passthrough) {
