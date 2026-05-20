@@ -62,6 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/ea`,                lastModified: now, changeFrequency: "weekly",  priority: 0.7 },
     { url: `${BASE}/ea-system`,         lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/ea-tools`,          lastModified: now, changeFrequency: "weekly",  priority: 0.6 },
+    { url: `${BASE}/signal/trs-signal-pro`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/quiz`,              lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/about`,             lastModified: now, changeFrequency: "yearly",  priority: 0.5 },
     { url: `${BASE}/contact`,           lastModified: now, changeFrequency: "yearly",  priority: 0.5 },

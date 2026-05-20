@@ -1,0 +1,448 @@
+/* ───────── Brand title (rainbow gradient + rocket flame) ───────── */
+@keyframes rocketGradient {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes rocketFly {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50%      { transform: translateY(-6px) rotate(-2deg); }
+}
+
+@keyframes rocketGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(96,165,250,0.55)) drop-shadow(0 0 14px rgba(167,139,250,0.35)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(96,165,250,0.9))  drop-shadow(0 0 22px rgba(244,114,182,0.55)); }
+}
+
+@keyframes rocketFlame {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, 0) scaleY(0.85); }
+  50%      { opacity: 1;   transform: translate(-50%, 1px) scaleY(1.15); }
+}
+
+.rocketTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 54px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #60A5FA, #22D3EE, #A78BFA, #F472B6, #FCD34D, #60A5FA);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent !important;
+  animation: rocketGradient 6s linear infinite;
+  font-family: 'Inter', 'Noto Sans Lao', sans-serif;
+}
+
+.rocketIconWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  animation: rocketFly 2.6s ease-in-out infinite, rocketGlow 2.6s ease-in-out infinite;
+}
+
+.rocketIconWrap::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 12px;
+  height: 16px;
+  border-radius: 50% 50% 40% 40% / 30% 30% 70% 70%;
+  background: radial-gradient(ellipse at center, #FCD34D 0%, #F97316 55%, rgba(249,115,22,0) 100%);
+  filter: blur(1.5px);
+  transform: translate(-50%, 0);
+  animation: rocketFlame 0.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .rocketTitle    { font-size: 38px; gap: 10px; }
+  .rocketIconWrap { width: 40px; height: 40px; }
+}
+
+/* ───────── Override globals.css h1/h2 dark-color rule on dark sections ───────── */
+.titleOnDark,
+.titleOnDark *:not([data-gradient]) {
+  color: #ffffff !important;
+}
+.titleOnDark [data-gradient] {
+  /* gradient span keeps transparent fill */
+  -webkit-text-fill-color: transparent !important;
+          color: transparent !important;
+}
+.subOnDark {
+  color: rgba(255,255,255,0.75) !important;
+}
+
+/* ───────── HERO (trading globe bg) ───────── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #061021 0%, #03060f 70%, #000000 100%);
+  border-bottom: 1px solid #0f1b3d;
+  color: #fff;
+  min-height: 560px;
+}
+
+.heroGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    /* Left scrim — keeps left-column text readable over the globe */
+    linear-gradient(90deg, rgba(3,6,15,0.78) 0%, rgba(3,6,15,0.40) 28%, transparent 50%),
+    /* Right scrim — softer, behind signal preview */
+    linear-gradient(270deg, rgba(3,6,15,0.55) 0%, transparent 40%),
+    /* Subtle cyan/yellow tint accents */
+    radial-gradient(ellipse 40% 35% at 50% 50%, rgba(34,211,238,0.10), transparent 70%),
+    radial-gradient(ellipse 25% 20% at 75% 85%, rgba(252,211,77,0.12), transparent 70%);
+  z-index: 1;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 2;
+}
+
+/* Right column needs a faint scrim so the signal preview card stays readable on top of the globe */
+.heroRightScrim {
+  position: relative;
+  z-index: 2;
+}
+.heroRightScrim::before {
+  content: '';
+  position: absolute;
+  inset: -16px -16px -16px -16px;
+  background: radial-gradient(ellipse at center, rgba(3,6,15,0.65), transparent 70%);
+  border-radius: 24px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ───────── WHY TRS (dark navy + globe) ───────── */
+.whySection {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #050b1f 0%, #061429 50%, #03060f 100%);
+  border-top: 1px solid #0f1b3d;
+  border-bottom: 1px solid #0f1b3d;
+  color: #fff;
+}
+
+.whyGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 45% 30% at 20% 20%, rgba(34,211,238,0.20), transparent 65%),
+    radial-gradient(ellipse 40% 28% at 80% 22%, rgba(96,165,250,0.18), transparent 65%),
+    radial-gradient(ellipse 60% 28% at 50% 95%, rgba(34,211,238,0.18), transparent 70%);
+}
+
+/* Globe sits centered horizontally at the bottom of the Why section */
+.whyGlobeWrap {
+  position: absolute;
+  left: 50%;
+  bottom: -180px;
+  transform: translateX(-50%);
+  width: 720px;
+  height: 720px;
+  z-index: 1;
+  opacity: 0.9;
+  pointer-events: auto;
+  mask-image: radial-gradient(ellipse at center, #000 55%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 55%, transparent 80%);
+}
+
+@media (max-width: 768px) {
+  .whyGlobeWrap {
+    bottom: -220px;
+    width: 520px;
+    height: 520px;
+    opacity: 0.6;
+  }
+}
+
+/* ───────── FEATURES (CSS-only animated mesh + orbs, no canvas) ───────── */
+.featuresSection {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at top left,  #0c2a4d 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, #1e1b4b 0%, transparent 50%),
+    linear-gradient(180deg, #050b1f 0%, #081229 100%);
+  border-top: 1px solid #1E1B4B;
+  border-bottom: 1px solid #1E1B4B;
+  color: #fff;
+}
+
+/* Animated mesh grid lines */
+.featuresGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(96,165,250,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96,165,250,0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 80%);
+  animation: gridPan 22s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes gridPan {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 48px 48px, 48px 48px; }
+}
+
+/* Floating glowing orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+.orb1 {
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(96,165,250,0.55), transparent 70%);
+  top: -60px; left: -40px;
+  animation: orbFloat1 14s ease-in-out infinite;
+}
+.orb2 {
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(167,139,250,0.55), transparent 70%);
+  top: 40%; right: -50px;
+  animation: orbFloat2 18s ease-in-out infinite;
+}
+.orb3 {
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, rgba(244,114,182,0.42), transparent 70%);
+  bottom: -80px; left: 40%;
+  animation: orbFloat3 16s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(40px, 30px) scale(1.1); }
+}
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-30px, -40px) scale(1.15); }
+}
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(20px, -30px) scale(1.05); }
+}
+
+/* ───────── Glass cards — more opaque for readability ───────── */
+.glassCard {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.78), rgba(30, 27, 75, 0.72));
+  border: 1px solid rgba(96,165,250,0.32);
+  border-radius: 16px;
+  padding: 22px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.glassCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(96,165,250,0.65);
+  box-shadow: 0 20px 44px rgba(79,70,229,0.45), 0 0 28px rgba(96,165,250,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* Variant for cyan Why section (was purple, swapped to match globe colors) */
+.glassCardCyan {
+  background: linear-gradient(135deg, rgba(8, 22, 45, 0.85), rgba(12, 36, 68, 0.78));
+  border: 1px solid rgba(34,211,238,0.35);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.glassCardCyan:hover {
+  border-color: rgba(34,211,238,0.70);
+  box-shadow: 0 20px 44px rgba(34,211,238,0.30), 0 0 28px rgba(96,165,250,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.iconBadge {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(96,165,250,0.25), rgba(167,139,250,0.25));
+  border: 1px solid rgba(96,165,250,0.45);
+}
+.iconBadgeCyan {
+  background: linear-gradient(135deg, rgba(34,211,238,0.30), rgba(96,165,250,0.22));
+  border: 1px solid rgba(34,211,238,0.55);
+}
+
+/* Card text colors (force bright) */
+.cardTitle {
+  color: #ffffff !important;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  line-height: 1.4;
+}
+.cardDesc {
+  color: rgba(255,255,255,0.78) !important;
+  font-size: 13.5px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ───────── Card float animation ───────── */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.floatCard {
+  animation: floatY 4.5s ease-in-out infinite;
+}
+.floatCard:nth-child(2) { animation-delay: 0.6s; }
+.floatCard:nth-child(3) { animation-delay: 1.2s; }
+.floatCard:nth-child(4) { animation-delay: 0.3s; }
+.floatCard:nth-child(5) { animation-delay: 0.9s; }
+.floatCard:nth-child(6) { animation-delay: 1.5s; }
+
+/* ───────── Process step number ───────── */
+.stepNumber {
+  position: absolute;
+  top: -16px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background: linear-gradient(135deg, #60A5FA, #A78BFA);
+  box-shadow: 0 6px 18px rgba(96,165,250,0.5), 0 0 0 4px rgba(96,165,250,0.12);
+  animation: stepPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 6px 18px rgba(96,165,250,0.5), 0 0 0 4px rgba(96,165,250,0.12); }
+  50%      { box-shadow: 0 6px 22px rgba(167,139,250,0.7), 0 0 0 8px rgba(167,139,250,0.18); }
+}
+
+/* ───────── Pulse dot ───────── */
+@keyframes pulseDotLg {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+  50%      { opacity: 0.6; transform: scale(1.35); box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+}
+.pulseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ADE80;
+  display: inline-block;
+  animation: pulseDotLg 2.4s infinite;
+}
+
+/* ───────── Signal preview card ───────── */
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(0.4deg); }
+}
+
+.signalPreview {
+  animation: cardFloat 6s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(30, 27, 75, 0.78));
+  border: 1px solid rgba(96,165,250,0.35);
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px rgba(79,70,229,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* ───────── Quote callout ───────── */
+.quoteCallout {
+  position: relative;
+  background: linear-gradient(135deg, rgba(34,211,238,0.16), rgba(96,165,250,0.18));
+  border: 1px solid rgba(34,211,238,0.50);
+  border-radius: 20px;
+  padding: 36px 28px;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(8,145,178,0.30), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+.quoteCallout::before {
+  content: '"';
+  position: absolute;
+  top: -14px;
+  left: 14px;
+  font-size: 140px;
+  line-height: 1;
+  color: rgba(255,255,255,0.10);
+  font-family: Georgia, serif;
+  pointer-events: none;
+}
+
+.quoteText {
+  color: #ffffff !important;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.55;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ───────── Section eyebrow on dark bg ───────── */
+.eyebrowDark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(96,165,250,0.18);
+  border: 1px solid rgba(96,165,250,0.45);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #BFDBFE !important;
+  backdrop-filter: blur(6px);
+}
+.eyebrowCyan {
+  background: rgba(34,211,238,0.18);
+  border: 1px solid rgba(34,211,238,0.5);
+  color: #A5F3FC !important;
+}
+
+/* ───────── Shimmer on stat numbers ───────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmerNumber {
+  background: linear-gradient(90deg, #60A5FA 0%, #FFFFFF 50%, #A78BFA 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent !important;
+  animation: shimmer 4s linear infinite;
+  font-family: 'JetBrains Mono', monospace;
+}

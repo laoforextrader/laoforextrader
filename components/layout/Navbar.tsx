@@ -10,6 +10,7 @@ import { SearchBar } from "@/components/layout/SearchBar"
 const NAV = [
   { label:"ໂບຣກເກີ",  href:"/broker"    },
   { label:"EA System", href:"/ea-system" },
+  { label:"Signal",    href:"/signal/trs-signal-pro" },
   { label:"ບົດຮຽນ",   href:"/lessons"   },
   { label:"ການສຶກສາ", href:"/education"  },
   { label:"Quizzes",  href:"/quiz"      },
