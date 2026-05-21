@@ -76,6 +76,18 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         return
       }
 
+      // Open Telegram bot in a new tab IMMEDIATELY so the popup-blocker
+      // allows it (we're still inside the click handler). On mobile this
+      // launches the Telegram app; on desktop it opens Telegram Web. The
+      // customer just taps [Start] there once → bot captures their user_id
+      // → can DM them the invite link automatically.
+      //
+      // We do this BEFORE navigating away so the user's click context is
+      // still alive.
+      if (data.bot_start_url) {
+        window.open(data.bot_start_url, "_blank", "noopener,noreferrer")
+      }
+
       const params = new URLSearchParams({
         plan: form.plan,
         method: form.method,
