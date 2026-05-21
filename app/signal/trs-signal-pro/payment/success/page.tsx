@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/laoforextrader"
+const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 
 interface Props {
   searchParams: Promise<{ mode?: string; invite?: string; plan?: string; method?: string }>
@@ -64,7 +64,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
           <p className="font-lao text-[13.5px] text-gray-600 mt-2">
             {isAuto
               ? "ລະບົບກວດ tronscan ຜ່ານ → ໄດ້ລິ້ງ Pro Channel ດ່ຽວນີ້"
-              : "ສລິບຂອງທ່ານເຂົ້າຄິວແລ້ວ admin ຈະກວດແລະສົ່ງລິ້ງໃຫ້ໃນ 5-30 ນາທີ"}
+              : "Slip ຂອງທ່ານເຂົ້າຄິວແລ້ວ admin ຈະກວດແລະສົ່ງລິ້ງໃຫ້ໃນ 5-30 ນາທີ"}
           </p>
         </div>
 
@@ -123,13 +123,13 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
             >
               {isManual ? (
                 <>
-                  <li>ກະລຸນາທັກ admin ໃນ Telegram → ສົ່ງສລິບ/TX Hash ໃຫ້ກວດ</li>
+                  <li>ກະລຸນາທັກ admin ໃນ Telegram → ສົ່ງ Slip/TX Hash ໃຫ້ກວດ</li>
                   <li>ບອກ admin: ແພັກເກັດ + Telegram username</li>
                   <li>Admin ກວດສຳເລັດ → ສົ່ງລິ້ງ Pro Channel</li>
                 </>
               ) : (
                 <>
-                  <li>ສລິບເຂົ້າຄິວ admin ແລ້ວ ✓</li>
+                  <li>Slip ເຂົ້າຄິວ admin ແລ້ວ ✓</li>
                   <li>Admin ກວດທຽບກັບ BCEL One ຫຼື tronscan</li>
                   <li>ສົ່ງລິ້ງ Pro Channel ໃຫ້ທ່ານໃນ Telegram ໃນ 5-30 ນາທີ</li>
                 </>

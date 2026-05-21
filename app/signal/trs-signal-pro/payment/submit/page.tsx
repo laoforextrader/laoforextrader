@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { SubmitForm } from "./SubmitForm"
 
 export const metadata: Metadata = {
-  title: "ສົ່ງສລິບ · TheRocket Signal Pro",
-  description: "ສົ່ງສລິບການໂອນເງິນ ຫຼື TX Hash ເພື່ອຮັບລິ້ງ Pro Channel",
+  title: "ສົ່ງ Slip · TheRocket Signal Pro",
+  description: "ສົ່ງ Slip ການໂອນເງິນ ຫຼື TX Hash ເພື່ອຮັບລິ້ງ Pro Channel",
   robots: { index: false, follow: false },
 }
 

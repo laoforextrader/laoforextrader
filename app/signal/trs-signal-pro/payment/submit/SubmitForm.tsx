@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Send, AlertCircle, Loader2 } from "lucide-react"
 
-const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/laoforextrader"
+const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 const SUBMIT_API = process.env.NEXT_PUBLIC_TRS_SUBMIT_API || ""
 
 const PLANS = [
@@ -105,14 +105,14 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         </div>
 
         <div className="text-center mb-8">
-          <div className="section-eyebrow">📤 ສົ່ງສລິບ</div>
+          <div className="section-eyebrow">📤 ສົ່ງ Slip</div>
           <h1 className="section-title">
-            ສົ່ງສລິບ · <span>ຮັບລິ້ງ Pro</span>
+            ສົ່ງ Slip · <span>ຮັບລິ້ງ Pro</span>
           </h1>
           <p className="section-sub">
             {isUSDT
               ? "ໃສ່ TX Hash → ລະບົບກວດ tronscan ໃຫ້ອັດຕະໂນມັດ"
-              : "ໃສ່ເລກອ້າງອີງສລິບ → admin ກວດແລ້ວສົ່ງລິ້ງໃຫ້ໃນ 5-30 ນາທີ"}
+              : "ໃສ່ເລກອ້າງອີງ Slip → admin ກວດແລ້ວສົ່ງລິ້ງໃຫ້ໃນ 5-30 ນາທີ"}
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
               type="text"
               value={form.payment_ref}
               onChange={(e) => setForm({ ...form, payment_ref: e.target.value })}
-              placeholder={isUSDT ? "0x... ຫຼື transaction hash" : "TXN-... ຫຼື ເລກສລິບ"}
+              placeholder={isUSDT ? "0x... ຫຼື transaction hash" : "TXN-... ຫຼື ເລກ Slip"}
               className="w-full"
               style={{
                 padding: "10px 12px",
@@ -236,7 +236,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
             <div className="font-lao text-[11px] text-gray-500 mt-1">
               {isUSDT
                 ? "ຄັດລອກຈາກ Binance/OKX → Transaction History"
-                : "ເລກອ້າງອີງຢູ່ໃນ slip BCEL One ຫຼື screenshot ສລິບ"}
+                : "ເລກອ້າງອີງຢູ່ໃນ slip BCEL One ຫຼື screenshot Slip"}
             </div>
           </div>
 
@@ -299,7 +299,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
             ) : (
               <>
                 <Send size={15} strokeWidth={2.5} />
-                ສົ່ງສລິບ
+                ສົ່ງ Slip
               </>
             )}
           </button>

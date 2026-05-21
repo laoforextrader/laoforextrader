@@ -14,7 +14,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.laoforextrader.com/signal/trs-signal-pro/payment" },
 }
 
-const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/laoforextrader"
+const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
+
+const PLAN_AMOUNTS: Record<string, { lak: string; usdt: string; label: string }> = {
+  "1m": { lak: "250,000",   usdt: "12",  label: "1 ເດືອນ" },
+  "3m": { lak: "600,000",   usdt: "28",  label: "3 ເດືອນ" },
+  "6m": { lak: "1,100,000", usdt: "51",  label: "6 ເດືອນ" },
+  "1y": { lak: "2,000,000", usdt: "93",  label: "1 ປີ" },
+}
 
 interface Props {
   searchParams: Promise<{ plan?: string }>
@@ -22,7 +29,9 @@ interface Props {
 
 export default async function PaymentPage({ searchParams }: Props) {
   const params = await searchParams
-  const plan = (params.plan || "").toLowerCase()
+  const planRaw = (params.plan || "").toLowerCase()
+  const plan = PLAN_AMOUNTS[planRaw] ? planRaw : ""
+  const amounts = plan ? PLAN_AMOUNTS[plan] : null
 
   return (
     <div style={{ background: "linear-gradient(180deg,#F8FAFF 0%,#EEF3FF 100%)", minHeight: "100vh" }}>
@@ -42,10 +51,10 @@ export default async function PaymentPage({ searchParams }: Props) {
         <div className="text-center mb-10">
           <div className="section-eyebrow">💳 ຊຳລະເງິນ</div>
           <h1 className="section-title">
-            ໂອນ · <span>ສົ່ງສລິບ</span> · ຮັບລິ້ງ Pro
+            ໂອນ · <span>ສົ່ງ Slip</span> · ຮັບລິ້ງ Pro
           </h1>
           <p className="section-sub">
-            ໂອນຜ່ານ BCEL OnePay ຫຼື USDT TRC20 → ສົ່ງສລິບ/TX hash → ໄດ້ Pro Channel ໃນ 5-30 ນາທີ
+            ໂອນຜ່ານ BCEL OnePay ຫຼື USDT TRC20 → ສົ່ງ Slip/TX hash → ໄດ້ Pro Channel ໃນ 5-30 ນາທີ
           </p>
         </div>
 
@@ -106,7 +115,7 @@ export default async function PaymentPage({ searchParams }: Props) {
               ໂອນຈາກ BCEL One app — ໄວ ປອດໄພ ບໍ່ມີຄ່າທຳນຽມ
             </p>
 
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3">
               <div style={{ background: "#fff", padding: 10, borderRadius: 12, border: "1px solid #E2E6F0" }}>
                 <Image
                   src="/payment/bcel-qr.png"
@@ -118,6 +127,48 @@ export default async function PaymentPage({ searchParams }: Props) {
                 />
               </div>
             </div>
+
+            {/* Amount to transfer (dynamic from selected plan) */}
+            {amounts ? (
+              <div
+                className="text-center mb-4"
+                style={{
+                  background: "linear-gradient(135deg,#00A651,#059669)",
+                  borderRadius: 12,
+                  padding: "10px 14px",
+                  boxShadow: "0 6px 16px rgba(0,166,81,0.25)",
+                }}
+              >
+                <div className="font-lao" style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>
+                  ໂອນຈຳນວນ · {amounts.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 800,
+                    color: "#fff",
+                    letterSpacing: "-0.01em",
+                    fontFamily: "JetBrains Mono, monospace",
+                  }}
+                >
+                  {amounts.lak} <span className="font-lao" style={{ fontSize: 14, fontWeight: 600 }}>ກີບ</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="text-center mb-4 font-lao"
+                style={{
+                  background: "#FEF3C7",
+                  border: "1px dashed #FBBF24",
+                  borderRadius: 10,
+                  padding: 10,
+                  fontSize: 12,
+                  color: "#92400E",
+                }}
+              >
+                ↑ ກະລຸນາເລືອກແພັກເກັດດ້ານເທິງເພື່ອເຫັນຈຳນວນເງິນ
+              </div>
+            )}
 
             <div
               style={{
@@ -168,8 +219,8 @@ export default async function PaymentPage({ searchParams }: Props) {
               <ol style={{ listStyle: "decimal", paddingLeft: 18, margin: 0 }}>
                 <li>ສະແກນ QR ດ້ວຍ BCEL One ຫຼື ຄັດລອກເລກບັນຊີ</li>
                 <li>ໃສ່ຈຳນວນຕາມແພັກເກັດ</li>
-                <li>ກົດໂອນ → screenshot ສລິບ</li>
-                <li>ກົດປຸ່ມ "ໂອນແລ້ວ" ຂ້າງລຸ່ມ → ສົ່ງສລິບ</li>
+                <li>ກົດໂອນ → screenshot Slip</li>
+                <li>ກົດປຸ່ມ "ໂອນແລ້ວ" ຂ້າງລຸ່ມ → ສົ່ງ Slip</li>
               </ol>
             </div>
           </div>
@@ -209,7 +260,7 @@ export default async function PaymentPage({ searchParams }: Props) {
               ໂອນ Crypto ຈາກ Binance/OKX/wallet — ລະບົບກວດ TX ໃຫ້ອັດຕະໂນມັດ
             </p>
 
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3">
               <div style={{ background: "#fff", padding: 10, borderRadius: 12, border: "1px solid #E2E6F0" }}>
                 <Image
                   src="/payment/usdt-qr.png"
@@ -220,6 +271,48 @@ export default async function PaymentPage({ searchParams }: Props) {
                 />
               </div>
             </div>
+
+            {/* Amount to transfer (dynamic from selected plan) */}
+            {amounts ? (
+              <div
+                className="text-center mb-4"
+                style={{
+                  background: "linear-gradient(135deg,#26A17B,#10B981)",
+                  borderRadius: 12,
+                  padding: "10px 14px",
+                  boxShadow: "0 6px 16px rgba(38,161,123,0.25)",
+                }}
+              >
+                <div className="font-lao" style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>
+                  ໂອນຈຳນວນ · {amounts.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 800,
+                    color: "#fff",
+                    letterSpacing: "-0.01em",
+                    fontFamily: "JetBrains Mono, monospace",
+                  }}
+                >
+                  ${amounts.usdt} <span className="font-lao" style={{ fontSize: 14, fontWeight: 600 }}>USDT</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="text-center mb-4 font-lao"
+                style={{
+                  background: "#FEF3C7",
+                  border: "1px dashed #FBBF24",
+                  borderRadius: 10,
+                  padding: 10,
+                  fontSize: 12,
+                  color: "#92400E",
+                }}
+              >
+                ↑ ກະລຸນາເລືອກແພັກເກັດດ້ານເທິງເພື່ອເຫັນຈຳນວນເງິນ
+              </div>
+            )}
 
             <div
               style={{
@@ -306,12 +399,20 @@ export default async function PaymentPage({ searchParams }: Props) {
         >
           <h2
             className="font-sans font-extrabold mb-2"
-            style={{ fontSize: 24, color: "#fff", letterSpacing: "-0.01em" }}
+            style={{
+              fontSize: 28,
+              letterSpacing: "-0.02em",
+              background: "linear-gradient(135deg,#FCD34D,#FFFFFF,#A78BFA)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "transparent",
+            }}
           >
             ໂອນແລ້ວ?
           </h2>
           <p className="font-lao text-[13.5px] mb-5" style={{ color: "rgba(255,255,255,0.85)" }}>
-            ກົດປຸ່ມລຸ່ມ → ສົ່ງສລິບ / TX hash → ຮັບລິ້ງ Pro ໃນ 5-30 ນາທີ
+            ກົດປຸ່ມລຸ່ມ → ສົ່ງ Slip / TX hash → ຮັບລິ້ງ Pro ໃນ 5-30 ນາທີ
           </p>
           <Link
             href={`/signal/trs-signal-pro/payment/submit${plan ? `?plan=${plan}` : ""}`}
@@ -331,7 +432,7 @@ export default async function PaymentPage({ searchParams }: Props) {
             }}
           >
             <Check size={17} strokeWidth={3} />
-            ສົ່ງສລິບ / TX Hash
+            ສົ່ງ Slip / TX Hash
             <ArrowRight size={15} strokeWidth={2.5} />
           </Link>
         </div>

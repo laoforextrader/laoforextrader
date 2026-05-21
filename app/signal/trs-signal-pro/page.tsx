@@ -11,17 +11,17 @@ import styles from "./signal.module.css"
 export const revalidate = 60
 
 const FREE_CHANNEL = process.env.NEXT_PUBLIC_TRS_FREE_CHANNEL || "https://t.me/TheRocketSig"
-const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/laoforextrader"
+const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 const SIGNAL_APP_URL = process.env.NEXT_PUBLIC_TRS_APP_URL
 
 export const metadata: Metadata = {
-  title: "TheRocket Signal Pro — ສັນຍານທອງ & Forex ສຳລັບຄົນລາວ",
+  title: "TheRocket Signal Pro — ສັນຍານ GOLD & Forex ສຳລັບຄົນລາວ",
   description:
     "ສັນຍານ Real-time XAUUSD ແລະ Forex pair ຍອດນິຍົມ ສົ່ງເຂົ້າ Telegram ທັນທີ ມີ Entry / TP / SL ຄົບ ວິເຄາະດ້ວຍ Indicator + SMC ພາສາລາວ 100%",
   openGraph: {
     title: "TheRocket Signal Pro",
     description:
-      "ສັນຍານ Real-time ສຳລັບເທຣດທອງ & Forex ສົ່ງເຂົ້າ Telegram ມີເຫດຜົນຄົບ ໃຊ້ Indicator + SMC ພາສາລາວ",
+      "ສັນຍານ Real-time ສຳລັບເທຣດ GOLD (XAUUSD) & Forex ສົ່ງເຂົ້າ Telegram ມີເຫດຜົນຄົບ ໃຊ້ Indicator + SMC ພາສາລາວ",
     images: [{ url: "/og/_default.png", width: 1200, height: 630 }],
   },
   alternates: { canonical: "https://www.laoforextrader.com/signal/trs-signal-pro" },
@@ -32,7 +32,7 @@ const FEATURES = [
   { icon: Brain,     title: "Indicator + SMC",   desc: "ວິເຄາະດ້ວຍ EMA, RSI, MACD ປະສົມ Smart Money Concept" },
   { icon: Target,    title: "Entry / TP / SL",   desc: "ບອກລາຄາທີ່ຄວນເຂົ້າ ແລະ ປິດ ຊັດເຈນ ບໍ່ຕ້ອງເດົາ" },
   { icon: LineChart, title: "ເບິ່ງຄູ່ TradingView", desc: "ສຶກສາກຣາຟໄປພ້ອມໆກັນ ຮຽນຮູ້ກົງລະບົບເທຣດເດີຈິງ" },
-  { icon: Coins,     title: "ທອງ & Forex",       desc: "XAUUSD, EURUSD, GBPUSD, USDJPY ແລະອື່ນໆ" },
+  { icon: Coins,     title: "GOLD & Forex",      desc: "XAUUSD, EURUSD, GBPUSD, USDJPY ແລະອື່ນໆ" },
   { icon: Languages, title: "ພາສາລາວ 100%",       desc: "ບໍ່ຕ້ອງຕີຄວາມພາສາອັງກິດ ເຂົ້າໃຈງ່າຍ" },
 ] as const
 
@@ -96,7 +96,7 @@ export default function TRSSignalProPage() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              ສັນຍານທອງ &amp; Forex · ສຳລັບເທຣດເດີລາວ
+              ສັນຍານ GOLD &amp; Forex · ສຳລັບເທຣດເດີລາວ
             </p>
 
             <p
@@ -531,7 +531,7 @@ export default function TRSSignalProPage() {
             <ol className="font-lao text-[13.5px] text-gray-700 space-y-2.5" style={{ paddingLeft: 18, listStyle: "decimal" }}>
               <li>ກົດປຸ່ມລຸ່ມ → ໄປຫນ້າຊຳລະເງິນ</li>
               <li>ໂອນຜ່ານ BCEL OnePay ຫຼື USDT TRC20</li>
-              <li>ສົ່ງສລິບ / TX hash ຜ່ານຟອມໃນເວັບ</li>
+              <li>ສົ່ງ Slip / TX hash ຜ່ານຟອມໃນເວັບ</li>
               <li>ຮັບລິ້ງ Pro Channel ໃນ 5-30 ນາທີ</li>
             </ol>
             <div className="mt-5 flex flex-wrap gap-2 justify-center">
@@ -640,14 +640,45 @@ function PricingCard({
         </div>
       )}
 
-      <h3 className="font-lao font-bold text-[18px] mb-3" style={{ color: highlight ? "#fff" : "#111827" }}>
+      <h3
+        className="font-lao font-bold text-[20px] mb-3"
+        style={
+          highlight
+            ? {
+                background: "linear-gradient(135deg,#FCD34D,#F472B6,#60A5FA)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                color: "transparent",
+                letterSpacing: "-0.01em",
+              }
+            : { color: "#111827" }
+        }
+      >
         {title}
       </h3>
       <div style={{ marginBottom: 18 }}>
-        <span style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.02em" }}>{price}</span>
+        <span
+          style={
+            highlight
+              ? {
+                  fontSize: 36,
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  background: "linear-gradient(135deg,#FFFFFF,#BFDBFE)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  color: "transparent",
+                }
+              : { fontSize: 34, fontWeight: 800, letterSpacing: "-0.02em" }
+          }
+        >
+          {price}
+        </span>
         <span
           className="font-lao"
-          style={{ fontSize: 12, color: highlight ? "rgba(255,255,255,0.6)" : "#6B7280", marginLeft: 6 }}
+          style={{ fontSize: 12, color: highlight ? "rgba(255,255,255,0.7)" : "#6B7280", marginLeft: 6 }}
         >
           {period}
         </span>
