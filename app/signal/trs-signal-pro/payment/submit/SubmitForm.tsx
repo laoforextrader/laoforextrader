@@ -81,6 +81,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         method: form.method,
         mode: data.auto_approved ? "auto" : "pending",
         ...(data.invite_link ? { invite: encodeURIComponent(data.invite_link) } : {}),
+        ...(data.bot_start_url ? { bot: encodeURIComponent(data.bot_start_url) } : {}),
       })
       router.push(`/signal/trs-signal-pro/payment/success?${params.toString()}`)
     } catch (err) {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { CheckCircle2, Clock, MessageCircle, ArrowRight } from "lucide-react"
+import { CheckCircle2, Clock, MessageCircle, ArrowRight, Bot, Bell } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "ສົ່ງສຳເລັດ · TheRocket Signal Pro",
@@ -10,13 +10,14 @@ export const metadata: Metadata = {
 const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 
 interface Props {
-  searchParams: Promise<{ mode?: string; invite?: string; plan?: string; method?: string }>
+  searchParams: Promise<{ mode?: string; invite?: string; plan?: string; method?: string; bot?: string }>
 }
 
 export default async function PaymentSuccessPage({ searchParams }: Props) {
   const params = await searchParams
   const mode = params.mode || "pending"
   const inviteLink = params.invite ? decodeURIComponent(params.invite) : null
+  const botStartUrl = params.bot ? decodeURIComponent(params.bot) : null
   const isAuto = mode === "auto" && !!inviteLink
   const isManual = mode === "manual"
 
@@ -107,6 +108,64 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
               style={{ wordBreak: "break-all" }}
             >
               {inviteLink}
+            </p>
+          </div>
+        )}
+
+        {/* Bot capture — REQUIRED for auto-DM (invite + reminders + kick) */}
+        {botStartUrl && (
+          <div
+            className="card p-6 text-center mb-4"
+            style={{
+              background: "linear-gradient(135deg,#EFF6FF,#DBEAFE)",
+              border: "2px solid #2563EB",
+            }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Bot size={22} strokeWidth={2.2} style={{ color: "#2563EB" }} />
+              <h2
+                className="font-lao font-bold"
+                style={{ fontSize: 17, color: "#1E3A8A", margin: 0 }}
+              >
+                {isAuto ? "ລົງທະບຽນກັບ Bot (Optional)" : "⚠️ ສຳຄັນ · ລົງທະບຽນກັບ Bot"}
+              </h2>
+            </div>
+            <p
+              className="font-lao mb-4"
+              style={{ fontSize: 13, color: "#1E40AF", lineHeight: 1.65 }}
+            >
+              {isAuto
+                ? "ກົດເພື່ອຮັບແຈ້ງເຕືອນກ່ອນໝົດອາຍຸໂດຍກົງຈາກ Bot (7d / 3d / 1d)"
+                : "ກົດປຸ່ມລຸ່ມ → Bot ຈະຮັບຮູ້ຕົວທ່ານ → Admin ສົ່ງ invite ໃຫ້ໃນແຊັດນີ້ໂດຍກົງເມື່ອ approve"}
+            </p>
+            <a
+              href={botStartUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "linear-gradient(135deg,#2563EB,#1E40AF)",
+                color: "#fff",
+                textDecoration: "none",
+                padding: "13px 26px",
+                borderRadius: 10,
+                fontSize: 14.5,
+                fontWeight: 700,
+                fontFamily: "Noto Sans Lao, sans-serif",
+                boxShadow: "0 8px 20px rgba(37,99,235,0.40)",
+              }}
+            >
+              <Bell size={15} strokeWidth={2.5} />
+              Confirm with Telegram Bot
+              <ArrowRight size={15} strokeWidth={2.5} />
+            </a>
+            <p
+              className="font-lao mt-3"
+              style={{ fontSize: 11, color: "#3730A3", lineHeight: 1.55 }}
+            >
+              ⚠️ ຫາກບໍ່ກົດ · ບອດຈະສົ່ງ invite link ແລະ reminder ໃຫ້ບໍ່ໄດ້ — admin ຕ້ອງສົ່ງເອງ
             </p>
           </div>
         )}
