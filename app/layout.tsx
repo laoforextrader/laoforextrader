@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { MarketTicker } from "@/components/market/MarketTicker"
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"
+import ChatWidgetLoader from "@/components/chat/ChatWidgetLoader"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { JsonLd, organizationLd, websiteLd } from "@/lib/structuredData"
 
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MarketTicker />
           <main style={{ flex: 1, color: "#111827" }}>{children}</main>
           <Footer />
+          <ChatWidgetLoader />
         </SessionProviderWrapper>
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (

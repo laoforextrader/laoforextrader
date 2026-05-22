@@ -22,6 +22,7 @@
 .rocketTitle {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   font-size: 54px;
   font-weight: 800;
@@ -35,6 +36,7 @@
           color: transparent !important;
   animation: rocketGradient 6s linear infinite;
   font-family: 'Inter', 'Noto Sans Lao', sans-serif;
+  text-wrap: balance;
 }
 
 .rocketIconWrap {
@@ -63,8 +65,14 @@
 }
 
 @media (max-width: 768px) {
-  .rocketTitle    { font-size: 38px; gap: 10px; }
-  .rocketIconWrap { width: 40px; height: 40px; }
+  .rocketTitle    { font-size: 32px; gap: 10px; }
+  .rocketIconWrap { width: 36px; height: 36px; }
+  .rocketIconWrap svg { width: 28px !important; height: 28px !important; }
+}
+@media (max-width: 480px) {
+  .rocketTitle    { font-size: 26px; gap: 8px; }
+  .rocketIconWrap { width: 30px; height: 30px; }
+  .rocketIconWrap svg { width: 24px !important; height: 24px !important; }
 }
 
 /* ───────── Override globals.css h1/h2 dark-color rule on dark sections ───────── */
@@ -182,6 +190,22 @@
   border-top: 1px solid #1E1B4B;
   border-bottom: 1px solid #1E1B4B;
   color: #fff;
+}
+
+/* Candlestick chart layer — sits above grid, below orbs/content */
+.featuresCandleWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 30%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 30%, transparent 85%);
+  animation: candleDrift 26s linear infinite;
+}
+
+@keyframes candleDrift {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-3%); }
 }
 
 /* Animated mesh grid lines */

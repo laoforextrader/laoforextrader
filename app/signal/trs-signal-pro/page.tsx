@@ -6,6 +6,7 @@ import {
   LineChart, Brain, Compass, TrendingUp,
 } from "lucide-react"
 import { TradingGlobeCanvas } from "@/components/ui/TradingGlobeCanvas"
+import { CandlestickChartBg } from "@/components/ui/CandlestickChartBg"
 import styles from "./signal.module.css"
 
 export const revalidate = 60
@@ -303,7 +304,28 @@ export default function TRSSignalProPage() {
           <div className="text-center mb-12">
             <div className="section-eyebrow">ຂັ້ນຕອນເຮັດວຽກ</div>
             <h2 className="section-title">
-              ຈາກ <span>Chart</span> ສູ່ Telegram ໃນ <span>5 ວິນາທີ</span>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  background: "none",
+                  WebkitBackgroundClip: "initial",
+                  WebkitTextFillColor: "initial",
+                  color: "inherit",
+                }}
+              >
+                ຈາກ <span>Chart</span> ສູ່ Telegram
+              </span>{" "}
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  background: "none",
+                  WebkitBackgroundClip: "initial",
+                  WebkitTextFillColor: "initial",
+                  color: "inherit",
+                }}
+              >
+                ໃນ <span>5 ວິນາທີ</span>
+              </span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -329,9 +351,12 @@ export default function TRSSignalProPage() {
         </div>
       </section>
 
-      {/* ── FEATURES (CSS mesh + floating orbs, no canvas) ── */}
+      {/* ── FEATURES (CSS mesh + floating orbs + candlestick layer) ── */}
       <section id="features" className={styles.featuresSection}>
         <div className={styles.featuresGrid} />
+        <div className={styles.featuresCandleWrap}>
+          <CandlestickChartBg />
+        </div>
         <div className={`${styles.orb} ${styles.orb1}`} />
         <div className={`${styles.orb} ${styles.orb2}`} />
         <div className={`${styles.orb} ${styles.orb3}`} />

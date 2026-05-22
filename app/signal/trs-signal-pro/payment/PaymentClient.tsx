@@ -17,8 +17,11 @@ const PLAN_AMOUNTS: Record<string, { lak: string; usdt: string; label: string }>
   "1y": { lak: "2,000,000", usdt: "93",  label: "1 ປີ" },
 }
 
+type PayMethod = "bcel" | "usdt"
+
 export default function PaymentClient({ initialPlan }: { initialPlan: string }) {
   const [plan, setPlan] = useState(PLAN_AMOUNTS[initialPlan] ? initialPlan : "")
+  const [method, setMethod] = useState<PayMethod>("bcel")
   const amounts = plan ? PLAN_AMOUNTS[plan] : null
 
   const onSelectPlan = (newPlan: string) => {
@@ -91,9 +94,46 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
           </div>
         </div>
 
-        {/* Payment methods grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Payment method switcher */}
+        <div className="mb-5">
+          <div
+            className="font-lao text-center mb-3"
+            style={{ fontSize: 12, fontWeight: 700, color: "#6B7280", letterSpacing: "0.04em" }}
+          >
+            ເລືອກວິທີຊຳລະ
+          </div>
+          <div
+            role="tablist"
+            aria-label="Payment method"
+            className="grid grid-cols-2 gap-2 max-w-[420px] mx-auto"
+            style={{
+              background: "#fff",
+              border: "1.5px solid #E2E6F0",
+              borderRadius: 12,
+              padding: 4,
+            }}
+          >
+            <MethodTab
+              active={method === "bcel"}
+              onClick={() => setMethod("bcel")}
+              activeColor="#00A651"
+              label="BCEL OnePay"
+              flag="🇱🇦"
+            />
+            <MethodTab
+              active={method === "usdt"}
+              onClick={() => setMethod("usdt")}
+              activeColor="#26A17B"
+              label="USDT TRC20"
+              flag="💎"
+            />
+          </div>
+        </div>
+
+        {/* Payment method card — only the selected one is shown */}
+        <div>
           {/* BCEL */}
+          {method === "bcel" && (
           <div
             style={{
               background: "#fff",
@@ -222,8 +262,10 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
               </ol>
             </div>
           </div>
+          )}
 
           {/* USDT */}
+          {method === "usdt" && (
           <div
             style={{
               background: "#fff",
@@ -383,6 +425,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
               </ol>
             </div>
           </div>
+          )}
         </div>
 
         {/* Main CTA — Submit slip */}
@@ -553,6 +596,44 @@ function PriceBox({
           🎉 {save}
         </div>
       )}
+    </button>
+  )
+}
+
+function MethodTab({
+  active, onClick, activeColor, label, flag,
+}: {
+  active: boolean
+  onClick: () => void
+  activeColor: string
+  label: string
+  flag: string
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className="font-lao transition-all"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        padding: "10px 14px",
+        borderRadius: 10,
+        fontSize: 13.5,
+        fontWeight: 800,
+        cursor: "pointer",
+        border: "none",
+        background: active ? activeColor : "transparent",
+        color: active ? "#fff" : "#374151",
+        boxShadow: active ? `0 6px 14px ${activeColor}40` : "none",
+      }}
+    >
+      <span style={{ fontSize: 16 }}>{flag}</span>
+      {label}
     </button>
   )
 }

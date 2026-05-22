@@ -8,5 +8,8 @@ import { eaStatsSchema } from "./eaStats"
 import { broadcastScheduleSchema } from "./broadcastSchedule"
 import { dailyUpdateSchema } from "./dailyUpdate"
 import { subscriberSchema } from "./subscriber"
+import { chatQuotaSchema } from "./chatQuota"
+import { chatSessionSchema } from "./chatSession"
+import { adminMessageSchema } from "./adminMessage"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, subscriberSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema]

@@ -5,6 +5,7 @@ import {
   CheckCircle2, Clock, MessageCircle, ArrowRight,
   Bell, Loader2, XCircle, Bot,
 } from "lucide-react"
+import { CopyButton } from "@/components/signal/CopyButton"
 
 const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 const STATUS_API_BASE = (() => {
@@ -183,6 +184,7 @@ export function SuccessClient({
               href={inviteLink}
               target="_blank"
               rel="noopener noreferrer"
+              className="animate-pro-cta"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -190,23 +192,49 @@ export function SuccessClient({
                 background: "linear-gradient(135deg,#10B981,#059669)",
                 color: "#fff",
                 textDecoration: "none",
-                padding: "14px 28px",
-                borderRadius: 10,
-                fontSize: 15,
+                padding: "16px 32px",
+                borderRadius: 12,
+                fontSize: 16,
                 fontWeight: 800,
                 fontFamily: "Noto Sans Lao, sans-serif",
-                boxShadow: "0 8px 20px rgba(16,185,129,0.45)",
               }}
             >
               ເຂົ້າ Pro Channel
-              <ArrowRight size={16} strokeWidth={3} />
+              <ArrowRight size={17} strokeWidth={3} />
             </a>
-            <p
-              className="font-lao text-[11px] text-gray-500 mt-4"
-              style={{ wordBreak: "break-all" }}
+
+            {/* Invite URL — green form-style box with copy button */}
+            <div
+              className="mt-5 flex items-center gap-2"
+              style={{
+                background: "#fff",
+                border: "1.5px solid #10B981",
+                borderRadius: 10,
+                padding: "8px 10px",
+                boxShadow: "0 4px 12px rgba(16,185,129,0.15)",
+              }}
             >
-              {inviteLink}
-            </p>
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  fontFamily: "JetBrains Mono, monospace",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#065F46",
+                  background: "#ECFDF5",
+                  border: "1px solid #A7F3D0",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  textAlign: "left",
+                  wordBreak: "break-all",
+                  lineHeight: 1.4,
+                }}
+              >
+                {inviteLink}
+              </div>
+              <CopyButton value={inviteLink} label="" />
+            </div>
           </div>
         )}
 
