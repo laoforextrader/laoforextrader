@@ -81,11 +81,18 @@ export const QUERIES = {
     }
   `,
   latestByCategory: `{
-    "featured": *[_type == "article" && category != "broker"]
-      | order(coalesce(featured, false) desc, publishedAt desc) [0] {
-        _id, title, slug, excerpt, category, publishedAt, readTime,
-        coverImage { asset->{ url } }
-      },
+    "featured": coalesce(
+      *[_type == "article" && featured == true]
+        | order(coalesce(publishedAt, _updatedAt) desc) [0] {
+          _id, title, slug, excerpt, category, publishedAt, readTime,
+          coverImage { asset->{ url } }
+        },
+      *[_type == "article" && category != "broker"]
+        | order(publishedAt desc) [0] {
+          _id, title, slug, excerpt, category, publishedAt, readTime,
+          coverImage { asset->{ url } }
+        }
+    ),
     "education": *[_type == "article" && category == "education"]
       | order(publishedAt desc) [0] {
         _id, title, slug, excerpt, category, publishedAt, readTime,
