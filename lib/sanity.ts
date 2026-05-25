@@ -82,7 +82,7 @@ export const QUERIES = {
   `,
   latestByCategory: `{
     "featured": *[_type == "article" && category != "broker"]
-      | order(publishedAt desc) [0] {
+      | order(coalesce(featured, false) desc, publishedAt desc) [0] {
         _id, title, slug, excerpt, category, publishedAt, readTime,
         coverImage { asset->{ url } }
       },
