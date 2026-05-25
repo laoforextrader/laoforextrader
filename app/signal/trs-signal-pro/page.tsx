@@ -205,7 +205,7 @@ export default function TRSSignalProPage() {
                 color: "rgba(255,255,255,0.88)",
               }}
             >
-              <div style={{ color: "#FCD34D", fontWeight: 700, marginBottom: 6 }}>🟢 BUY XAUUSD · M15</div>
+              <div style={{ color: "#FCD34D", fontWeight: 700, marginBottom: 6 }}>🟢 BUY XAUUSD · H1</div>
               <div>Entry &nbsp; <span style={{ color: "#fff" }}>4488.50</span></div>
               <div>SL &nbsp;&nbsp;&nbsp;&nbsp; <span style={{ color: "#EF4444" }}>4483.20</span> &nbsp;(-53 pips)</div>
               <div>TP &nbsp;&nbsp;&nbsp;&nbsp; <span style={{ color: "#4ADE80" }}>4496.20</span> &nbsp;(+77 pips)</div>
