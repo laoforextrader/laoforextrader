@@ -30,7 +30,8 @@ const WELCOME_DELAY_MS   = 5000
 const ADMIN_POLL_MS      = 3000
 // Auto-close the admin chat after this much inactivity (no new message from
 // either side). A countdown warning shows during the final minute.
-const INACTIVITY_MS      = 30 * 60 * 1000
+// TEMP: 2 min for testing — restore to 30 * 60 * 1000 before going live.
+const INACTIVITY_MS      = 2 * 60 * 1000
 const INACTIVITY_WARN_MS = 60 * 1000
 
 // Human-admin persona shown once the visitor switches to admin mode, so the
