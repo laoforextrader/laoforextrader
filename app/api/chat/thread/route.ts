@@ -5,7 +5,11 @@
 // client just tracks the last one it has seen. Read-only, no-store.
 
 import { NextRequest, NextResponse } from "next/server"
-import { sanityClient } from "@/lib/sanity"
+// Use the TOKENED write client for this read. Anonymous reads (sanityClient,
+// no token) are served from Sanity's cached/eventually-consistent layer and
+// do NOT immediately see freshly-written admin replies — so the poll would
+// miss them. The authenticated client gives strongly-consistent reads.
+import { sanityWrite } from "@/lib/sanityWrite"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -22,7 +26,7 @@ export async function GET(req: NextRequest) {
   const docId = `supportThread.${threadId.replace(/[^a-zA-Z0-9._-]/g, "")}`
 
   try {
-    const doc = await sanityClient.fetch(
+    const doc = await sanityWrite.fetch(
       `*[_id == $id][0]{
         status,
         "messages": messages[role == "admin" && createdAt > $after]{ content, createdAt }
