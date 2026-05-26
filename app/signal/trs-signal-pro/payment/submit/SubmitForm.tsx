@@ -16,6 +16,31 @@ const PLANS = [
 
 type PaymentMethod = "bcel_onepay" | "usdt_trc20"
 
+// POST with a 20s timeout and one automatic retry. The submit API is a
+// separate serverless deployment, so a cold start or a brief mobile-network
+// blip can make Safari throw "Load failed" on the first try — a single retry
+// usually rides over it.
+async function postSubmit(payload: unknown, attempt = 0): Promise<Response> {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 20000)
+  try {
+    return await fetch(SUBMIT_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    })
+  } catch (e) {
+    if (attempt < 1) {
+      await new Promise((r) => setTimeout(r, 1200))
+      return postSubmit(payload, attempt + 1)
+    }
+    throw e
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export function SubmitForm({ initialPlan }: { initialPlan: string }) {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -56,22 +81,18 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         return
       }
 
-      const res = await fetch(SUBMIT_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: form.plan,
-          payment_method: form.method,
-          name: form.name || undefined,
-          telegram_username: form.telegram_username.replace(/^@/, ""),
-          payment_ref: form.payment_ref.trim(),
-          notes: form.notes || undefined,
-        }),
+      const res = await postSubmit({
+        plan: form.plan,
+        payment_method: form.method,
+        name: form.name || undefined,
+        telegram_username: form.telegram_username.replace(/^@/, ""),
+        payment_ref: form.payment_ref.trim(),
+        notes: form.notes || undefined,
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
 
-      if (!res.ok || !data.ok) {
-        setError(data.error || "ສົ່ງບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ ຫຼື ທັກ admin")
+      if (!res.ok || !data?.ok) {
+        setError(data?.error || "ສົ່ງບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ ຫຼື ທັກ admin")
         setSubmitting(false)
         return
       }
@@ -99,7 +120,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
       })
       router.push(`/signal/trs-signal-pro/payment/success?${params.toString()}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ເຄືອຂ່າຍຂັດຂ້ອງ ກະລຸນາລອງໃໝ່")
+      setError("ສົ່ງບໍ່ສຳເລັດ — ສັນຍານອິນເຕີເນັດອາດບໍ່ສະຖຽນ. ກະລຸນາລອງກົດ ສົ່ງ Slip ອີກຄັ້ງ, ຫຼື ທັກ admin ດ້ານລຸ່ມ. ຂໍ້ມູນຂອງທ່ານຍັງຢູ່ຄົບ.")
       setSubmitting(false)
     }
   }
