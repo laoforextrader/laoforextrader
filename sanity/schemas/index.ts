@@ -11,5 +11,6 @@ import { subscriberSchema } from "./subscriber"
 import { chatQuotaSchema } from "./chatQuota"
 import { chatSessionSchema } from "./chatSession"
 import { adminMessageSchema } from "./adminMessage"
+import { supportThreadSchema } from "./supportThread"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema]

@@ -86,6 +86,7 @@ Schemas in `sanity/schemas/index.ts`:
 - `subscriber` — newsletter membership; emails captured at signup persist for future broadcasts
 - `chatQuota` — one doc per `(key, day)` where key = `u:<userId>` or `ip:<ip>`. Patched by `/api/chat` per turn. Cap: guest 10/day, user 30/day, pro 1000/day.
 - `chatSession` — one doc per `(userId, day)` for logged-in users. Appends `{role, content, createdAt}` per turn.
+- `supportThread` — one doc per chat `threadId` (browser UUID). Holds the two-way admin live-chat transcript (`messages[]` of `{role: user|admin}`) + `telegramMsgIds[]` for reply routing. Written by `/api/chat/contact-admin` (visitor) and `/api/telegram/webhook` (admin), read by `/api/chat/thread` (widget polling).
 
 ## AI chat (TheRocket AI)
 
@@ -93,7 +94,13 @@ Floating widget on every page. `app/api/chat/route.ts` streams Claude Haiku 4.5 
 
 The widget (`components/chat/ChatWidget.tsx`) is lazy-loaded via `ChatWidgetLoader.tsx` so it doesn't appear in initial bundle. Mascot is the custom Chibi `RobotIcon.tsx` (sparkle eyes + blush). Web Audio synth in `sounds.ts` plays pop/boop/click — gated by a header toggle, persisted in `localStorage`. Conversation is mirrored to `localStorage` for guest continuity and to `chatSession` Sanity doc for logged-in history. To change tone/scope/pricing answers, edit the system prompt only — keep it byte-stable to maximize cache hits.
 
-**Admin handoff:** the empty state has a "ສົ່ງຂໍ້ຄວາມຫາ admin" button that switches the widget to `mode="admin"`. Send routes to `/api/chat/contact-admin`, which saves the message to Sanity `adminMessage` (status `pending`) and best-effort pushes a Telegram alert to `ADMIN_TELEGRAM_CHAT_ID` if set. After submit, a confirmation card offers deep links to LINE (`NEXT_PUBLIC_TRS_ADMIN_LINE`) and Telegram (`NEXT_PUBLIC_TRS_ADMIN`) — admin replies in whichever channel they prefer.
+**Admin handoff — two-way live chat over Telegram.** The empty state has a "ສົ່ງຂໍ້ຄວາມຫາ admin" button that switches the widget to `mode="admin"`. The visitor gets a stable `threadId` (UUID in localStorage, key `trs-chat-thread-v1`) shared by guests and logged-in users. The round trip:
+
+1. **Visitor → admin:** `/api/chat/contact-admin` upserts a `supportThread` doc (`_id = supportThread.<threadId>`), appends a `{role:"user"}` message, and pushes a Telegram notice to `ADMIN_TELEGRAM_CHAT_ID`. It stores the Telegram `message_id` in the thread's `telegramMsgIds[]` for reply routing.
+2. **Admin → visitor:** the admin **replies (in Telegram) to that notice**. Telegram delivers it to `/api/telegram/webhook` (verified via `X-Telegram-Bot-Api-Secret-Token` == `TELEGRAM_WEBHOOK_SECRET`), which matches `reply_to_message.message_id` against `telegramMsgIds`, finds the thread, and appends a `{role:"admin"}` message.
+3. **Delivery:** the widget polls `/api/chat/thread?threadId=…&after=<ISO>` every 3s (whenever the panel is open and the visitor has engaged admin) and renders new admin messages as `role:"admin"` bubbles.
+
+Register the inbound webhook once with `node scripts/set-telegram-webhook.mjs` (reads `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `PUBLIC_BASE_URL`). The legacy `adminMessage` doc type is still in the schema but is no longer the live path. There is no Vercel cron involved — the webhook is event-driven, so it doesn't touch the 1-cron limit.
 
 `lib/sanity.ts` (read client) exports `QUERIES` — prefer adding queries there over inline GROQ. `lib/sanityWrite.ts` is the authenticated client for mutations.
 

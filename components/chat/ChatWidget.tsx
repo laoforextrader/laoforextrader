@@ -7,7 +7,7 @@ import { RobotIcon } from "./RobotIcon"
 import { playBoop, playClick, startStreamSound, stopStreamSound } from "./sounds"
 
 interface Message {
-  role: "user" | "assistant"
+  role: "user" | "assistant" | "admin"
   content: string
 }
 
@@ -17,12 +17,16 @@ interface QuotaState {
   tier: "guest" | "user" | "pro"
 }
 
-type Mode = "ai" | "admin" | "admin-sent"
+type Mode = "ai" | "admin"
 
 const STORAGE_KEY        = "trs-ai-chat-v1"
 const SOUND_KEY          = "trs-ai-sound-v1"
+const THREAD_KEY         = "trs-chat-thread-v1"
+const ADMIN_ENGAGED_KEY  = "trs-chat-admin-engaged-v1"
+const ADMIN_SEEN_KEY     = "trs-chat-admin-seen-v1"
 const WELCOME_DISMISSED  = "trs-ai-welcome-dismissed-v1"
 const WELCOME_DELAY_MS   = 5000
+const ADMIN_POLL_MS      = 3000
 
 const SUGGESTED: string[] = [
   "Forex ແມ່ນຫຍັງ?",
@@ -42,12 +46,33 @@ export default function ChatWidget() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [soundOn, setSoundOn]         = useState(true)
   const [submittingAdmin, setSubmittingAdmin] = useState(false)
+  // True once the visitor has sent at least one message to admin — gates the
+  // reply polling so we don't hit the API for visitors who never contacted us.
+  const [adminEngaged, setAdminEngaged] = useState(false)
 
-  const bodyRef     = useRef<HTMLDivElement>(null)
-  const inputRef    = useRef<HTMLTextAreaElement>(null)
-  const abortRef    = useRef<AbortController | null>(null)
+  const bodyRef        = useRef<HTMLDivElement>(null)
+  const inputRef       = useRef<HTMLTextAreaElement>(null)
+  const abortRef       = useRef<AbortController | null>(null)
+  const threadIdRef    = useRef<string | null>(null)
+  // ISO timestamp of the newest admin reply we've already shown.
+  const lastAdminSeenRef = useRef<string>("")
 
-  // Restore conversation + sound pref from storage
+  // Stable per-browser thread id (shared by guests + logged-in users).
+  const ensureThreadId = useCallback((): string => {
+    if (threadIdRef.current) return threadIdRef.current
+    let id: string | null = null
+    try { id = localStorage.getItem(THREAD_KEY) } catch {}
+    if (!id) {
+      id = (typeof crypto !== "undefined" && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `t-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      try { localStorage.setItem(THREAD_KEY, id) } catch {}
+    }
+    threadIdRef.current = id
+    return id
+  }, [])
+
+  // Restore conversation + sound pref + admin state from storage
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -57,6 +82,8 @@ export default function ChatWidget() {
       }
       const s = localStorage.getItem(SOUND_KEY)
       if (s === "0") setSoundOn(false)
+      if (localStorage.getItem(ADMIN_ENGAGED_KEY) === "1") setAdminEngaged(true)
+      lastAdminSeenRef.current = localStorage.getItem(ADMIN_SEEN_KEY) ?? ""
     } catch { /* ignore */ }
   }, [])
 
@@ -87,6 +114,41 @@ export default function ChatWidget() {
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 250)
   }, [open, mode])
+
+  // Poll for admin replies while the panel is open and the visitor has
+  // contacted admin. Runs in both AI and admin modes so a reply still arrives
+  // if the visitor wandered back to the AI.
+  useEffect(() => {
+    if (!open || !adminEngaged) return
+    const tid = ensureThreadId()
+    let stopped = false
+
+    const poll = async () => {
+      try {
+        const after = lastAdminSeenRef.current
+        const res = await fetch(
+          `/api/chat/thread?threadId=${encodeURIComponent(tid)}&after=${encodeURIComponent(after)}`,
+          { cache: "no-store" },
+        )
+        if (!res.ok) return
+        const data = await res.json()
+        const incoming = (data?.messages ?? []) as { content: string; createdAt: string }[]
+        if (incoming.length && !stopped) {
+          setMessages((prev) => [
+            ...prev,
+            ...incoming.map((m) => ({ role: "admin" as const, content: m.content })),
+          ])
+          lastAdminSeenRef.current = incoming[incoming.length - 1].createdAt
+          try { localStorage.setItem(ADMIN_SEEN_KEY, lastAdminSeenRef.current) } catch {}
+          if (soundOn) playBoop()
+        }
+      } catch { /* ignore transient poll errors */ }
+    }
+
+    poll()
+    const iv = setInterval(poll, ADMIN_POLL_MS)
+    return () => { stopped = true; clearInterval(iv) }
+  }, [open, adminEngaged, soundOn, ensureThreadId])
 
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false)
@@ -231,6 +293,7 @@ export default function ChatWidget() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
+          threadId: ensureThreadId(),
           path: typeof window !== "undefined" ? window.location.pathname : "",
         }),
       })
@@ -247,7 +310,9 @@ export default function ChatWidget() {
         setError(`ສົ່ງບໍ່ສຳເລັດ (${res.status})${detail ? " — " + detail : ""}`)
         return
       }
-      setMode("admin-sent")
+      // Stay in the room and start polling for the admin's reply.
+      setAdminEngaged(true)
+      try { localStorage.setItem(ADMIN_ENGAGED_KEY, "1") } catch {}
       if (soundOn) playBoop()
     } catch (err: any) {
       // eslint-disable-next-line no-console
@@ -256,7 +321,7 @@ export default function ChatWidget() {
     } finally {
       setSubmittingAdmin(false)
     }
-  }, [submittingAdmin, soundOn])
+  }, [submittingAdmin, soundOn, ensureThreadId])
 
   const onSend = () => {
     if (mode === "admin") sendToAdmin(input)
@@ -291,8 +356,12 @@ export default function ChatWidget() {
       : "ພິມຄຳຖາມ... (Enter ສົ່ງ, Shift+Enter ຂຶ້ນແຖວ)"
   const sendDisabled =
     !input.trim() ||
-    (mode === "ai" ? streaming : submittingAdmin) ||
-    mode === "admin-sent"
+    (mode === "ai" ? streaming : submittingAdmin)
+  const waitingForAdmin =
+    mode === "admin" &&
+    adminEngaged &&
+    messages.length > 0 &&
+    messages[messages.length - 1].role === "user"
 
   return (
     <>
@@ -335,8 +404,8 @@ export default function ChatWidget() {
             <div style={{ minWidth: 0 }}>
               <div className={styles.headerTitle}>TheRocket AI</div>
               <div className={styles.headerSub}>
-                {mode === "admin" || mode === "admin-sent"
-                  ? "ໂໝດຕິດຕໍ່ admin"
+                {mode === "admin"
+                  ? "ລົມກັບ admin ໂດຍກົງ"
                   : "ຜູ້ຊ່ວຍ Forex · ອອນລາຍ 24/7"}
               </div>
             </div>
@@ -370,10 +439,10 @@ export default function ChatWidget() {
         </div>
 
         {/* Admin mode banner */}
-        {(mode === "admin" || mode === "admin-sent") && (
+        {mode === "admin" && (
           <div className={styles.modeBanner}>
             <UserCircle2 size={13} />
-            {mode === "admin" ? "ໂໝດສົ່ງຫາ Admin" : "ສົ່ງສຳເລັດ"}
+            {adminEngaged ? "ກຳລັງລົມກັບ Admin" : "ໂໝດສົ່ງຫາ Admin"}
             <button onClick={exitAdminMode}>
               <ArrowLeft size={11} style={{ marginRight: 2, verticalAlign: -1 }} />
               ກັບໄປ AI
@@ -438,7 +507,12 @@ export default function ChatWidget() {
                     <RobotIcon size={18} state={isStreamingAssistant ? "talking" : "happy"} />
                   </div>
                 )}
-                <div className={`${styles.bubble} ${styles[m.role]}`}>
+                {m.role === "admin" && (
+                  <div className={styles.miniAvatar}>
+                    <UserCircle2 size={18} strokeWidth={2} />
+                  </div>
+                )}
+                <div className={`${styles.bubble} ${m.role === "user" ? styles.user : styles.assistant}`}>
                   {m.role === "assistant" ? (
                     m.content === "" && isStreamingAssistant ? (
                       <div className={styles.typing}><span /><span /><span /></div>
@@ -451,6 +525,11 @@ export default function ChatWidget() {
                         {isStreamingAssistant && <span className={styles.cursor} />}
                       </>
                     )
+                  ) : m.role === "admin" ? (
+                    <>
+                      <div className={styles.adminTag}>Admin</div>
+                      <div style={{ whiteSpace: "pre-wrap" }}>{m.content}</div>
+                    </>
                   ) : (
                     m.content
                   )}
@@ -459,49 +538,37 @@ export default function ChatWidget() {
             )
           })}
 
-          {mode === "admin-sent" && (
-            <div className={styles.confirmCard}>
-              <div className={styles.confirmTitle}>
-                ✅ ສົ່ງສຳເລັດ
-              </div>
-              <div className={styles.confirmDesc}>
-                Admin ໄດ້ຮັບຂໍ້ຄວາມຂອງເຈົ້າແລ້ວ ແລະຈະຕອບກັບໃນ 5-30 ນາທີ ໃນເວລາທຳການ.<br />
-                ກະລຸນາລໍຖ້າ — ບໍ່ຕ້ອງສົ່ງຂໍ້ຄວາມຊໍ້າ.
-              </div>
-              <div className={styles.confirmActions}>
-                <button onClick={exitAdminMode} className={styles.confirmBackBtn}>
-                  ກັບໄປຄຸຍກັບ AI
-                </button>
-              </div>
+          {waitingForAdmin && (
+            <div className={styles.adminWaiting}>
+              <span className={styles.typing}><span /><span /><span /></span>
+              ສົ່ງຫາ admin ແລ້ວ — ກຳລັງລໍຖ້າຄຳຕອບ (ປົກກະຕິ 5–30 ນາທີ ໃນເວລາທຳການ). ສືບຕໍ່ພິມໄດ້ເລີຍ.
             </div>
           )}
 
           {error && <div className={styles.banner}>{error}</div>}
         </div>
 
-        {/* Input — hidden after admin-sent */}
-        {mode !== "admin-sent" && (
-          <div className={styles.inputRow}>
-            <textarea
-              ref={inputRef}
-              className={styles.input}
-              placeholder={inputPlaceholder}
-              value={input}
-              onChange={onTextareaInput}
-              onKeyDown={onKeyDown}
-              disabled={mode === "ai" ? streaming : submittingAdmin}
-              rows={1}
-            />
-            <button
-              className={styles.sendBtn}
-              onClick={onSend}
-              disabled={sendDisabled}
-              aria-label="Send"
-            >
-              <Send size={17} strokeWidth={2.4} />
-            </button>
-          </div>
-        )}
+        {/* Input */}
+        <div className={styles.inputRow}>
+          <textarea
+            ref={inputRef}
+            className={styles.input}
+            placeholder={inputPlaceholder}
+            value={input}
+            onChange={onTextareaInput}
+            onKeyDown={onKeyDown}
+            disabled={mode === "ai" ? streaming : submittingAdmin}
+            rows={1}
+          />
+          <button
+            className={styles.sendBtn}
+            onClick={onSend}
+            disabled={sendDisabled}
+            aria-label="Send"
+          >
+            <Send size={17} strokeWidth={2.4} />
+          </button>
+        </div>
 
         {/* Footer — minimal, no Claude attribution */}
         {mode === "ai" && (

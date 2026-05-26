@@ -1,9 +1,11 @@
-// User-initiated "send message to admin" handoff from the chat widget.
+// User-initiated message to the admin from the chat widget — the visitor side
+// of a two-way live chat.
 //
-// Saves the message to Sanity (`adminMessage` doc) so the admin can
-// see and triage in Studio. Optionally also pushes a Telegram alert
-// to the admin's personal chat if ADMIN_TELEGRAM_CHAT_ID is set —
-// admin then replies via LINE or Telegram directly to the visitor.
+// Appends the message to the visitor's `supportThread` doc (one per browser
+// threadId), then pushes a Telegram alert to the admin. The Telegram
+// message_id is stored on the thread so that when the admin *replies* to that
+// message, /api/telegram/webhook can route the reply back to the right thread.
+// The widget then surfaces the reply by polling /api/chat/thread.
 
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
@@ -13,14 +15,11 @@ import { sanityWrite } from "@/lib/sanityWrite"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-type Channel = "line" | "telegram" | "email" | "any"
-
 interface Body {
   message?: string
+  threadId?: string
   name?: string
   email?: string
-  channel?: Channel
-  contactHandle?: string
   path?: string
 }
 
@@ -30,20 +29,36 @@ function getClientIp(req: NextRequest): string {
   return req.headers.get("x-real-ip") ?? "unknown"
 }
 
-async function notifyAdminTelegram(text: string): Promise<void> {
+function key(): string {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+function esc(s: string): string {
+  return s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))
+}
+
+// Returns the sent message_id (so we can map replies back), or null.
+async function notifyAdminTelegram(text: string): Promise<number | null> {
   const token  = process.env.TELEGRAM_BOT_TOKEN
   const chatId = process.env.ADMIN_TELEGRAM_CHAT_ID
-  if (!token || !chatId) return
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
-    }),
-  }).catch(() => null)
+  if (!token || !chatId) return null
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+    })
+    const data = await res.json().catch(() => null)
+    const mid = data?.result?.message_id
+    return typeof mid === "number" ? mid : null
+  } catch {
+    return null
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -52,40 +67,50 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
-  const message = (body.message ?? "").trim().slice(0, 2000)
-  if (!message) {
-    return NextResponse.json({ error: "message required" }, { status: 400 })
-  }
+  const message  = (body.message ?? "").trim().slice(0, 2000)
+  const threadId = (body.threadId ?? "").trim().slice(0, 80)
+  if (!message)  return NextResponse.json({ error: "message required" },  { status: 400 })
+  if (!threadId) return NextResponse.json({ error: "threadId required" }, { status: 400 })
 
   const session = await getServerSession(authOptions)
   const userId  = (session?.user as any)?.id as string | undefined
-  const sName   = session?.user?.name  ?? null
-  const sEmail  = session?.user?.email ?? null
+  const name    = (body.name  ?? session?.user?.name  ?? "").slice(0, 80)  || undefined
+  const email   = (body.email ?? session?.user?.email ?? "").slice(0, 200) || undefined
   const ip      = getClientIp(req)
   const ua      = req.headers.get("user-agent") ?? ""
+  const path    = (body.path ?? "").slice(0, 200) || undefined
   const now     = new Date().toISOString()
 
-  const name          = (body.name  ?? sName  ?? "").slice(0, 80) || undefined
-  const email         = (body.email ?? sEmail ?? "").slice(0, 200) || undefined
-  const channel       = (body.channel ?? "any") as Channel
-  const contactHandle = (body.contactHandle ?? "").slice(0, 200) || undefined
-  const path          = (body.path ?? "").slice(0, 200) || undefined
+  // Sanity _id must be alphanumeric/dash/dot/underscore — a UUID threadId is fine.
+  const docId = `supportThread.${threadId.replace(/[^a-zA-Z0-9._-]/g, "")}`
 
   try {
-    await sanityWrite.create({
-      _type: "adminMessage",
-      message,
-      name,
-      email,
-      userId,
-      channel,
-      contactHandle,
-      path,
-      userAgent: ua,
-      ip,
-      status: "pending",
+    await sanityWrite.createIfNotExists({
+      _id: docId,
+      _type: "supportThread",
+      threadId,
+      status: "open",
       createdAt: now,
+      messages: [],
+      telegramMsgIds: [],
     })
+
+    const meta: Record<string, unknown> = { status: "open", lastUserAt: now }
+    if (path) meta.path = path
+    if (ua)   meta.userAgent = ua
+    if (ip)   meta.ip = ip
+
+    const setIfMissing: Record<string, unknown> = {}
+    if (name)   setIfMissing.name = name
+    if (email)  setIfMissing.email = email
+    if (userId) setIfMissing.userId = userId
+
+    await sanityWrite
+      .patch(docId)
+      .setIfMissing({ messages: [], telegramMsgIds: [], ...setIfMissing })
+      .set(meta)
+      .append("messages", [{ _key: key(), role: "user", content: message, createdAt: now }])
+      .commit()
   } catch (err: any) {
     const detail = err?.message ?? String(err)
     console.error("[contact-admin] sanity write failed", {
@@ -101,15 +126,26 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Best-effort admin notification — never block the user on failure
+  // Best-effort admin notification. The HTML "Reply" hint matters: the admin
+  // must reply TO this message in Telegram for the webhook to route it back.
+  const who = name ? `<b>${esc(name)}</b>` : "<b>(guest)</b>"
   const summary =
-    `<b>📨 ຂໍ້ຄວາມໃໝ່ຈາກເວັບ</b>\n` +
-    `${name ? `<b>${name}</b>` : "(guest)"}` +
-    `${email ? ` &lt;${email}&gt;` : ""}\n` +
-    `${contactHandle ? `<b>Reply via:</b> ${channel} — ${contactHandle}\n` : ""}` +
-    `${path ? `<b>Page:</b> ${path}\n` : ""}` +
-    `\n<i>${message.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))}</i>`
-  notifyAdminTelegram(summary).catch(() => null)
+    `<b>💬 ຂໍ້ຄວາມໃໝ່ຈາກເວັບ</b>\n` +
+    `${who}${email ? ` &lt;${esc(email)}&gt;` : ""}\n` +
+    `${path ? `<b>ໜ້າ:</b> ${esc(path)}\n` : ""}` +
+    `\n<i>${esc(message)}</i>\n` +
+    `\n↩️ <b>ຕອບ:</b> Reply ໃສ່ຂໍ້ຄວາມນີ້ ແລ້ວພິມຄຳຕອບ — ລະບົບຈະສົ່ງກັບໃຫ້ລູກຄ້າໃນເວັບ.`
+
+  const mid = await notifyAdminTelegram(summary)
+  if (mid !== null) {
+    // Keep the id so the inbound webhook can match the admin's reply.
+    sanityWrite
+      .patch(docId)
+      .setIfMissing({ telegramMsgIds: [] })
+      .append("telegramMsgIds", [mid])
+      .commit()
+      .catch(() => null)
+  }
 
   return NextResponse.json({ ok: true })
 }
