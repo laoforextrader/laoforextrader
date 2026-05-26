@@ -28,6 +28,12 @@ const WELCOME_DISMISSED  = "trs-ai-welcome-dismissed-v1"
 const WELCOME_DELAY_MS   = 5000
 const ADMIN_POLL_MS      = 3000
 
+// Human-admin persona shown once the visitor switches to admin mode, so the
+// chat feels like talking to a real person (not the AI). Swap the photo by
+// replacing /public/admin-souk.jpg.
+const ADMIN_NAME   = "Souk Manivong"
+const ADMIN_AVATAR = "/admin-souk.jpg"
+
 const SUGGESTED: string[] = [
   "Forex ແມ່ນຫຍັງ?",
   "Lot size ຄິດແບບໃດ?",
@@ -399,13 +405,21 @@ export default function ChatWidget() {
         <div className={styles.header}>
           <div className={styles.headerInner}>
             <div className={styles.avatar}>
-              <RobotIcon size={26} state={streaming ? "talking" : "happy"} />
+              {mode === "admin" ? (
+                <img src={ADMIN_AVATAR} alt={ADMIN_NAME} className={styles.avatarImg} />
+              ) : (
+                <RobotIcon size={26} state={streaming ? "talking" : "happy"} />
+              )}
             </div>
             <div style={{ minWidth: 0 }}>
-              <div className={styles.headerTitle}>TheRocket AI</div>
+              {mode === "admin" ? (
+                <div className={styles.adminName}>{ADMIN_NAME}</div>
+              ) : (
+                <div className={styles.headerTitle}>TheRocket AI</div>
+              )}
               <div className={styles.headerSub}>
                 {mode === "admin"
-                  ? "ລົມກັບ admin ໂດຍກົງ"
+                  ? "ແອັດມິນ · ອອນລາຍ"
                   : "ຜູ້ຊ່ວຍ Forex · ອອນລາຍ 24/7"}
               </div>
             </div>
@@ -509,7 +523,7 @@ export default function ChatWidget() {
                 )}
                 {m.role === "admin" && (
                   <div className={styles.miniAvatar}>
-                    <UserCircle2 size={18} strokeWidth={2} />
+                    <img src={ADMIN_AVATAR} alt={ADMIN_NAME} className={styles.avatarImg} />
                   </div>
                 )}
                 <div className={`${styles.bubble} ${m.role === "user" ? styles.user : styles.assistant}`}>
@@ -527,7 +541,7 @@ export default function ChatWidget() {
                     )
                   ) : m.role === "admin" ? (
                     <>
-                      <div className={styles.adminTag}>Admin</div>
+                      <div className={styles.adminTag}>{ADMIN_NAME}</div>
                       <div style={{ whiteSpace: "pre-wrap" }}>{m.content}</div>
                     </>
                   ) : (

@@ -194,6 +194,22 @@
   box-shadow: 0 0 6px rgba(74,222,128,0.7);
 }
 
+/* Real-person admin avatar fills the circular .avatar / .miniAvatar slots */
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+/* Plain (non-shimmer) name for the human admin persona */
+.adminName {
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.2;
+  color: #fff;
+}
+
 .headerTitle {
   font-weight: 800;
   font-size: 15px;
