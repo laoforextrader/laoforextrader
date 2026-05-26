@@ -24,9 +24,14 @@ const SOUND_KEY          = "trs-ai-sound-v1"
 const THREAD_KEY         = "trs-chat-thread-v1"
 const ADMIN_ENGAGED_KEY  = "trs-chat-admin-engaged-v1"
 const ADMIN_SEEN_KEY     = "trs-chat-admin-seen-v1"
+const ADMIN_ACTIVITY_KEY = "trs-chat-admin-activity-v1"
 const WELCOME_DISMISSED  = "trs-ai-welcome-dismissed-v1"
 const WELCOME_DELAY_MS   = 5000
 const ADMIN_POLL_MS      = 3000
+// Auto-close the admin chat after this much inactivity (no new message from
+// either side). A countdown warning shows during the final minute.
+const INACTIVITY_MS      = 30 * 60 * 1000
+const INACTIVITY_WARN_MS = 60 * 1000
 
 // Human-admin persona shown once the visitor switches to admin mode, so the
 // chat feels like talking to a real person (not the AI). Swap the photo by
@@ -55,6 +60,10 @@ export default function ChatWidget() {
   // True once the visitor has sent at least one message to admin — gates the
   // reply polling so we don't hit the API for visitors who never contacted us.
   const [adminEngaged, setAdminEngaged] = useState(false)
+  // Seconds left before auto-close, during the final-minute warning (else null).
+  const [inactivityLeft, setInactivityLeft] = useState<number | null>(null)
+  // Shown after an inactivity auto-close, until the visitor interacts again.
+  const [closedNote, setClosedNote] = useState(false)
 
   const bodyRef        = useRef<HTMLDivElement>(null)
   const inputRef       = useRef<HTMLTextAreaElement>(null)
@@ -62,6 +71,8 @@ export default function ChatWidget() {
   const threadIdRef    = useRef<string | null>(null)
   // ISO timestamp of the newest admin reply we've already shown.
   const lastAdminSeenRef = useRef<string>("")
+  // Epoch ms of the last message activity (sent or received) in admin mode.
+  const lastActivityRef = useRef<number>(0)
 
   // Stable per-browser thread id (shared by guests + logged-in users).
   const ensureThreadId = useCallback((): string => {
@@ -78,6 +89,36 @@ export default function ChatWidget() {
     return id
   }, [])
 
+  // Reset the inactivity countdown — called on any message activity.
+  const bumpActivity = useCallback(() => {
+    const now = Date.now()
+    lastActivityRef.current = now
+    try { localStorage.setItem(ADMIN_ACTIVITY_KEY, String(now)) } catch {}
+    setInactivityLeft(null)
+  }, [])
+
+  // Close the admin chat: wipe the conversation, drop the thread, and return
+  // the widget to a fresh AI state. The next admin contact starts a new thread.
+  const closeAdminChat = useCallback(() => {
+    setMessages([])
+    setInput("")
+    setMode("ai")
+    setAdminEngaged(false)
+    setInactivityLeft(null)
+    setError(null)
+    setClosedNote(true)
+    threadIdRef.current = null
+    lastAdminSeenRef.current = ""
+    lastActivityRef.current = 0
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(THREAD_KEY)
+      localStorage.removeItem(ADMIN_ENGAGED_KEY)
+      localStorage.removeItem(ADMIN_SEEN_KEY)
+      localStorage.removeItem(ADMIN_ACTIVITY_KEY)
+    } catch {}
+  }, [])
+
   // Restore conversation + sound pref + admin state from storage
   useEffect(() => {
     try {
@@ -90,6 +131,7 @@ export default function ChatWidget() {
       if (s === "0") setSoundOn(false)
       if (localStorage.getItem(ADMIN_ENGAGED_KEY) === "1") setAdminEngaged(true)
       lastAdminSeenRef.current = localStorage.getItem(ADMIN_SEEN_KEY) ?? ""
+      lastActivityRef.current = Number(localStorage.getItem(ADMIN_ACTIVITY_KEY)) || 0
     } catch { /* ignore */ }
   }, [])
 
@@ -146,6 +188,7 @@ export default function ChatWidget() {
           ])
           lastAdminSeenRef.current = incoming[incoming.length - 1].createdAt
           try { localStorage.setItem(ADMIN_SEEN_KEY, lastAdminSeenRef.current) } catch {}
+          bumpActivity() // a fresh admin reply keeps the session alive
           if (soundOn) playBoop()
         }
       } catch { /* ignore transient poll errors */ }
@@ -154,7 +197,26 @@ export default function ChatWidget() {
     poll()
     const iv = setInterval(poll, ADMIN_POLL_MS)
     return () => { stopped = true; clearInterval(iv) }
-  }, [open, adminEngaged, soundOn, ensureThreadId])
+  }, [open, adminEngaged, soundOn, ensureThreadId, bumpActivity])
+
+  // Inactivity auto-close: while engaged with admin, tick every second. Show a
+  // countdown during the final minute; wipe + close the chat at zero. Runs even
+  // when the panel is closed so an abandoned session still times out.
+  useEffect(() => {
+    if (!adminEngaged) { setInactivityLeft(null); return }
+    if (!lastActivityRef.current) {
+      lastActivityRef.current = Date.now()
+      try { localStorage.setItem(ADMIN_ACTIVITY_KEY, String(lastActivityRef.current)) } catch {}
+    }
+    const tick = () => {
+      const remaining = INACTIVITY_MS - (Date.now() - lastActivityRef.current)
+      if (remaining <= 0) { closeAdminChat(); return }
+      setInactivityLeft(remaining <= INACTIVITY_WARN_MS ? Math.ceil(remaining / 1000) : null)
+    }
+    tick()
+    const iv = setInterval(tick, 1000)
+    return () => clearInterval(iv)
+  }, [adminEngaged, closeAdminChat])
 
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false)
@@ -180,6 +242,7 @@ export default function ChatWidget() {
     if (!trimmed || streaming) return
 
     setError(null)
+    setClosedNote(false)
     if (soundOn) {
       playClick()
       startStreamSound() // continuous hum begins immediately
@@ -292,6 +355,7 @@ export default function ChatWidget() {
     // Show the message as a "user" bubble so the conversation feels continuous
     setMessages((prev) => [...prev, { role: "user", content: trimmed }])
     setInput("")
+    bumpActivity() // customer activity resets the inactivity timer
 
     try {
       const res = await fetch("/api/chat/contact-admin", {
@@ -327,7 +391,7 @@ export default function ChatWidget() {
     } finally {
       setSubmittingAdmin(false)
     }
-  }, [submittingAdmin, soundOn, ensureThreadId])
+  }, [submittingAdmin, soundOn, ensureThreadId, bumpActivity])
 
   const onSend = () => {
     if (mode === "admin") sendToAdmin(input)
@@ -348,6 +412,8 @@ export default function ChatWidget() {
   const enterAdminMode = () => {
     setMode("admin")
     setError(null)
+    setClosedNote(false)
+    bumpActivity()
     setTimeout(() => inputRef.current?.focus(), 100)
   }
   const exitAdminMode = () => {
@@ -466,6 +532,11 @@ export default function ChatWidget() {
 
         {/* Body */}
         <div className={styles.body} ref={bodyRef}>
+          {closedNote && (
+            <div className={styles.closedNote}>
+              ແຊັດກັບ admin ປິດແລ້ວ ເພາະບໍ່ມີການເຄື່ອນໄຫວ 30 ນາທີ. ເລີ່ມໃໝ່ໄດ້ສະເໝີ.
+            </div>
+          )}
           {isEmpty && (
             <>
               <div className={styles.welcomeIntro}>
@@ -552,10 +623,17 @@ export default function ChatWidget() {
             )
           })}
 
-          {waitingForAdmin && (
+          {waitingForAdmin && inactivityLeft == null && (
             <div className={styles.adminWaiting}>
               <span className={styles.typing}><span /><span /><span /></span>
               ສົ່ງຫາ admin ແລ້ວ — ກຳລັງລໍຖ້າຄຳຕອບ (ປົກກະຕິ 5–30 ນາທີ ໃນເວລາທຳການ). ສືບຕໍ່ພິມໄດ້ເລີຍ.
+            </div>
+          )}
+
+          {inactivityLeft != null && (
+            <div className={styles.closeWarn}>
+              ⏳ ບໍ່ມີການເຄື່ອນໄຫວ — ແຊັດຈະປິດໃນ <b>{inactivityLeft}</b> ວິນາທີ.<br />
+              ພິມຂໍ້ຄວາມເພື່ອສືບຕໍ່ການສົນທະນາ.
             </div>
           )}
 
