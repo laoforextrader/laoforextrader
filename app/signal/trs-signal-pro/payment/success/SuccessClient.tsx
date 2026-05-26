@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import {
   CheckCircle2, Clock, MessageCircle, ArrowRight,
-  Bell, Loader2, XCircle, Bot,
+  Loader2, XCircle,
 } from "lucide-react"
 import { CopyButton } from "@/components/signal/CopyButton"
 
@@ -345,79 +345,19 @@ export function SuccessClient({
           </div>
         )}
 
-        {/* Telegram delivery CTA — prominent because Telegram bots can
-            only DM users who have started the bot at least once. */}
+        {/* Telegram delivery — minimal gray hint (link still starts the bot) */}
         {botStartUrl && !isRejected && (
-          <div
-            className="mt-6 p-6 text-center"
-            style={{
-              background: "linear-gradient(135deg,#0088cc,#005f8a)",
-              borderRadius: 16,
-              color: "#fff",
-              boxShadow: "0 14px 40px rgba(0,136,204,0.30)",
-            }}
-          >
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Bot size={26} strokeWidth={2.4} style={{ color: "#fff" }} />
-              <h2
-                className="font-lao font-bold"
-                style={{ fontSize: 19, color: "#fff", margin: 0 }}
-              >
-                ຮັບລິ້ງເຂົ້າ Telegram ໂດຍກົງ
-              </h2>
-            </div>
-            <p
-              className="font-lao"
-              style={{
-                fontSize: 13,
-                color: "rgba(255,255,255,0.92)",
-                lineHeight: 1.65,
-                marginBottom: 16,
-              }}
-            >
-              ກົດປຸ່ມລຸ່ມ → ກົດ <strong>[Start]</strong> ໃນ Telegram ຄັ້ງດຽວ →
-              <br />
-              Bot ຈະສົ່ງລິ້ງ Pro Channel + ແຈ້ງເຕືອນກ່ອນໝົດອາຍຸໃຫ້ທ່ານໂດຍກົງ
-            </p>
+          <p className="mt-6 text-center">
             <a
               href={botStartUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: "#fff",
-                color: "#0088cc",
-                textDecoration: "none",
-                padding: "13px 28px",
-                borderRadius: 10,
-                fontSize: 15,
-                fontWeight: 800,
-                fontFamily: "Noto Sans Lao, sans-serif",
-                boxShadow: "0 8px 20px rgba(0,0,0,0.20)",
-              }}
-            >
-              <Bell size={16} strokeWidth={2.5} />
-              ເປີດ Telegram Bot
-              <ArrowRight size={15} strokeWidth={2.5} />
-            </a>
-            <p
               className="font-lao"
-              style={{
-                fontSize: 11,
-                color: "rgba(255,255,255,0.70)",
-                marginTop: 14,
-                lineHeight: 1.55,
-              }}
+              style={{ color: "#6B7280", fontSize: 13, textDecoration: "underline" }}
             >
-              ⚠️ ເຄີຍໃຊ້ bot ນີ້ມາແລ້ວ? ບໍ່ເຫັນປຸ່ມ [Start]? →
-              <br />
-              ພິມ <code style={{ background: "rgba(255,255,255,0.18)", padding: "1px 6px", borderRadius: 4, fontFamily: "JetBrains Mono, monospace" }}>
-                /start p{pendingId ?? "X"}
-              </code> ໃນແຊັດບອດ
-            </p>
-          </div>
+              ກົດ start Telegram Bot ເພື່ອເຂົ້າອັດຕະໂນມັດ
+            </a>
+          </p>
         )}
 
         <div className="mt-8 text-center">

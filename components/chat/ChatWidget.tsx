@@ -30,8 +30,7 @@ const WELCOME_DELAY_MS   = 5000
 const ADMIN_POLL_MS      = 3000
 // Auto-close the admin chat after this much inactivity (no new message from
 // either side). A countdown warning shows during the final minute.
-// TEMP: 2 min for testing — restore to 30 * 60 * 1000 before going live.
-const INACTIVITY_MS      = 2 * 60 * 1000
+const INACTIVITY_MS      = 15 * 60 * 1000
 const INACTIVITY_WARN_MS = 60 * 1000
 
 // Human-admin persona shown once the visitor switches to admin mode, so the
@@ -535,7 +534,7 @@ export default function ChatWidget() {
         <div className={styles.body} ref={bodyRef}>
           {closedNote && (
             <div className={styles.closedNote}>
-              ແຊັດກັບ admin ປິດແລ້ວ ເພາະບໍ່ມີການເຄື່ອນໄຫວ 30 ນາທີ. ເລີ່ມໃໝ່ໄດ້ສະເໝີ.
+              ແຊັດກັບ admin ປິດແລ້ວ ເພາະບໍ່ມີການເຄື່ອນໄຫວ {INACTIVITY_MS / 60000} ນາທີ. ເລີ່ມໃໝ່ໄດ້ສະເໝີ.
             </div>
           )}
           {isEmpty && (
