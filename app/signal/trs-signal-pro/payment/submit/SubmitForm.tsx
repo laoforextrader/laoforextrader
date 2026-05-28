@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Send, AlertCircle, Loader2 } from "lucide-react"
 
 const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
-const SUBMIT_API = process.env.NEXT_PUBLIC_TRS_SUBMIT_API || ""
+
+// Same-origin proxy (app/api/signal/submit) — forwards to the separate
+// trs-signal-api backend server-to-server. Keeping the browser leg same-origin
+// removes the CORS preflight + cross-region hop that caused "Load failed" on
+// flaky mobile networks.
+const SUBMIT_API = "/api/signal/submit"
 
 const PLANS = [
   { value: "1m", label: "1 ເດືອນ · 250,000 ກີບ · $12" },
@@ -16,10 +21,10 @@ const PLANS = [
 
 type PaymentMethod = "bcel_onepay" | "usdt_trc20"
 
-// POST with a 20s timeout and one automatic retry. The submit API is a
-// separate serverless deployment, so a cold start or a brief mobile-network
-// blip can make Safari throw "Load failed" on the first try — a single retry
-// usually rides over it.
+// POST with a 20s timeout and one automatic retry. The call is same-origin
+// (proxied through /api/signal/submit), so throws are rare — but a brief
+// mobile-network blip can still make Safari throw "Load failed" on the first
+// try, and a single retry usually rides over it.
 async function postSubmit(payload: unknown, attempt = 0): Promise<Response> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), 20000)
@@ -70,17 +75,6 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
     setSubmitting(true)
 
     try {
-      if (!SUBMIT_API) {
-        // No backend wired yet — redirect to success with a "pending manual review" mode
-        const params = new URLSearchParams({
-          plan: form.plan,
-          method: form.method,
-          mode: "manual",
-        })
-        router.push(`/signal/trs-signal-pro/payment/success?${params.toString()}`)
-        return
-      }
-
       const res = await postSubmit({
         plan: form.plan,
         payment_method: form.method,
@@ -90,6 +84,17 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         notes: form.notes || undefined,
       })
       const data = await res.json().catch(() => null)
+
+      // Backend not wired (e.g. local dev) — fall back to manual review flow.
+      if (res.status === 503 && data?.not_configured) {
+        const params = new URLSearchParams({
+          plan: form.plan,
+          method: form.method,
+          mode: "manual",
+        })
+        router.push(`/signal/trs-signal-pro/payment/success?${params.toString()}`)
+        return
+      }
 
       if (!res.ok || !data?.ok) {
         setError(data?.error || "ສົ່ງບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ ຫຼື ທັກ admin")

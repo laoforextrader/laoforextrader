@@ -8,12 +8,10 @@ import {
 import { CopyButton } from "@/components/signal/CopyButton"
 
 const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
-const STATUS_API_BASE = (() => {
-  const url = process.env.NEXT_PUBLIC_TRS_SUBMIT_API
-  if (!url) return ""
-  // Submit endpoint is /api/payment/submit; status is /api/payment/status
-  return url.replace(/\/api\/payment\/submit\/?$/, "")
-})()
+// Same-origin status proxy (app/api/signal/status) — forwards to the backend's
+// /api/payment/status server-to-server, keeping the poll off the flaky
+// cross-origin path.
+const STATUS_API = "/api/signal/status"
 
 const POLL_INTERVAL_MS = 5000
 const MAX_POLL_MINUTES = 60 // stop polling after 1h; user can refresh page
@@ -45,14 +43,14 @@ export function SuccessClient({
   // Poll status until approved/rejected/timeout
   useEffect(() => {
     if (status !== "pending") return
-    if (!pendingId || !publicToken || !STATUS_API_BASE) return
+    if (!pendingId || !publicToken) return
 
     const maxPolls = Math.floor((MAX_POLL_MINUTES * 60 * 1000) / POLL_INTERVAL_MS)
 
     const tick = async () => {
       try {
         const res = await fetch(
-          `${STATUS_API_BASE}/api/payment/status?id=${pendingId}&token=${encodeURIComponent(publicToken)}`,
+          `${STATUS_API}?id=${pendingId}&token=${encodeURIComponent(publicToken)}`,
         )
         const data = await res.json()
         if (!res.ok || !data.ok) return
@@ -94,7 +92,7 @@ export function SuccessClient({
 
   const isApproved = status === "approved"
   const isRejected = status === "rejected"
-  const isPolling  = status === "pending" && !!pendingId && !!publicToken && !!STATUS_API_BASE
+  const isPolling  = status === "pending" && !!pendingId && !!publicToken
 
   return (
     <div style={{ background: "linear-gradient(180deg,#F8FAFF 0%,#EEF3FF 100%)", minHeight: "100vh" }}>
