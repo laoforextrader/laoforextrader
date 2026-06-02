@@ -66,7 +66,10 @@ async function dispatchOne(s: BroadcastSchedule): Promise<BroadcastResult> {
   if (s.template !== "ea-summary") {
     return { key: s.key, ok: false, status: `unknown template ${s.template}` }
   }
-  if (s.period !== "daily" && s.period !== "weekly" && s.period !== "monthly") {
+  if (s.period === "daily") {
+    return { key: s.key, ok: false, status: "daily broadcasts are disabled (weekly + monthly only)" }
+  }
+  if (s.period !== "weekly" && s.period !== "monthly") {
     return { key: s.key, ok: false, status: `unknown period ${s.period}` }
   }
   try {
