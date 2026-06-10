@@ -34,7 +34,7 @@ export const broadcastScheduleSchema = {
       type: "string",
       options: {
         list: [
-          { title: "EA Summary (SGride + MegiHedge)", value: "ea-summary" },
+          { title: "EA Summary (SGride + MegiHedge v2.0)", value: "ea-summary" },
         ],
         layout: "radio",
       },

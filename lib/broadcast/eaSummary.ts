@@ -42,8 +42,8 @@ const EAS: EAConfig[] = [
   },
   {
     eaId: "megihedge",
-    name: "TheRocket EA MegiHedge",
-    shortName: "MegiHedge",
+    name: "TheRocket EA MegiHedge v2.0",
+    shortName: "MegiHedge v2.0",
     icon: "zap",
     theme: "purple",
     strategy: "Hedging",
@@ -51,6 +51,10 @@ const EAS: EAConfig[] = [
     fallbacks: { daily: "+3.1%", weekly: "+18.3%", monthly: "+22.4%", total: "+320%" },
   },
 ]
+
+// MegiHedge v2.0 has not launched yet — show "Coming Soon" in broadcasts
+// instead of live profit numbers. Flip to false when the EA goes live.
+const MEGI_COMING_SOON = true
 
 function pad(n: number): string { return n < 10 ? `0${n}` : String(n) }
 function ddmmyyyy(d: Date): string {
@@ -94,6 +98,16 @@ function buildText(
   const megiLine = megiAmount
     ? `   ${periodLabel}: ${megiPct} (${megiAmount})`
     : `   ${periodLabel}: ${megiPct}`
+  const megiBlock = MEGI_COMING_SOON
+    ? [
+        `⚡ MegiHedge v2.0`,
+        `   🔜 ກຳລັງຈະເປີດໂຕ (Coming Soon)`,
+      ]
+    : [
+        `⚡ MegiHedge v2.0`,
+        megiLine,
+        `   ລວມ: ${megiTotal}`,
+      ]
   return [
     `📊 ${title} TheRocket EA · ${dateStr}`,
     ``,
@@ -101,9 +115,7 @@ function buildText(
     sgrideLine,
     `   ລວມ: ${sgrideTotal}`,
     ``,
-    `⚡ MegiHedge`,
-    megiLine,
-    `   ລວມ: ${megiTotal}`,
+    ...megiBlock,
     ``,
     `▶ ເບິ່ງລາຍລະອຽດ: https://www.laoforextrader.com/ea-system`,
   ].join("\n")

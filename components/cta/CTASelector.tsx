@@ -84,11 +84,12 @@ export default async function CTASelector({ type }: Props) {
     const lastMonth = live?.monthlyReturns?.length ? live.monthlyReturns[live.monthlyReturns.length - 1] : null
     return (
       <EaCTA
-        name="MegiHedge"
+        name="MegiHedge v2.0"
         totalGain={fmtPct(live?.profitTotalPct, '+247%')}
         monthlyGain={fmtMonthly(lastMonth?.profitPct, '22.1')}
         sub="Hedging · ກຳໄລໄວ · ກ໊ອບໄດ້ທັນທີ"
         href="/ea-system"
+        comingSoon
       />
     )
   }

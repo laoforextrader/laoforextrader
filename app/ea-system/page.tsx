@@ -97,14 +97,15 @@ export default function EASystemPage() {
         eaId="megihedge"
         variant="hyperspace"
         theme="purple"
-        badgeLabel="TheRocket EA MegiHedge"
-        titleText="MegiHedge"
+        badgeLabel="TheRocket EA MegiHedge v2.0"
+        titleText="MegiHedge v2.0"
         subtitleAccent="ຍານ Hedge ກຳໄລໄວ"
         description={"Hedging Strategy · Aggressive\nShort-term · Active Growth"}
         strategy="Hedging"
         risk="Higher"
         riskColor="#F87171"
         fallbacks={{ totalPct: "+320%", monthPct: "+22.4%", dayPct: "+3.1%", months: 5 }}
+        comingSoon
       />
 
       {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}

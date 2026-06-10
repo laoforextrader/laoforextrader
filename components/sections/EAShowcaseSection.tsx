@@ -48,23 +48,27 @@ interface ShowcaseProps {
     dayPct: string
     months: number
   }
+  /** Pre-launch mode: hide all live profit numbers and show "Coming Soon". */
+  comingSoon?: boolean
 }
 
 export default async function EAShowcaseSection({
   eaId, variant, theme,
   badgeLabel, titleText, subtitleAccent, description,
   strategy, risk, riskColor,
-  fallbacks,
+  fallbacks, comingSoon = false,
 }: ShowcaseProps) {
   let stats: EAStats | null = null
-  try {
-    stats = await sanityClient.fetch<EAStats>(
-      QUERIES.eaStatsByEaId(eaId),
-      {},
-      { next: { revalidate: 60 } }
-    )
-    if (!stats || stats.updateMode === "off") stats = null
-  } catch {}
+  if (!comingSoon) {
+    try {
+      stats = await sanityClient.fetch<EAStats>(
+        QUERIES.eaStatsByEaId(eaId),
+        {},
+        { next: { revalidate: 60 } }
+      )
+      if (!stats || stats.updateMode === "off") stats = null
+    } catch {}
+  }
 
   const totalDisplay = fmtPct(stats?.profitTotalPct, fallbacks.totalPct)
   const totalColor   = pctColor(stats?.profitTotalPct, "#4ADE80")
@@ -169,7 +173,7 @@ export default async function EAShowcaseSection({
               }}
             >
               <Icon size={15} strokeWidth={2.5} />
-              ເບິ່ງ Live Results →
+              {comingSoon ? "ແຈ້ງເຕືອນເມື່ອເປີດໂຕ →" : "ເບິ່ງ Live Results →"}
             </a>
           </div>
         </div>
@@ -182,16 +186,28 @@ export default async function EAShowcaseSection({
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
         }}>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: "rgba(74,222,128,0.12)",
-            border: "0.5px solid rgba(74,222,128,0.35)",
-            borderRadius: 100, padding: "4px 12px",
-            fontSize: 11, color: "#4ADE80", fontWeight: 600, marginBottom: 20,
-          }}>
-            <span className={styles.pulseDot} />
-            Live Account Running
-          </div>
+          {comingSoon ? (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "rgba(252,211,77,0.12)",
+              border: "0.5px solid rgba(252,211,77,0.35)",
+              borderRadius: 100, padding: "4px 12px",
+              fontSize: 11, color: "#FCD34D", fontWeight: 600, marginBottom: 20,
+            }}>
+              🔜 Coming Soon
+            </div>
+          ) : (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "rgba(74,222,128,0.12)",
+              border: "0.5px solid rgba(74,222,128,0.35)",
+              borderRadius: 100, padding: "4px 12px",
+              fontSize: 11, color: "#4ADE80", fontWeight: 600, marginBottom: 20,
+            }}>
+              <span className={styles.pulseDot} />
+              Live Account Running
+            </div>
+          )}
 
           <div style={{ marginBottom: 20 }}>
             <div style={{
@@ -203,20 +219,21 @@ export default async function EAShowcaseSection({
               {badgeLabel}
             </div>
             <div style={{
-              fontSize: 48, fontWeight: 700, color: totalColor,
-              fontFamily: "JetBrains Mono, monospace", lineHeight: 1,
+              fontSize: comingSoon ? 34 : 48, fontWeight: 700,
+              color: comingSoon ? "#FCD34D" : totalColor,
+              fontFamily: "JetBrains Mono, monospace", lineHeight: 1.1,
             }}>
-              {totalDisplay}
+              {comingSoon ? "Coming Soon" : totalDisplay}
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
-              {monthsLabel}
+              {comingSoon ? "ກຳລັງຈະເປີດໂຕ · ຕິດຕາມໄດ້ໄວໆນີ້" : monthsLabel}
             </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {[
-              { label: "ເດືອນນີ້", value: monthDisplay, color: monthColor },
-              { label: "ມື້ນີ້",   value: dayDisplay,   color: dayColor },
+              { label: "ເດືອນນີ້", value: comingSoon ? "🔜" : monthDisplay, color: comingSoon ? "rgba(255,255,255,0.5)" : monthColor },
+              { label: "ມື້ນີ້",   value: comingSoon ? "🔜" : dayDisplay,   color: comingSoon ? "rgba(255,255,255,0.5)" : dayColor },
               { label: "Strategy", value: strategy,     color: isPurple ? "#F472B6" : "#A78BFA" },
               { label: "Risk",     value: risk,         color: riskColor },
             ].map((s, i) => (

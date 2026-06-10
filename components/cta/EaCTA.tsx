@@ -2,14 +2,16 @@
 import { useState, useEffect } from 'react'
 
 interface Props {
-  name: 'SGride' | 'MegiHedge'
+  name: 'SGride' | 'MegiHedge v2.0'
   totalGain: string
   monthlyGain: string
   sub: string
   href: string
+  /** Pre-launch mode: hide profit numbers, show "Coming Soon". */
+  comingSoon?: boolean
 }
 
-export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props) {
+export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingSoon = false }: Props) {
   const isSGride = name === 'SGride'
   const [monthly, setMonthly] = useState(parseFloat(monthlyGain))
 
@@ -98,11 +100,17 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
             background: pillBg, color: dotColor, marginBottom:10,
             fontFamily:'Noto Sans Lao, sans-serif',
           }}>
-            <span className="ea-pulse-dot" style={{
-              width:6, height:6, borderRadius:'50%', background: dotColor,
-              display:'inline-block',
-            }} />
-            Live Account Running
+            {comingSoon ? (
+              <>🔜 Coming Soon</>
+            ) : (
+              <>
+                <span className="ea-pulse-dot" style={{
+                  width:6, height:6, borderRadius:'50%', background: dotColor,
+                  display:'inline-block',
+                }} />
+                Live Account Running
+              </>
+            )}
           </div>
           <p style={{ fontSize:15, fontWeight:500, color:'#fff', margin:'0 0 3px', fontFamily:'Noto Sans Lao, sans-serif' }}>
             TheRocket EA {name}
@@ -113,18 +121,29 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href }: Props
         </div>
 
         <div className="ea-stats">
-          <div style={{ textAlign:'center' }}>
-            <div style={{ fontSize:22, fontWeight:500, color: gainColor, fontVariantNumeric:'tabular-nums', lineHeight:1 }}>
-              {totalGain}
+          {comingSoon ? (
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontSize:18, fontWeight:600, color:'#FCD34D', lineHeight:1.1 }}>
+                Coming Soon
+              </div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,.32)', marginTop:3 }}>ກຳລັງຈະເປີດໂຕ</div>
             </div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,.32)', marginTop:3 }}>Total</div>
-          </div>
-          <div style={{ textAlign:'center' }}>
-            <div style={{ fontSize:22, fontWeight:500, color:'#60A5FA', fontVariantNumeric:'tabular-nums', lineHeight:1 }}>
-              +{monthly.toFixed(1)}%
-            </div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,.32)', marginTop:3 }}>ເດືອນນີ້</div>
-          </div>
+          ) : (
+            <>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontSize:22, fontWeight:500, color: gainColor, fontVariantNumeric:'tabular-nums', lineHeight:1 }}>
+                  {totalGain}
+                </div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,.32)', marginTop:3 }}>Total</div>
+              </div>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontSize:22, fontWeight:500, color:'#60A5FA', fontVariantNumeric:'tabular-nums', lineHeight:1 }}>
+                  +{monthly.toFixed(1)}%
+                </div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,.32)', marginTop:3 }}>ເດືອນນີ້</div>
+              </div>
+            </>
+          )}
         </div>
 
         <a href={href} style={{ textDecoration:'none', position:'relative', zIndex:2 }}>
