@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { TrendingUp, Download, ShieldCheck, Activity, Layers, Clock, Target, BarChart3, Rocket, Copy } from "lucide-react"
 import type { Metadata } from "next"
+import BacktestGallery from "@/components/ea/BacktestGallery"
 
 export const revalidate = 3600
 
@@ -177,41 +178,7 @@ export default function ABSBacktestPage() {
             ກຣາຟການເຕີບໂຕຂອງບັນຊີ ຈາກ MetaTrader 5 Strategy Tester
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="abs-chart-grid">
-            {CHARTS.map(c => (
-              <figure key={c.pair} style={{
-                margin: 0, background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(52,211,153,0.18)", borderRadius: 16, overflow: "hidden",
-              }}>
-                <figcaption style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.08)",
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <TrendingUp size={16} strokeWidth={2.5} style={{ color: "#FBBF24" }} />
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{c.title}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "Noto Sans Lao, sans-serif" }}>{c.sub}</div>
-                    </div>
-                  </div>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, color: "#6EE7B7",
-                    background: "rgba(52,211,153,0.12)", border: "0.5px solid rgba(52,211,153,0.3)",
-                    borderRadius: 100, padding: "3px 10px", fontFamily: "JetBrains Mono, monospace",
-                  }}>
-                    {c.pair}
-                  </span>
-                </figcaption>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={c.src}
-                  alt={`ABS v2.0 ${c.title} backtest equity curve`}
-                  style={{ display: "block", width: "100%", height: "auto", background: "#fff" }}
-                  loading="lazy"
-                />
-              </figure>
-            ))}
-          </div>
+          <BacktestGallery charts={CHARTS} />
 
           <p style={{
             fontSize: 11, color: "rgba(255,255,255,0.38)", textAlign: "center",
