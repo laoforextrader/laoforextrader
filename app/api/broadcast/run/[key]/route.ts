@@ -45,6 +45,23 @@ async function handle(req: Request, params: { key: string }) {
   if (schedule.template !== "ea-summary") {
     return NextResponse.json({ error: `template "${schedule.template}" not supported` }, { status: 400 })
   }
+  // Mirror the dispatcher: weekly + monthly only. Daily is retired, so even a
+  // stale cron-job.org job pointed at /run/ea-daily can't push to LINE again.
+  if (schedule.period === "daily") {
+    return NextResponse.json({
+      ok: false,
+      key: schedule.key,
+      status: "daily broadcasts are disabled (weekly + monthly only)",
+    }, { status: 409 })
+  }
+  // Honor the enabled flag too — disabling a doc in Sanity now actually stops it.
+  if (!schedule.enabled) {
+    return NextResponse.json({
+      ok: false,
+      key: schedule.key,
+      status: "schedule disabled",
+    }, { status: 409 })
+  }
 
   if (send && !force && schedule.lastRunAt) {
     const minsSince = (Date.now() - new Date(schedule.lastRunAt).getTime()) / 60000
