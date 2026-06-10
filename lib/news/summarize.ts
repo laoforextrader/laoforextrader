@@ -229,7 +229,11 @@ const IMPACT_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 }
 // forex calendars apply very liberally) to stay well inside the LINE free
 // quota — roughly 4-5 pushes a month. Add other countries' releases here, or
 // loosen the keyword list, if you want broader coverage at higher frequency.
-const TIER1_EVENT_RE = /\b(non[ -]?farm|nfp|cpi|consumer price index|fomc|federal funds|fed funds rate|interest rate decision|rate decision|core pce|pce price)\b/i
+//
+// NOTE on CPI: Finnhub names the high-impact US inflation release
+// "Inflation Rate" / "Core Inflation Rate" — the literal "CPI" entry is only
+// medium impact. So we must match "inflation rate" to catch CPI day at all.
+const TIER1_EVENT_RE = /\b(non[ -]?farm|nfp|cpi|consumer price index|inflation rate|fomc|federal funds|fed funds rate|interest rate decision|rate decision|core pce|pce price)\b/i
 
 // Scans the FULL calendar (not just the 8 fed to the prompt) so a tier-1
 // release ranked past the cutoff still triggers the broadcast. US-only.
