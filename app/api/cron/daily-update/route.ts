@@ -117,8 +117,11 @@ async function handle(req: Request) {
     })
     timing.sanityMs = Date.now() - tSanity
 
+    // LINE push is gated on tier-1 events only (isVeryHighImpact), not every
+    // "high" tag — keeps us inside the LINE free-message quota. The /news page
+    // and the saved doc still cover every day regardless.
     let lineStatus: string = "skipped"
-    if (sendLine && summary.hasHighImpact) {
+    if (sendLine && summary.isVeryHighImpact) {
       if (!lineConfigured()) {
         lineStatus = "no-line-token"
       } else {
@@ -126,8 +129,8 @@ async function handle(req: Request) {
         const r = await broadcastLineMessages([{ type: "text", text: lineText }])
         lineStatus = r.ok ? "sent" : `error ${r.status}: ${(r.body || "").slice(0, 200)}`
       }
-    } else if (!summary.hasHighImpact) {
-      lineStatus = "no-high-impact"
+    } else if (!summary.isVeryHighImpact) {
+      lineStatus = summary.hasHighImpact ? "high-impact-but-not-tier1" : "no-high-impact"
     }
 
     return NextResponse.json({
@@ -137,6 +140,7 @@ async function handle(req: Request) {
       eventsCount: calendar.length,
       newsCount: news.length,
       hasHighImpact: !!summary.hasHighImpact,
+      isVeryHighImpact: !!summary.isVeryHighImpact,
       topEventsCount: topEvents.length,
       hotNewsCount: hotNews.length,
       technicalCount: technical.length,

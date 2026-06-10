@@ -64,6 +64,8 @@ export interface DailySummary {
   hotNews: HotNewsItem[]
   technical: TechAnalysis[]
   hasHighImpact: boolean
+  /** Stricter than hasHighImpact — only tier-1 market movers (gates LINE push). */
+  isVeryHighImpact: boolean
   lineMessage: string
 }
 
@@ -221,6 +223,22 @@ void _ALLOWED_CHAR_RE_UNUSED
 // don't get pushed out of the prompt by quieter morning events.
 const MAJOR_COUNTRIES = new Set(["US", "EU", "GB", "UK", "JP", "CH", "AU", "CA", "NZ"])
 const IMPACT_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 }
+
+// Tier-1 = genuinely market-moving releases. The LINE broadcast fires ONLY
+// for these (not every "high" impact event, which forex calendars tag very
+// liberally) to stay inside the LINE free-message quota. Widen/narrow this
+// list to trade broadcast frequency against coverage.
+const TIER1_EVENT_RE = /\b(non[ -]?farm|nfp|cpi|consumer price index|inflation rate|fomc|interest rate decision|rate decision|rate statement|federal funds|fed funds rate|gross domestic product|gdp|unemployment rate|core pce|pce price)\b/i
+
+// Scans the FULL calendar (not just the 8 fed to the prompt) so a tier-1
+// release ranked past the cutoff still triggers the broadcast.
+function hasVeryHighImpact(calendar: CalendarEvent[]): boolean {
+  return calendar.some(e =>
+    MAJOR_COUNTRIES.has((e.country || "").toUpperCase()) &&
+    e.impact === "high" &&
+    TIER1_EVENT_RE.test(e.event || ""),
+  )
+}
 
 function pickPromptEvents(calendar: CalendarEvent[], limit: number): CalendarEvent[] {
   return calendar
@@ -565,6 +583,7 @@ export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeAr
       analysis: sanitizeLao(t.analysis),
     })),
     hasHighImpact:       callA.hasHighImpact,
+    isVeryHighImpact:    hasVeryHighImpact(calendar),
     lineMessage:         sanitizeLao(callA.lineMessage),
   }
 }
