@@ -1,0 +1,18 @@
+; ─────────────────────────────────────────────────────────────
+; EAStatsReporter — preset for EA "ABS v2.0"
+; Load in MetaTrader 5: attach EAStatsReporter to a chart →
+;   Inputs tab → "Load" → select this .set file → OK
+;
+; IMPORTANT: replace the Secret value below with your real
+; EA_WEBHOOK_SECRET (the same value set on the Vercel server).
+; Also create an eaStats doc in Sanity Studio with eaId = "abs"
+; and updateMode = "realtime" BEFORE the first push.
+; ─────────────────────────────────────────────────────────────
+WebhookURL=https://laoforextrader.com/api/ea/stats
+Secret=changeme
+EAID=abs
+BrokerName=Markets4you
+IntervalMin=60
+SendOnStart=true
+BootstrapChunkDays=7
+PersistState=true

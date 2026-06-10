@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 
 interface Props {
-  name: 'SGride' | 'MegiHedge v2.0'
+  name: 'SGride' | 'MegiHedge v2.0' | 'ABS v2.0'
   totalGain: string
   monthlyGain: string
   sub: string
@@ -13,6 +13,7 @@ interface Props {
 
 export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingSoon = false }: Props) {
   const isSGride = name === 'SGride'
+  const isABS = name === 'ABS v2.0'
   const [monthly, setMonthly] = useState(parseFloat(monthlyGain))
 
   useEffect(() => {
@@ -24,17 +25,19 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingS
     return () => clearInterval(id)
   }, [monthlyGain, isSGride])
 
-  const accent = isSGride ? '#2563EB' : '#7C3AED'
-  const accentLight = isSGride ? 'rgba(96,165,250,.5)' : 'rgba(167,139,250,.5)'
-  const bg = isSGride
+  const accent = isABS ? '#059669' : isSGride ? '#2563EB' : '#7C3AED'
+  const accentLight = isABS ? 'rgba(52,211,153,.5)' : isSGride ? 'rgba(96,165,250,.5)' : 'rgba(167,139,250,.5)'
+  const bg = isABS
+    ? 'linear-gradient(135deg, #064E3B 0%, #065F46 50%, #03261C 100%)'
+    : isSGride
     ? 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 50%, #0F1B4F 100%)'
     : 'linear-gradient(135deg, #4C1D95 0%, #5B21B6 50%, #2A1065 100%)'
-  const blob1 = isSGride ? 'rgba(147,197,253,.55)' : 'rgba(196,181,253,.55)'
-  const blob2 = isSGride ? 'rgba(96,165,250,.4)'   : 'rgba(167,139,250,.4)'
+  const blob1 = isABS ? 'rgba(110,231,183,.55)' : isSGride ? 'rgba(147,197,253,.55)' : 'rgba(196,181,253,.55)'
+  const blob2 = isABS ? 'rgba(251,191,36,.35)'  : isSGride ? 'rgba(96,165,250,.4)'   : 'rgba(167,139,250,.4)'
   const gainColor = '#4ADE80'
-  const dotColor = isSGride ? '#4ADE80' : '#C4B5FD'
-  const pillBg = isSGride ? 'rgba(74,222,128,.18)' : 'rgba(196,181,253,.18)'
-  const pillBorder = isSGride ? 'rgba(74,222,128,.45)' : 'rgba(196,181,253,.45)'
+  const dotColor = isABS ? '#6EE7B7' : isSGride ? '#4ADE80' : '#C4B5FD'
+  const pillBg = isABS ? 'rgba(52,211,153,.18)' : isSGride ? 'rgba(74,222,128,.18)' : 'rgba(196,181,253,.18)'
+  const pillBorder = isABS ? 'rgba(52,211,153,.45)' : isSGride ? 'rgba(74,222,128,.45)' : 'rgba(196,181,253,.45)'
 
   return (
     <>
@@ -46,6 +49,7 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingS
         @keyframes ea-pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.6)}}
         @keyframes ea-btn-glow-blue{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.5)}60%{box-shadow:0 0 0 8px rgba(37,99,235,0)}}
         @keyframes ea-btn-glow-purple{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.5)}60%{box-shadow:0 0 0 8px rgba(124,58,237,0)}}
+        @keyframes ea-btn-glow-green{0%,100%{box-shadow:0 0 0 0 rgba(5,150,105,.5)}60%{box-shadow:0 0 0 8px rgba(5,150,105,0)}}
         @keyframes ea-arrow{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
         .ea-cta-wrap{
           position:relative;overflow:hidden;border-radius:14px;
@@ -70,6 +74,7 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingS
         .ea-pulse-dot{animation:ea-pulse-dot 3.2s infinite}
         .ea-btn-blue{animation:ea-btn-glow-blue 5.6s infinite}
         .ea-btn-purple{animation:ea-btn-glow-purple 5.6s infinite}
+        .ea-btn-green{animation:ea-btn-glow-green 5.6s infinite}
 
         .ea-info{flex:1;min-width:0;position:relative;z-index:2}
         .ea-stats{display:flex;align-items:center;gap:24px;position:relative;z-index:2;flex-shrink:0}
@@ -148,7 +153,7 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingS
 
         <a href={href} style={{ textDecoration:'none', position:'relative', zIndex:2 }}>
           <button
-            className={`ea-cta-btn ${isSGride ? 'ea-btn-blue' : 'ea-btn-purple'}`}
+            className={`ea-cta-btn ${isABS ? 'ea-btn-green' : isSGride ? 'ea-btn-blue' : 'ea-btn-purple'}`}
             style={{ background: accent }}
           >
             Copy Trade

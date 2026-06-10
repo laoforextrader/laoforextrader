@@ -30,6 +30,7 @@ async function getEALive(eaId: string): Promise<EAStats | null> {
 export type CTAType =
   | 'ea-sgride'
   | 'ea-megihgedge'
+  | 'ea-abs'
   | 'broker-xm'
   | 'broker-exness'
   | 'broker-markets4you'
@@ -90,6 +91,20 @@ export default async function CTASelector({ type }: Props) {
         sub="Hedging · ກຳໄລໄວ · ກ໊ອບໄດ້ທັນທີ"
         href="/ea-system"
         comingSoon
+      />
+    )
+  }
+
+  if (type === 'ea-abs') {
+    const live = await getEALive('abs')
+    const lastMonth = live?.monthlyReturns?.length ? live.monthlyReturns[live.monthlyReturns.length - 1] : null
+    return (
+      <EaCTA
+        name="ABS v2.0"
+        totalGain={fmtPct(live?.profitTotalPct, '+180%')}
+        monthlyGain={fmtMonthly(lastMonth?.profitPct, '9.4')}
+        sub="Breakout · Gold & EUR/JPY · ຄວາມສ່ຽງຕ່ຳ · ກ໊ອບໄດ້ທັນທີ"
+        href="/ea-system/abs-backtest"
       />
     )
   }

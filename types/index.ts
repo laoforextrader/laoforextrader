@@ -21,6 +21,7 @@ export interface Article {
     type?:
       | 'ea-sgride'
       | 'ea-megihgedge'
+      | 'ea-abs'
       | 'broker-xm'
       | 'broker-exness'
       | 'broker-markets4you'

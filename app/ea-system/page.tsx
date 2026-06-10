@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 }
 
 const LINE_URL = "https://line.me/R/ti/p/@499dvtuz"
+const INTERSTELLAR_URL = "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d"
 
 export default function EASystemPage() {
   return (
@@ -92,7 +93,28 @@ export default function EASystemPage() {
         fallbacks={{ totalPct: "+500%", monthPct: "+18.7%", dayPct: "+2.4%", months: 7 }}
       />
 
-      {/* ── EA #2 — MegiHedge (Hyperspace) ─────────────────────────────── */}
+      {/* ── EA #2 — ABS v2.0 (Aurora · mirrored layout) ────────────────── */}
+      <EAShowcaseSection
+        eaId="abs"
+        variant="aurora"
+        theme="emerald"
+        mirror
+        badgeLabel="TheRocket EA ABS v2.0"
+        titleText="ABS v2.0"
+        subtitleAccent="Advance Breakout System · Gold & EUR/JPY"
+        description={"Trade ສະເພາະຈັງຫວະ Breakout ທີ່ດີທີ່ສຸດ · ມື້ລະ 1–2 ໄມ້\nຄວາມສ່ຽງຕ່ຳ 1.5–2% ຕໍ່ໄມ້ · ມີ Protect Stop ປ້ອງກັນທຶນ\nAuto Lot Scaling · ກ໊ອບໄດ້ທັນທີ ບໍ່ວ່າທຶນນ້ອຍ ຫຼື ໃຫຍ່"}
+        strategy="Breakout"
+        risk="Low"
+        riskColor="#34D399"
+        fallbacks={{ totalPct: "+180%", monthPct: "+9.4%", dayPct: "+1.2%", months: 12 }}
+        links={{
+          copyTrade: "https://account.markets4you.com/th/leaders#/10201186/overview",
+          download: "https://drive.google.com/drive/folders/12PeUPE8SuH064-26IFbco1g1tIOyUwTf?usp=sharing",
+          backtest: "/ea-system/abs-backtest",
+        }}
+      />
+
+      {/* ── EA #3 — MegiHedge (Hyperspace) ─────────────────────────────── */}
       <EAShowcaseSection
         eaId="megihedge"
         variant="hyperspace"
@@ -192,6 +214,22 @@ export default function EASystemPage() {
             ສະໝັກ Broker ຜ່ານ LFT · ຮັບ Merch ຟຣີ · ຕັ້ງຄ່າ EA ຟຣີ
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+            <a
+              href={INTERSTELLAR_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "#fff", color: "#1E3A8A", textDecoration: "none",
+                padding: "13px 28px", borderRadius: 10,
+                fontSize: 14, fontWeight: 700,
+                fontFamily: "Noto Sans Lao, sans-serif",
+                boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
+              }}
+            >
+              <Rocket size={16} strokeWidth={2.6} />
+              ເປີດບັນຊີ Interstellar (ຮັນ EA) →
+            </a>
             <a
               href={LINE_URL}
               target="_blank"
