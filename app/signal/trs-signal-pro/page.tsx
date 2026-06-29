@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { TradingGlobeCanvas } from "@/components/ui/TradingGlobeCanvas"
 import { CandlestickChartBg } from "@/components/ui/CandlestickChartBg"
+import { TelegramRequired } from "@/components/signal/TelegramRequired"
 import styles from "./signal.module.css"
 
 export const revalidate = 60
@@ -415,6 +416,8 @@ export default function TRSSignalProPage() {
             </h2>
             <p className="section-sub">ຈ່າຍດ້ວຍ BCEL OnePay ຫຼື USDT</p>
           </div>
+
+          <TelegramRequired />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <PricingCard

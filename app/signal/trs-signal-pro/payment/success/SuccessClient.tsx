@@ -1,11 +1,9 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import {
-  CheckCircle2, Clock, MessageCircle, ArrowRight,
-  Loader2, XCircle,
-} from "lucide-react"
+import { MessageCircle, ArrowRight } from "lucide-react"
 import { CopyButton } from "@/components/signal/CopyButton"
+import { ApprovalRing } from "@/components/signal/ApprovalRing"
 
 const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 // Same-origin status proxy (app/api/signal/status) — forwards to the backend's
@@ -99,35 +97,8 @@ export function SuccessClient({
       <div className="max-w-[600px] mx-auto px-6 py-16">
         {/* Status badge */}
         <div className="text-center mb-6">
-          <div
-            className="inline-flex items-center justify-center"
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              background: isApproved
-                ? "linear-gradient(135deg,#10B981,#059669)"
-                : isRejected
-                ? "linear-gradient(135deg,#EF4444,#B91C1C)"
-                : "linear-gradient(135deg,#3B82F6,#2563EB)",
-              boxShadow: isApproved
-                ? "0 14px 40px rgba(16,185,129,0.40)"
-                : isRejected
-                ? "0 14px 40px rgba(239,68,68,0.40)"
-                : "0 14px 40px rgba(37,99,235,0.35)",
-              marginBottom: 16,
-              transition: "all 0.5s ease",
-            }}
-          >
-            {isApproved ? (
-              <CheckCircle2 size={44} strokeWidth={2.4} style={{ color: "#fff" }} />
-            ) : isRejected ? (
-              <XCircle size={44} strokeWidth={2.4} style={{ color: "#fff" }} />
-            ) : isPolling ? (
-              <Loader2 size={40} strokeWidth={2.4} style={{ color: "#fff" }} className="animate-spin" />
-            ) : (
-              <Clock size={40} strokeWidth={2.4} style={{ color: "#fff" }} />
-            )}
+          <div className="inline-flex items-center justify-center" style={{ marginBottom: 16 }}>
+            <ApprovalRing state={isApproved ? "approved" : isRejected ? "rejected" : "pending"} />
           </div>
 
           <h1

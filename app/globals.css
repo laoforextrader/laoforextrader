@@ -124,6 +124,36 @@ img {
 }
 .animate-pro-cta { animation: proButtonPulse 1.5s ease-in-out infinite; }
 
+/* ── Approval waiting ring (payment success) ── */
+@keyframes ringRotate { 100% { transform: rotate(360deg); } }
+@keyframes ringDash {
+  0%   { stroke-dasharray: 1 130;   stroke-dashoffset: 0; }
+  50%  { stroke-dasharray: 90 130;  stroke-dashoffset: -28; }
+  100% { stroke-dasharray: 90 130;  stroke-dashoffset: -118; }
+}
+.approval-ring-rotor { transform-origin: 50% 50%; animation: ringRotate 1.9s linear infinite; }
+.approval-ring-arc   { animation: ringDash 1.5s ease-in-out infinite; }
+
+@keyframes approvalPop {
+  0%   { transform: scale(0.55); opacity: 0; }
+  55%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.approval-pop { animation: approvalPop 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+@keyframes approvalCheckDraw { to { stroke-dashoffset: 0; } }
+.approval-check {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: approvalCheckDraw 0.45s 0.2s ease-out forwards;
+}
+
+@keyframes approvalPing {
+  0%   { transform: scale(0.8); opacity: 0.55; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.approval-ping { animation: approvalPing 1.6s ease-out infinite; }
+
 /* ── Prose / Article body ── */
 .prose-lao {
   color: #1F2937 !important;

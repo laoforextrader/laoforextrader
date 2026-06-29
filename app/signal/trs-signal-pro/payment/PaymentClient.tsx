@@ -7,6 +7,7 @@ import {
   ArrowLeft, ArrowRight, Check,
 } from "lucide-react"
 import { CopyButton } from "@/components/signal/CopyButton"
+import { TelegramRequired } from "@/components/signal/TelegramRequired"
 
 const ADMIN_CONTACT = process.env.NEXT_PUBLIC_TRS_ADMIN || "https://t.me/YourMoney_Admin"
 
@@ -58,6 +59,9 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             ໂອນຜ່ານ BCEL OnePay ຫຼື USDT TRC20 → ສົ່ງ Slip/TX hash → ໄດ້ Pro Channel ໃນ 5-30 ນາທີ
           </p>
         </div>
+
+        {/* Telegram prerequisite — signals are delivered only via Telegram */}
+        <TelegramRequired />
 
         {/* Price table — selected plan highlighted */}
         <div
