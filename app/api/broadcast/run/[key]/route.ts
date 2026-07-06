@@ -18,7 +18,9 @@ export const maxDuration = 60
 
 // Skip a real send if the same key fired recently — protects against
 // cron-job.org retries or accidental duplicate jobs double-broadcasting.
-const IDEMPOTENCY_WINDOW_MIN = 30
+// Must match the dispatcher's window (50): a 45-minute retry gap slipped
+// past the old 30-minute value and double-sent the weekly report.
+const IDEMPOTENCY_WINDOW_MIN = 50
 
 function authorized(req: Request): boolean {
   const secret = process.env.BROADCAST_SECRET
