@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { Calculator, TrendingUp, BarChart2 } from "lucide-react"
+import { Calculator, TrendingUp, BarChart2, LineChart } from "lucide-react"
 
 const TOOLS = [
   {
@@ -23,6 +23,13 @@ const TOOLS = [
     desc: "ຄຳນວນ Risk:Reward Ratio",
     href: "/tools/risk-reward",
     color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE",
+  },
+  {
+    icon: LineChart,
+    title: "Lot Curve Designer",
+    desc: "ອອກແບບສູດເພີ່ມ Lot ຕໍ່ Level ຂອງ Grid/Martingale EA",
+    href: "/tools/lot-curve-designer",
+    color: "#D97706", bg: "#FFF7ED", border: "#FED7AA",
   },
 ]
 
