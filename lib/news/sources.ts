@@ -30,29 +30,51 @@ export function todayInVientiane(now = new Date()): string {
   return lao.toISOString().split("T")[0]
 }
 
+// Forex Factory weekly calendar JSON (free, no API key). Replaced Finnhub,
+// whose calendar endpoint moved behind a paid plan (free keys get 403 →
+// silent empty calendar → the tier-1 LINE gate never fired).
+//
+// The feed labels events by currency (USD/EUR/…) not country, and covers a
+// US-time Sun–Sat week — a Vientiane "today" near the week boundary can fall
+// in the next week's file, hence the two-feed fallback.
+const FF_CALENDAR_URLS = [
+  "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+  "https://nfs.faireconomy.media/ff_calendar_nextweek.json",
+]
+
+const CURRENCY_TO_COUNTRY: Record<string, string> = {
+  USD: "US", EUR: "EU", GBP: "GB", JPY: "JP", CHF: "CH",
+  AUD: "AU", CAD: "CA", NZD: "NZ", CNY: "CN",
+}
+
 export async function fetchEconomicCalendar(date: string): Promise<CalendarEvent[]> {
-  const key = process.env.FINNHUB_API_KEY
-  if (!key) return []
-  try {
-    const res = await fetch(
-      `https://finnhub.io/api/v1/calendar/economic?from=${date}&to=${date}&token=${key}`,
-      { cache: "no-store" },
-    )
-    if (!res.ok) return []
-    const data: any = await res.json()
-    const items: any[] = data?.economicCalendar ?? []
-    return items.map(e => ({
-      event: e.event ?? "",
-      time: e.time ?? "",
-      impact: (e.impact ?? "low").toLowerCase(),
-      forecast: e.estimate?.toString() ?? "",
-      previous: e.prev?.toString() ?? "",
-      actual: e.actual?.toString() ?? "",
-      country: e.country ?? "",
-    }))
-  } catch {
-    return []
+  for (const url of FF_CALENDAR_URLS) {
+    try {
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      })
+      if (!res.ok) continue
+      const items: any = await res.json()
+      if (!Array.isArray(items)) continue
+      const events = items
+        .filter((e: any) => e?.date && todayInVientiane(new Date(e.date)) === date)
+        .map((e: any) => ({
+          event: e.title ?? "",
+          time: e.date ?? "",
+          impact: (e.impact ?? "low").toLowerCase(), // High/Medium/Low/Holiday
+          forecast: e.forecast?.toString() ?? "",
+          previous: e.previous?.toString() ?? "",
+          actual: "", // free feed carries no actuals; we run pre-release anyway
+          country: CURRENCY_TO_COUNTRY[e.country] ?? e.country ?? "",
+        }))
+      if (events.length > 0) return events
+    } catch {
+      // fall through to the next-week feed
+    }
   }
+  return []
 }
 
 // Fetch the og:image (or twitter:image) from a news article URL.

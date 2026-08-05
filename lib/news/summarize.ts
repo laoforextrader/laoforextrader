@@ -230,9 +230,10 @@ const IMPACT_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 }
 // quota — roughly 4-5 pushes a month. Add other countries' releases here, or
 // loosen the keyword list, if you want broader coverage at higher frequency.
 //
-// NOTE on CPI: Finnhub names the high-impact US inflation release
-// "Inflation Rate" / "Core Inflation Rate" — the literal "CPI" entry is only
-// medium impact. So we must match "inflation rate" to catch CPI day at all.
+// Naming: the Forex Factory feed uses literal titles — "Non-Farm Employment
+// Change", "CPI m/m", "Core CPI m/m", "FOMC Statement", "Federal Funds Rate",
+// "Core PCE Price Index m/m" — all covered below. "inflation rate" is kept
+// from the Finnhub era; harmless if it never matches.
 const TIER1_EVENT_RE = /\b(non[ -]?farm|nfp|cpi|consumer price index|inflation rate|fomc|federal funds|fed funds rate|interest rate decision|rate decision|core pce|pce price)\b/i
 
 // Scans the FULL calendar (not just the 8 fed to the prompt) so a tier-1
