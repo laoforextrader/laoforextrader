@@ -19,7 +19,7 @@ npm run prerender-og # regenerate /public OG PNGs only
 
 No test runner is configured. `npm run build` is the canonical correctness check.
 
-The Sanity Studio is hosted by Sanity (not embedded as a route here) — `sanity.config.ts` + schemas under `sanity/schemas/` define the content model. Deploy Studio with the `sanity` CLI from `devDependencies` if schema changes need to ship to studio.laoforextrader.com.
+The Sanity Studio is NOT embedded as a route here — `sanity.config.ts` + schemas under `sanity/schemas/` define the content model. There is no `studioHost` in `sanity.cli.ts`, so there is no permanently-hosted Studio URL (studio.laoforextrader.com is not deployed — it 404s). To edit content, run `npx sanity dev` → http://localhost:3333 (projectId/dataset are hardcoded in `sanity.config.ts`, so local Studio edits land on the live `production` dataset). To publish a permanent hosted Studio, run `npx sanity deploy` and pick a host (→ `<host>.sanity.studio`).
 
 ## Architecture — three pipelines that share Sanity
 
@@ -32,6 +32,15 @@ Most code paths fall into one of three time-driven pipelines. Understanding whic
 Fetches economic calendar + forex RSS → summarizes via Anthropic SDK (`lib/news/summarize.ts`) → writes a `dailyUpdate` Sanity doc (one per `YYYY-MM-DD`) → optionally pushes a short LINE message.
 
 **Hard constraint:** Vercel Hobby gives `maxDuration = 60s` for this route. The pipeline lives inside that budget; don't add blocking I/O without measuring. Vercel Hobby also caps the project at 1 cron/day — that slot is taken. All other recurring work must use external schedulers.
+
+The budget is genuinely tight — the two-stage Claude call measures ~43s, leaving ~15s of headroom. When it overruns, Vercel hard-kills the invocation and the route's own `catch` never runs, so **the failure mode is a totally missing doc, not an error doc**. Two defences:
+
+- **The Sanity write is split in two.** Stage 1 patches `rawCalendar` + `rawNews` (cheap, <1s to fetch) and sets `pipelineComplete: false` *before* calling Claude; stage 2 layers the Lao summary on and flips `pipelineComplete: true`. A Claude timeout therefore degrades to "calendar table renders, summary missing" rather than "yesterday's news". Both stages use `createIfNotExists` + `patch`, never `createOrReplace` — replacing would wipe stage 1's work (the error path included).
+- **A cron-job.org safety net re-hits the route ~2h after the Vercel cron.** The route no-ops when `pipelineComplete` is already true, so the retry costs one Sanity read and can't double-push LINE. `?force=true` bypasses the guard for manual regeneration.
+
+`/news` reads `latestDailyUpdate` = `order(date desc)[0]` with no date check, so a missing day silently shows the previous one — that's why the doc must exist even on a partial run.
+
+**LINE push gate:** `hasVeryHighImpact()` in `lib/news/summarize.ts`, deliberately stricter than `hasHighImpact`. Requires all three: `country === "US"`, `impact === "high"`, and a `TIER1_EVENT_RE` match (NFP · CPI · FOMC · Fed funds · rate decision · core PCE). Keeps pushes to ~4–5/month against the 500-msg quota. `lineSentAt` records a successful push.
 
 ### 2. LINE broadcast pipeline (external cron + Sanity-driven schedules)
 
@@ -74,13 +83,24 @@ So bootstrap runs exactly ONCE per fresh install:
 
 **MT5 day boundary ≠ Bangkok day boundary.** The MQL uses broker-server time (typically GMT+3 = ICT−4), so the "today" window in `dailyReturns` runs ~04:00 ICT → 04:00 ICT. A 21:00 ICT LINE broadcast shows a *running* day, not a closed one.
 
+### EA presentation & CTA surface (reads pipeline-3 data)
+
+Separate from ingestion: the public-facing EA marketing layer. All of it degrades gracefully — if `eaStats` is missing/`off`, components fall back to hardcoded placeholder percentages (so a not-yet-live EA still renders).
+
+- **`/ea-system`** composes one `components/sections/EAShowcaseSection.tsx` per EA. It's a reusable server component keyed by props: `variant` (`galaxy`/`hyperspace`/`aurora` background canvas), `theme` (`blue`/`purple`/`emerald`), `mirror` (swap text/stat-card sides), `comingSoon` (hide live numbers), and `links` (when set, renders Copy-Trade/Download/Backtest buttons instead of the default LINE button). Each canvas lives in `components/ui/*Canvas.tsx`.
+- **Backtest pages** (e.g. `/ea-system/abs-backtest`) are static, with images in `public/EA_backtest/`. `components/ea/BacktestGallery.tsx` is the client lightbox (the page itself stays a server component).
+- **Inline article CTAs:** `components/cta/CTASelector.tsx` maps a `type` string (`ea-sgride`/`ea-megihgedge`/`ea-abs`/`broker-*`) to `EaCTA`/`BrokerCTA`. `EaCTA` themes by EA name.
+- **`EAStatsCard.tsx`** is the detailed live card at `/ea/[id]`.
+
+**Adding a new EA touches ~6 places** (keep them in sync): create the `eaStats` Studio doc · add an `EAShowcaseSection` to `/ea-system` · the `ea-*` union in `types/index.ts` · the option list in `sanity/schemas/article.ts` · a branch in `CTASelector.tsx` (+ theme in `EaCTA.tsx`) · a `mql/EAStatsReporter_<EA>.set` preset whose `EAID` matches the doc's `eaId`.
+
 ## Sanity content model
 
 Schemas in `sanity/schemas/index.ts`:
 - `article`, `author`, `comment`, `like` — blog + engagement (likes/comments are NextAuth-gated, written via `lib/sanityWrite.ts`)
 - `broker` — `/broker/[slug]` pages
 - `quiz` — interactive quizzes (`/quiz/[slug]`)
-- `eaStats` — one doc per EA id (`sgride`, `megihedge`); patched only by `/api/ea/stats`
+- `eaStats` — one doc per EA id (`sgride`, `megihedge`, `abs`); patched only by `/api/ea/stats`. The doc must be **created in Studio first** — the webhook 404s on an unknown `eaId` (it never auto-creates).
 - `broadcastSchedule` — drives pipeline 2
 - `dailyUpdate` — output of pipeline 1, read by `/news/*`
 - `subscriber` — newsletter membership; emails captured at signup persist for future broadcasts

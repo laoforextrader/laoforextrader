@@ -51,8 +51,27 @@ async function handle(req: Request) {
   const docId = `daily-${date}`
   const t0 = Date.now()
   const timing: Record<string, number> = {}
+  // A retry run (external safety-net scheduler) must not redo the ~45s Claude
+  // work or re-push LINE when the morning run already succeeded. `force=true`
+  // overrides for manual re-generation.
+  const force = url.searchParams.get("force") === "true"
 
   try {
+    if (!force && !debug) {
+      // Tokened client + useCdn:false → strongly consistent read, so this
+      // sees a write made minutes ago by the primary cron.
+      const existing = await sanity.fetch<{ pipelineComplete?: boolean; lineSentAt?: string } | null>(
+        `*[_id == $id][0]{ pipelineComplete, lineSentAt }`,
+        { id: docId },
+      )
+      if (existing?.pipelineComplete) {
+        return NextResponse.json({
+          ok: true, skipped: "already-complete", date, docId,
+          lineSentAt: existing.lineSentAt ?? null,
+        })
+      }
+    }
+
     const tFetch = Date.now()
     const [calendar, news] = await Promise.all([
       fetchEconomicCalendar(date),
@@ -72,6 +91,27 @@ async function handle(req: Request) {
         totalMs: Date.now() - t0,
       })
     }
+
+    // ── Stage 1: persist the raw feeds BEFORE summarising ──────────────────
+    // The Claude stage costs ~45s of the 60s budget; when it overruns, Vercel
+    // hard-kills the invocation and even the catch block below never runs.
+    // That used to leave no doc at all, so /news silently fell back to the
+    // previous day. Writing the calendar first (it costs <1s to fetch) means a
+    // Claude failure degrades to "table renders, summary missing" instead of
+    // "yesterday's news".
+    //
+    // createIfNotExists + patch rather than createOrReplace, so a retry can't
+    // wipe a summary an earlier run already produced.
+    const tRaw = Date.now()
+    await sanity.createIfNotExists({ _id: docId, _type: "dailyUpdate", date })
+    await sanity.patch(docId).set({
+      date,
+      rawCalendar: filterMajorEvents(calendar).map((e, i) => ({ _key: `raw-${i}`, ...e })),
+      rawNews:     news.slice(0, 8).map((n, i) => ({ _key: `n-${i}`, ...n })),
+      createdAt: new Date().toISOString(),
+      pipelineComplete: false,
+    }).unset(["lastError"]).commit()
+    timing.rawSanityMs = Date.now() - tRaw
 
     const tClaude = Date.now()
     const summary = await summarizeDailyUpdate({ date, calendar, news })
@@ -98,11 +138,11 @@ async function handle(req: Request) {
       ...t,
     }))
 
+    // ── Stage 2: layer the Lao summary on top of the raw doc ───────────────
+    // Every summary field is set explicitly (empty arrays included) so a
+    // re-run can't leave stale events behind from a previous run.
     const tSanity = Date.now()
-    await sanity.createOrReplace({
-      _id: docId,
-      _type: "dailyUpdate",
-      date,
+    await sanity.patch(docId).set({
       dailySummary: summary.dailySummary ?? "",
       topEvents,
       hotNews,
@@ -110,11 +150,8 @@ async function handle(req: Request) {
       technical,
       hasHighImpact: !!summary.hasHighImpact,
       lineMessage:   summary.lineMessage ?? "",
-      rawCalendar: filterMajorEvents(calendar).map((e, i) => ({ _key: `raw-${i}`, ...e })),
-      rawNews:     news.slice(0, 8).map((n, i) => ({ _key: `n-${i}`, ...n })),
-      createdAt: new Date().toISOString(),
-      lastError: null,
-    })
+      pipelineComplete: true,
+    }).commit()
     timing.sanityMs = Date.now() - tSanity
 
     // LINE push is gated on tier-1 events only (isVeryHighImpact), not every
@@ -128,6 +165,11 @@ async function handle(req: Request) {
         const lineText = `${summary.lineMessage}\n\n🔗 https://www.laoforextrader.com/news`
         const r = await broadcastLineMessages([{ type: "text", text: lineText }])
         lineStatus = r.ok ? "sent" : `error ${r.status}: ${(r.body || "").slice(0, 200)}`
+        // Stamped so a manual re-run can tell whether the quota was already
+        // spent on this day before deciding to push again.
+        if (r.ok) {
+          await sanity.patch(docId).set({ lineSentAt: new Date().toISOString() }).commit().catch(() => {})
+        }
       }
     } else if (!summary.isVeryHighImpact) {
       lineStatus = summary.hasHighImpact ? "high-impact-but-not-tier1" : "no-high-impact"
@@ -151,13 +193,11 @@ async function handle(req: Request) {
   } catch (e: any) {
     const msg = (e?.message || String(e)).slice(0, 400)
     try {
-      await sanity.createOrReplace({
-        _id: docId,
-        _type: "dailyUpdate",
-        date,
-        lastError: msg,
-        createdAt: new Date().toISOString(),
-      })
+      // patch, not createOrReplace — replacing here would delete the
+      // rawCalendar that stage 1 just saved, which is the whole point of
+      // writing it before the Claude call.
+      await sanity.createIfNotExists({ _id: docId, _type: "dailyUpdate", date })
+      await sanity.patch(docId).set({ lastError: msg }).commit()
     } catch {}
     return NextResponse.json({ ok: false, error: msg }, { status: 500 })
   }

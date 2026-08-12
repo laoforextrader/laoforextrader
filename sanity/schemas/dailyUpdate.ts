@@ -166,6 +166,11 @@ export const dailyUpdateSchema = {
     },
     { name: "createdAt", title: "Created At", type: "datetime", readOnly: true },
     { name: "lastError", title: "Last Error", type: "string", readOnly: true },
+    // false = raw calendar/news saved but the Claude summary never landed
+    // (usually a 60s function timeout). The retry scheduler uses this to
+    // decide whether to re-run; a true value makes the retry a no-op.
+    { name: "pipelineComplete", title: "Pipeline Complete", type: "boolean", readOnly: true },
+    { name: "lineSentAt", title: "LINE Pushed At", type: "datetime", readOnly: true },
   ],
   orderings: [
     {
