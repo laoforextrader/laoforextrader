@@ -140,7 +140,7 @@ export default async function CTASelector({ type }: Props) {
   if (type === 'broker-interstellar') {
     const logoSrc = await getBrokerLogo('interstellar')
     return (
-      <BrokerCTA name="Interstellar Group" badge="ຮອງຮັບລາວ ✓" sub="ຝາກ $50 · BCEL ✓ · Leverage 1:2000" registerUrl="https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d" logoInitials="IN" logoSrc={logoSrc} theme="interstellar" slug="interstellar" />
+      <BrokerCTA name="Interstellar Group" badge="ຮອງຮັບລາວ ✓" sub="ຝາກ $50 · BCEL ✓ · Leverage 1:2000" registerUrl="https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs" logoInitials="IN" logoSrc={logoSrc} theme="interstellar" slug="interstellar" />
     )
   }
 

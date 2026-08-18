@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 }
 
 const LINE_URL = "https://line.me/R/ti/p/@499dvtuz"
-const INTERSTELLAR_URL = "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d"
+const INTERSTELLAR_URL = "https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs"
 
 export default function EASystemPage() {
   return (

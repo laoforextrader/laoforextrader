@@ -9,7 +9,7 @@ const COPY_URL = "https://account.markets4you.com/th/leaders#/10201186/overview"
 const DOWNLOAD_URL = "https://drive.google.com/drive/folders/12PeUPE8SuH064-26IFbco1g1tIOyUwTf?usp=sharing"
 const LINE_URL = "https://line.me/R/ti/p/@499dvtuz"
 // เปิดบัญชี Interstellar เพื่อรัน EA เอง (ใช้คู่กับ Download EA + setfile)
-const INTERSTELLAR_URL = "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d"
+const INTERSTELLAR_URL = "https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs"
 // เปิดบัญชี Markets4you เพื่อ copytrade (ตามเทรดเดอร์ผู้นำ)
 const MARKETS4YOU_REGISTER_URL = "https://www.markets4you.online/?affid=xpkpced"
 

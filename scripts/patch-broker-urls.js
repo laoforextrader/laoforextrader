@@ -26,8 +26,8 @@ const URL_MAP = {
     registerUrl: "https://one.exnessonelink.com/boarding/sign-up/303589/a/tv2hiv2h?lng=th",
   },
   "interstellar-group": {
-    affiliateUrl: "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
-    registerUrl: "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
+    affiliateUrl: "https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
+    registerUrl: "https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
   },
   "vantage": {
     affiliateUrl: "https://www.vantagemarkets.com/?affid=NzExNDc=&invitecode=P5bZtDbv",

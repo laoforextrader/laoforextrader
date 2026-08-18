@@ -113,8 +113,8 @@ const BROKERS = [
     spread: "0.0 pip",
     depositMethods: ["Lao Bank", "Crypto"],
     founded: "2020",
-    affiliateUrl: "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
-    registerUrl: "https://my.interstellarfx-zh.net/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
+    affiliateUrl: "https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
+    registerUrl: "https://my.fisg.com/register/trader?link_id=qduy4q1d&referrer_id=W9cRXGUFs",
     featured: true,
     rank: 4,
     pros: [
