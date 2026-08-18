@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer"
 import { MarketTicker } from "@/components/market/MarketTicker"
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"
 import ChatWidgetLoader from "@/components/chat/ChatWidgetLoader"
+import { OptInSync } from "@/components/newsletter/OptInSync"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { JsonLd, organizationLd, websiteLd } from "@/lib/structuredData"
 
@@ -50,6 +51,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main style={{ flex: 1, color: "#111827" }}>{children}</main>
           <Footer />
           <ChatWidgetLoader />
+          {/* Turns the login checkbox into real consent once the session lands */}
+          <OptInSync />
         </SessionProviderWrapper>
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (

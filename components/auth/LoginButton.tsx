@@ -1,11 +1,65 @@
 "use client"
+import { useState } from "react"
 import { signIn } from "next-auth/react"
 
+// Consent has to be captured here, at the moment someone chooses to join,
+// because there is no honest way to ask for it later by email — that first
+// message would itself be the unsolicited one.
+//
+// The box is NOT pre-ticked. A pre-ticked box collects addresses from people
+// who never noticed, and those are exactly the people who press "report spam"
+// on the first send. At 49 members one complaint is 2%, against Gmail's 0.3%
+// threshold — a padded list is worse than a small one.
+//
+// The OAuth round trip destroys React state, so the choice is parked in
+// localStorage and picked up by OptInSync once the session exists.
+export const OPT_IN_PENDING_KEY = "trs-newsletter-optin-v1"
+
 export function LoginButton() {
+  const [optIn, setOptIn] = useState(false)
+
+  function handleSignIn() {
+    try {
+      if (optIn) localStorage.setItem(OPT_IN_PENDING_KEY, "1")
+      else localStorage.removeItem(OPT_IN_PENDING_KEY)
+    } catch {
+      // Private mode / storage disabled — sign-in still has to work.
+    }
+    signIn("google", { callbackUrl: "/dashboard" })
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <label
+        style={{
+          display: "flex", alignItems: "flex-start", gap: 10, textAlign: "left",
+          padding: "12px 14px", borderRadius: 12, cursor: "pointer",
+          background: optIn ? "#EEF3FF" : "#F9FAFB",
+          border: `1px solid ${optIn ? "#BFCFFF" : "#E5E7EB"}`,
+          transition: "all .15s",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={optIn}
+          onChange={(e) => setOptIn(e.target.checked)}
+          style={{ width: 16, height: 16, marginTop: 2, accentColor: "#2563EB", cursor: "pointer", flexShrink: 0 }}
+        />
+        <span>
+          <span
+            className="font-lao"
+            style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", lineHeight: 1.6 }}
+          >
+            ຮັບ EA ຟຣີ ແລະ ຂ່າວສານ Forex ທາງອີເມວ
+          </span>
+          <span className="font-lao" style={{ display: "block", fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>
+            ບໍ່ມີສະແປມ · ຍົກເລີກໄດ້ທຸກເວລາ
+          </span>
+        </span>
+      </label>
+
       <button
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+        onClick={handleSignIn}
         style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
           padding: "12px 20px", background: "#fff", border: "1.5px solid #D1D5DB",
