@@ -7,7 +7,8 @@
  *
  *   npx tsx scripts/send-newsletter.ts --preview          write the HTML to a file, send nothing
  *   npx tsx scripts/send-newsletter.ts --dry              list recipients, send nothing
- *   npx tsx scripts/send-newsletter.ts --only me@x.com    send one real message to yourself
+ *   npx tsx scripts/send-newsletter.ts --test me@x.com    send one real message anywhere
+ *   npx tsx scripts/send-newsletter.ts --only me@x.com    send to one address from the list
  *   npx tsx scripts/send-newsletter.ts                    send to the whole opted-in list
  *
  * Re-running is safe: anyone already marked with this campaign is skipped, so
@@ -21,7 +22,7 @@ for (const line of readFileSync(".env.local", "utf8").split("\n")) {
   if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim()
 }
 
-import { decryptPII } from "../lib/pii"
+import { blindIndex, decryptPII } from "../lib/pii"
 import { unsubscribeUrl } from "../lib/newsletter/tokens"
 import { buildHtml, buildText, type BroadcastContent } from "../lib/newsletter/templates/broadcast"
 import { sendEmail } from "../lib/newsletter/send"
@@ -53,6 +54,7 @@ const PREVIEW = has("--preview")
 const DRY     = has("--dry")
 const FORCE   = has("--force")
 const ONLY    = valueOf("--only")
+const TEST    = valueOf("--test")
 const LIMIT   = Number(valueOf("--limit") ?? 0)
 
 // Resend's free tier allows 2 requests a second.
@@ -78,8 +80,26 @@ async function main() {
     return
   }
 
-  if (!process.env.SANITY_API_TOKEN) throw new Error("SANITY_API_TOKEN missing")
   if (!DRY && !process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY missing")
+
+  // --test goes to an address that need not be a subscriber at all: proving the
+  // domain is authenticated, and feeding mail-tester.com its throwaway address,
+  // both have to happen before anyone has opted in.
+  if (TEST) {
+    const unsub = unsubscribeUrl(blindIndex(TEST.trim().toLowerCase(), "subscriber"))
+    const res = await sendEmail({
+      to: TEST,
+      subject: CONTENT.subject,
+      html: buildHtml(CONTENT, unsub),
+      text: buildText(CONTENT, unsub),
+      emailHash: blindIndex(TEST.trim().toLowerCase(), "subscriber"),
+    })
+    console.log(res.ok ? `✅ test sent to ${mask(TEST)} — id ${res.id}` : `❌ ${res.error}`)
+    if (!res.ok) process.exit(1)
+    return
+  }
+
+  if (!process.env.SANITY_API_TOKEN) throw new Error("SANITY_API_TOKEN missing")
 
   const rows = await sanity.fetch<any[]>(
     `*[_type == "subscriber" && emailOptIn == true && unsubscribed != true]{ _id, emailHash, emailEnc, lastEmailCampaign }`,
