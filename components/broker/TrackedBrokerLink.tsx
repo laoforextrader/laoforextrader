@@ -1,5 +1,6 @@
 "use client"
 import { event } from "@/lib/gtag"
+import { trackClick, brokerTarget } from "@/lib/trackClick"
 
 interface Props {
   href: string
@@ -23,7 +24,10 @@ export function TrackedBrokerLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => event({ action, category: "Broker", label: brokerName })}
+      onClick={() => {
+        event({ action, category: "Broker", label: brokerName })
+        trackClick({ target: brokerTarget(brokerName), label: brokerName, group: "broker" })
+      }}
       style={style}
       className={className}
     >

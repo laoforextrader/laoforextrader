@@ -1,4 +1,5 @@
 import Link from "next/link"
+import TrackedLink from "@/components/analytics/TrackedLink"
 import { Rocket, Zap } from "lucide-react"
 import EAShowcaseSection from "@/components/sections/EAShowcaseSection"
 import type { Metadata } from "next"
@@ -214,10 +215,11 @@ export default function EASystemPage() {
             ສະໝັກ Broker ຜ່ານ LFT · ຮັບ Merch ຟຣີ · ຕັ້ງຄ່າ EA ຟຣີ
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-            <a
+            <TrackedLink
               href={INTERSTELLAR_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              target="broker-interstellar"
+              label="Interstellar Group"
+              group="broker"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 background: "#fff", color: "#1E3A8A", textDecoration: "none",
@@ -229,11 +231,12 @@ export default function EASystemPage() {
             >
               <Rocket size={16} strokeWidth={2.6} />
               ເປີດບັນຊີ Interstellar (ຮັນ EA) →
-            </a>
-            <a
+            </TrackedLink>
+            <TrackedLink
               href={LINE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              target="line-ea-system"
+              label="LINE (ໜ້າ EA System)"
+              group="contact"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 background: "#06C755", color: "#fff", textDecoration: "none",
@@ -247,7 +250,7 @@ export default function EASystemPage() {
                 <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .628.285.628.63 0 .349-.282.63-.63.63H17.61v1.125h1.755zm-3.855 3.016a.629.629 0 0 1-.626.628.62.62 0 0 1-.51-.255l-2.443-3.317v2.943a.63.63 0 0 1-1.257 0V8.108a.628.628 0 0 1 .624-.629c.195 0 .375.105.51.254l2.444 3.318V8.108a.63.63 0 0 1 1.258 0v4.771zm-5.461 0a.627.627 0 0 1-.626.628.629.629 0 0 1-.63-.628V8.108a.63.63 0 0 1 1.256 0v4.771zm-2.736.628H4.917a.625.625 0 0 1-.625-.628V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.141h1.762c.346 0 .628.283.628.63 0 .344-.282.628-.628.628M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
               </svg>
               Add Line Official
-            </a>
+            </TrackedLink>
             <Link
               href="/broker"
               style={{

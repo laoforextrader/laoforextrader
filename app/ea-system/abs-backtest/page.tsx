@@ -2,6 +2,7 @@ import Link from "next/link"
 import { TrendingUp, Download, ShieldCheck, Activity, Layers, Clock, Target, BarChart3, Rocket, Copy } from "lucide-react"
 import type { Metadata } from "next"
 import BacktestGallery from "@/components/ea/BacktestGallery"
+import TrackedLink from "@/components/analytics/TrackedLink"
 
 export const revalidate = 3600
 
@@ -284,8 +285,9 @@ export default function ABSBacktestPage() {
                 ເປີດບັນຊີ Interstellar → ດາວໂຫຼດ EA → ຕັ້ງຄ່າ setfile → ຮັນເທິງ MT5 ຂອງທ່ານເອງ
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: "auto" }}>
-                <a
-                  href={INTERSTELLAR_URL} target="_blank" rel="noopener noreferrer"
+                <TrackedLink
+                  href={INTERSTELLAR_URL} target="broker-interstellar"
+                  label="Interstellar Group" group="broker"
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                     background: "#fff", color: "#047857", textDecoration: "none",
@@ -295,9 +297,10 @@ export default function ABSBacktestPage() {
                 >
                   <Rocket size={16} strokeWidth={2.6} />
                   ເປີດບັນຊີ Interstellar →
-                </a>
-                <a
-                  href={DOWNLOAD_URL} target="_blank" rel="noopener noreferrer"
+                </TrackedLink>
+                <TrackedLink
+                  href={DOWNLOAD_URL} target="ea-abs-download"
+                  label="ດາວໂຫຼດ EA ABS" group="ea"
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                     background: "rgba(255,255,255,0.14)", color: "#fff", textDecoration: "none",
@@ -307,7 +310,7 @@ export default function ABSBacktestPage() {
                 >
                   <Download size={16} strokeWidth={2.6} />
                   ດາວໂຫຼດ EA
-                </a>
+                </TrackedLink>
               </div>
             </div>
 
@@ -330,8 +333,9 @@ export default function ABSBacktestPage() {
                 ເປີດບັນຊີ Markets4you → ກົດ Copy → ລະບົບກ໊ອບການເທຣດໃຫ້ອັດຕະໂນມັດ ບໍ່ຕ້ອງຕິດຕັ້ງ EA
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: "auto" }}>
-                <a
-                  href={COPY_URL} target="_blank" rel="noopener noreferrer"
+                <TrackedLink
+                  href={COPY_URL} target="ea-abs-copytrade"
+                  label="Copy Trade ABS" group="ea"
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                     background: "#FBBF24", color: "#1F2937", textDecoration: "none",
@@ -341,9 +345,10 @@ export default function ABSBacktestPage() {
                 >
                   <TrendingUp size={16} strokeWidth={2.6} />
                   ເລີ່ມ Copy Trade →
-                </a>
-                <a
-                  href={MARKETS4YOU_REGISTER_URL} target="_blank" rel="noopener noreferrer"
+                </TrackedLink>
+                <TrackedLink
+                  href={MARKETS4YOU_REGISTER_URL} target="broker-markets4you"
+                  label="Markets4you" group="broker"
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                     background: "rgba(255,255,255,0.14)", color: "#fff", textDecoration: "none",
@@ -352,14 +357,15 @@ export default function ABSBacktestPage() {
                   }}
                 >
                   ເປີດບັນຊີ Markets4you →
-                </a>
+                </TrackedLink>
               </div>
             </div>
           </div>
 
           {/* ຊ່ວຍເຫຼືອ / ສອບຖາມ ຜ່ານ LINE */}
-          <a
-            href={LINE_URL} target="_blank" rel="noopener noreferrer"
+          <TrackedLink
+            href={LINE_URL} target="line-abs-backtest"
+            label="LINE (ໜ້າ ABS Backtest)" group="contact"
             style={{
               display: "inline-flex", alignItems: "center", gap: 8, marginTop: 22,
               background: "#06C755", color: "#fff", textDecoration: "none",
@@ -371,7 +377,7 @@ export default function ABSBacktestPage() {
               <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .628.285.628.63 0 .349-.282.63-.63.63H17.61v1.125h1.755zm-3.855 3.016a.629.629 0 0 1-.626.628.62.62 0 0 1-.51-.255l-2.443-3.317v2.943a.63.63 0 0 1-1.257 0V8.108a.628.628 0 0 1 .624-.629c.195 0 .375.105.51.254l2.444 3.318V8.108a.63.63 0 0 1 1.258 0v4.771zm-5.461 0a.627.627 0 0 1-.626.628.629.629 0 0 1-.63-.628V8.108a.63.63 0 0 1 1.256 0v4.771zm-2.736.628H4.917a.625.625 0 0 1-.625-.628V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.141h1.762c.346 0 .628.283.628.63 0 .344-.282.628-.628.628M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
             </svg>
             ສອບຖາມ / ຂໍຄວາມຊ່ວຍເຫຼືອ ຜ່ານ LINE
-          </a>
+          </TrackedLink>
         </div>
       </section>
 

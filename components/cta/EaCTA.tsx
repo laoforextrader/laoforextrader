@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { trackClick } from '@/lib/trackClick'
 
 interface Props {
   name: 'SGride' | 'MegiHedge v2.0' | 'ABS v2.0'
@@ -24,6 +25,9 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingS
     }, 2500)
     return () => clearInterval(id)
   }, [monthlyGain, isSGride])
+
+  // Stable id for /admin — 'MegiHedge v2.0' -> 'megihedge-v2-0'
+  const eaSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
   const accent = isABS ? '#059669' : isSGride ? '#2563EB' : '#7C3AED'
   const accentLight = isABS ? 'rgba(52,211,153,.5)' : isSGride ? 'rgba(96,165,250,.5)' : 'rgba(167,139,250,.5)'
@@ -151,7 +155,11 @@ export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingS
           )}
         </div>
 
-        <a href={href} style={{ textDecoration:'none', position:'relative', zIndex:2 }}>
+        <a
+          href={href}
+          onClick={() => trackClick({ target: `ea-cta-${eaSlug}`, label: name, group: 'ea' })}
+          style={{ textDecoration:'none', position:'relative', zIndex:2 }}
+        >
           <button
             className={`ea-cta-btn ${isABS ? 'ea-btn-green' : isSGride ? 'ea-btn-blue' : 'ea-btn-purple'}`}
             style={{ background: accent }}

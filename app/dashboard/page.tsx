@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { isAdminEmail } from "@/lib/admin/auth"
 import { Bookmark, Clock, MessageSquare, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -17,6 +18,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect("/login")
   const user = session.user
+  const isAdmin = isAdminEmail(user?.email)
 
   return (
     <div style={{ background: "#EDEEF2", minHeight: "80vh" }}>
@@ -74,6 +76,17 @@ export default async function DashboardPage() {
             </Link>
           ))}
         </div>
+
+        {isAdmin && (
+          <Link href="/admin"
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#111827", borderRadius: 14, padding: "14px 18px", marginBottom: 20, textDecoration: "none" }}>
+            <div>
+              <p style={{ fontSize: 14, color: "#fff", fontWeight: 600, marginBottom: 2 }}>ພາບລວມເວັບໄຊ (Admin)</p>
+              <p style={{ fontSize: 11, color: "#9CA3AF" }}>ຍອດເບິ່ງ · EA · Broadcast · ແຊັດ · ຄລິກສະໝັກ</p>
+            </div>
+            <ChevronRight size={14} color="#6B7280" />
+          </Link>
+        )}
 
         {/* CTA */}
         <div style={{ background: "#EEF3FF", border: "1px solid #BFCFFF", borderRadius: 16, padding: 24, textAlign: "center" }}>

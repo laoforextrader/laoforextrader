@@ -1,5 +1,7 @@
 'use client'
 
+import { trackClick, brokerTarget } from '@/lib/trackClick'
+
 interface Props {
   name: string
   slug: string
@@ -21,7 +23,7 @@ const themes = {
   iux:           { bg:'linear-gradient(135deg, #9A3412 0%, #C2410C 50%, #7C2D12 100%)',   border:'rgba(253,186,116,.55)', blob1:'#FDBA74', blob2:'#FB923C', logo:'rgba(255,255,255,.18)', text:'#FFEDD5', badge:'rgba(253,186,116,.30)' },
 }
 
-export default function BrokerCTA({ name, badge, sub, registerUrl, logoInitials, logoSrc, theme }: Props) {
+export default function BrokerCTA({ name, slug, badge, sub, registerUrl, logoInitials, logoSrc, theme }: Props) {
   const t = themes[theme]
 
   return (
@@ -145,7 +147,13 @@ export default function BrokerCTA({ name, badge, sub, registerUrl, logoInitials,
           </p>
         </div>
 
-        <a href={registerUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+        <a
+          href={registerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackClick({ target: brokerTarget(slug), label: name, group: 'broker' })}
+          style={{ textDecoration:'none' }}
+        >
           <button className="broker-cta-btn">
             ສະໝັກເລີຍ
             <span className="broker-cta-arrow">
