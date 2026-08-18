@@ -84,7 +84,7 @@ export default function EASystemPage() {
         eaId="sgride"
         variant="galaxy"
         theme="blue"
-        badgeLabel="TheRocket EA SGride"
+        badgeLabel="TheRocket EA SGrid"
         titleText="TheRocketEA"
         subtitleAccent="ຈາກ Live Account ຈິງ"
         description={"ບໍ່ແມ່ນ Backtest · Trade ອັດຕະໂນມັດ 24/5\nGrid Trading · ໝັ້ນຄົງ · Long-term"}
@@ -92,6 +92,7 @@ export default function EASystemPage() {
         risk="Medium"
         riskColor="#FCD34D"
         fallbacks={{ totalPct: "+500%", monthPct: "+18.7%", dayPct: "+2.4%", months: 7 }}
+        links={{ download: "/ea-system/sgrid-download" }}
       />
 
       {/* ── EA #2 — ABS v2.0 (Aurora · mirrored layout) ────────────────── */}

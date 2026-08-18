@@ -20,3 +20,7 @@ node_modules
 
 # Local preview output from scripts/send-newsletter.ts --preview
 newsletter-preview.html
+newsletter-preview-local.html
+
+# Local-only email preview served by the dev server
+public/newsletter-preview.html

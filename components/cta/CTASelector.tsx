@@ -71,7 +71,7 @@ export default async function CTASelector({ type }: Props) {
     const lastMonth = live?.monthlyReturns?.length ? live.monthlyReturns[live.monthlyReturns.length - 1] : null
     return (
       <EaCTA
-        name="SGride"
+        name="SGrid"
         totalGain={fmtPct(live?.profitTotalPct, '+500%')}
         monthlyGain={fmtMonthly(lastMonth?.profitPct, '18.7')}
         sub="Grid Trading · ກຳໄລໝັ້ນຄົງ · ກ໊ອບໄດ້ທັນທີ"

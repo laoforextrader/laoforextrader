@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { trackClick } from '@/lib/trackClick'
 
 interface Props {
-  name: 'SGride' | 'MegiHedge v2.0' | 'ABS v2.0'
+  name: 'SGrid' | 'MegiHedge v2.0' | 'ABS v2.0'
   totalGain: string
   monthlyGain: string
   sub: string
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function EaCTA({ name, totalGain, monthlyGain, sub, href, comingSoon = false }: Props) {
-  const isSGride = name === 'SGride'
+  const isSGride = name === 'SGrid'
   const isABS = name === 'ABS v2.0'
   const [monthly, setMonthly] = useState(parseFloat(monthlyGain))
 

@@ -56,7 +56,7 @@ export default async function EASGrideCTA() {
             backdropFilter: 'blur(6px)',
           }}>
             <Rocket size={13} strokeWidth={2.5} style={{ color: '#FCD34D' }} />
-            TheRocket EA SGride
+            TheRocket EA SGrid
           </div>
           <div role="heading" aria-level={2} className={styles.rocketTitle} style={{ marginBottom: 8 }}>
             <span className={styles.rocketIconWrap} aria-hidden="true">
@@ -138,7 +138,7 @@ export default async function EASGrideCTA() {
               fontFamily: 'JetBrains Mono, monospace',
             }}>
               <Rocket size={11} strokeWidth={2.5} style={{ color: '#FCD34D' }} />
-              TheRocket EA SGride
+              TheRocket EA SGrid
             </div>
             <div style={{ fontSize: 48, fontWeight: 700, color: totalColor, fontFamily: 'JetBrains Mono, monospace', lineHeight: 1 }}>
               {totalDisplay}
