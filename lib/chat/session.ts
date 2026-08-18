@@ -1,6 +1,12 @@
-// Persist chat conversations for logged-in users so they can review
-// their history. One `chatSession` doc per (userId, calendar day).
-// Each turn appends two entries (user + assistant) to the messages array.
+// Persist chat conversations for logged-in users. One `chatSession` doc per
+// (userId, calendar day). Each turn appends two entries to the messages array.
+//
+// Stored pseudonymously: `userId` (an opaque NextAuth sub) and nothing else
+// identifying. The email and display name that used to live here were written
+// on every turn and read by nothing, which made them pure exposure — the
+// dataset is public, so anyone could pair a transcript with a real name. The
+// transcripts themselves stay readable in the Studio because reading what
+// visitors actually ask is the point of keeping them.
 
 import { sanityWrite } from "@/lib/sanityWrite"
 import { vientianeDay } from "@/lib/chat/quota"
@@ -12,8 +18,6 @@ function sessionId(userId: string, day: string): string {
 
 export async function saveChatTurn(args: {
   userId: string
-  userEmail: string | null
-  userName: string | null
   userMessage: string
   assistantMessage: string
 }): Promise<void> {
@@ -45,8 +49,6 @@ export async function saveChatTurn(args: {
         _id: id,
         _type: "chatSession",
         userId:    args.userId,
-        userEmail: args.userEmail ?? undefined,
-        userName:  args.userName  ?? undefined,
         startedAt: now,
         updatedAt: now,
         messages:  turnMessages,

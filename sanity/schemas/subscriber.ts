@@ -1,12 +1,24 @@
+// The `production` dataset is public, so nothing here is a readable address.
+//
+//   emailHash  HMAC of the lowercased email. Used to answer "do we already
+//              have this person?" without storing anything legible.
+//   emailEnc   AES-256-GCM ciphertext — unsealed server-side only, on /admin
+//              and by the send path. See lib/pii.ts.
+//   nameEnc    same, for the display name.
+//
+// Docs created before 2026-08-18 had plaintext `email` / `name` / `userImage`;
+// scripts/harden-pii.js seals and strips them.
 export const subscriberSchema = {
   name: "subscriber",
   title: "ສະມາຊິກ / Subscriber",
   type: "document",
   fields: [
-    { name: "email",         title: "Email",            type: "string", validation: (R: any) => R.required().email() },
-    { name: "name",          title: "ຊື່",                type: "string" },
-    { name: "userImage",     title: "Avatar",           type: "url" },
-    { name: "source",        title: "ມາຈາກ",            type: "string", description: "google | newsletter | manual",
+    { name: "emailHash",  title: "Email (blind index)", type: "string", readOnly: true,
+      description: "One-way HMAC — not reversible. Look at /admin to see who this is.",
+      validation: (R: any) => R.required() },
+    { name: "emailEnc",   title: "Email (sealed)", type: "string", readOnly: true },
+    { name: "nameEnc",    title: "ຊື່ (sealed)",    type: "string", readOnly: true },
+    { name: "source",     title: "ມາຈາກ",          type: "string", description: "google | newsletter | manual",
       options: { list: [
         { title: "Google login", value: "google" },
         { title: "Newsletter form", value: "newsletter" },
@@ -23,6 +35,12 @@ export const subscriberSchema = {
     { name: "unsubscribedAt", title: "ວັນທີຍົກເລີກ",         type: "datetime" },
   ],
   preview: {
-    select: { title: "email", subtitle: "name" },
+    select: { title: "emailHash", subtitle: "source", createdAt: "createdAt" },
+    prepare({ title, subtitle, createdAt }: any) {
+      return {
+        title: title ? `#${String(title).slice(0, 12)}` : "(no index)",
+        subtitle: `${subtitle ?? "?"} — ${createdAt ? String(createdAt).slice(0, 10) : ""}`,
+      }
+    },
   },
 }

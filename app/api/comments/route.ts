@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
       userId,
       userName: session.user.name ?? "Guest",
       userImage: session.user.image ?? "",
-      userEmail: session.user.email ?? "",
       content: trimmed,
       createdAt,
       approved: true,

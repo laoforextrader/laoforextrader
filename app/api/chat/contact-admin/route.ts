@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { sanityWrite } from "@/lib/sanityWrite"
+import { encryptPII } from "@/lib/pii"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -21,12 +22,6 @@ interface Body {
   name?: string
   email?: string
   path?: string
-}
-
-function getClientIp(req: NextRequest): string {
-  const fwd = req.headers.get("x-forwarded-for")
-  if (fwd) return fwd.split(",")[0].trim()
-  return req.headers.get("x-real-ip") ?? "unknown"
 }
 
 function key(): string {
@@ -76,8 +71,6 @@ export async function POST(req: NextRequest) {
   const userId  = (session?.user as any)?.id as string | undefined
   const name    = (body.name  ?? session?.user?.name  ?? "").slice(0, 80)  || undefined
   const email   = (body.email ?? session?.user?.email ?? "").slice(0, 200) || undefined
-  const ip      = getClientIp(req)
-  const ua      = req.headers.get("user-agent") ?? ""
   const path    = (body.path ?? "").slice(0, 200) || undefined
   const now     = new Date().toISOString()
 
@@ -95,14 +88,16 @@ export async function POST(req: NextRequest) {
       telegramMsgIds: [],
     })
 
+    // The dataset is public, so the thread carries only what answering the
+    // visitor actually needs. IP and User-Agent were stored and never read by
+    // anything — dropped. Name and email are needed (the admin replies to a
+    // person, and /admin lists who is waiting) so they are sealed instead.
     const meta: Record<string, unknown> = { status: "open", lastUserAt: now }
     if (path) meta.path = path
-    if (ua)   meta.userAgent = ua
-    if (ip)   meta.ip = ip
 
     const setIfMissing: Record<string, unknown> = {}
-    if (name)   setIfMissing.name = name
-    if (email)  setIfMissing.email = email
+    if (name)   setIfMissing.nameEnc  = encryptPII(name)
+    if (email)  setIfMissing.emailEnc = encryptPII(email)
     if (userId) setIfMissing.userId = userId
 
     await sanityWrite

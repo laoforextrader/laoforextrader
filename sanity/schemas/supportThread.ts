@@ -19,12 +19,10 @@ export const supportThreadSchema = {
   fields: [
     { name: "threadId", title: "Thread ID", type: "string",
       validation: (R: any) => R.required() },
-    { name: "name",     title: "Visitor name",  type: "string" },
-    { name: "email",    title: "Visitor email", type: "string" },
+    { name: "nameEnc",  title: "Visitor name (sealed)",  type: "string", readOnly: true },
+    { name: "emailEnc", title: "Visitor email (sealed)", type: "string", readOnly: true },
     { name: "userId",   title: "User ID (if logged in)", type: "string" },
     { name: "path",     title: "Page where started", type: "string" },
-    { name: "userAgent", title: "User-Agent", type: "string" },
-    { name: "ip",       title: "IP", type: "string" },
     { name: "status",   title: "Status", type: "string",
       options: { list: [
         { title: "Open",     value: "open" },

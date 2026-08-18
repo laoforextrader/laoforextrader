@@ -12,6 +12,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import { SYSTEM_PROMPT } from "@/lib/chat/systemPrompt"
 import { getSiteContext } from "@/lib/chat/siteContext"
 import { checkAndIncrementQuota, type Tier } from "@/lib/chat/quota"
+import { blindIndex } from "@/lib/pii"
 import { saveChatTurn } from "@/lib/chat/session"
 
 export const runtime = "nodejs"
@@ -74,7 +75,13 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   const tier = tierFor(session)
   const userId = (session?.user as any)?.id as string | undefined
-  const key = userId ? `u:${userId}` : `ip:${getClientIp(req)}`
+  // The quota doc lives in the public dataset, so a guest's raw IP must never
+  // reach it. A blind index still lands the same visitor in the same bucket.
+  // If key material were ever missing, all guests share one bucket — the
+  // quota tightens, which is the safe direction to fail.
+  let guestBucket = "unkeyed"
+  try { guestBucket = blindIndex(getClientIp(req), "chat-quota") } catch {}
+  const key = userId ? `u:${userId}` : `ip:${guestBucket}`
 
   const quota = await checkAndIncrementQuota(key, tier)
   if (!quota.allowed) {
@@ -152,8 +159,6 @@ export async function POST(req: NextRequest) {
         if (userId && assistantText) {
           saveChatTurn({
             userId,
-            userEmail: session?.user?.email ?? null,
-            userName:  session?.user?.name  ?? null,
             userMessage:      last.content,
             assistantMessage: assistantText,
           }).catch(() => null)

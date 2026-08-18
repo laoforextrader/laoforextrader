@@ -23,7 +23,6 @@ export const authOptions: NextAuthOptions = {
         await upsertSubscriber({
           email: user.email,
           name: user.name,
-          userImage: user.image,
           source: "google",
           verified: true,
         })

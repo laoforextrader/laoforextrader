@@ -4,8 +4,6 @@ export const chatSessionSchema = {
   type: "document",
   fields: [
     { name: "userId",    title: "User ID (NextAuth sub)", type: "string" },
-    { name: "userEmail", title: "User email", type: "string" },
-    { name: "userName",  title: "User name",  type: "string" },
     { name: "startedAt", title: "Started at", type: "datetime" },
     { name: "updatedAt", title: "Updated at", type: "datetime" },
     { name: "messages",  title: "Messages",   type: "array",
@@ -25,6 +23,6 @@ export const chatSessionSchema = {
     },
   ],
   preview: {
-    select: { title: "userEmail", subtitle: "startedAt" },
+    select: { title: "userId", subtitle: "startedAt" },
   },
 }

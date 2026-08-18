@@ -6,6 +6,7 @@
 // click or a broadcast lands.
 
 import { sanityWrite } from "@/lib/sanityWrite"
+import { decryptOr } from "@/lib/pii"
 import { vientianeDay } from "@/lib/chat/quota"
 
 export interface TopArticle {
@@ -112,7 +113,7 @@ const QUERY = /* groq */ `{
 
   "recentSubscribers": *[_type == "subscriber" && unsubscribed != true]
     | order(coalesce(createdAt, _createdAt) desc) [0...8] {
-      email, name, source, "createdAt": coalesce(createdAt, _createdAt)
+      email, name, emailEnc, nameEnc, source, "createdAt": coalesce(createdAt, _createdAt)
     },
 
   "eas": *[_type == "eaStats"] | order(eaId asc) {
@@ -132,7 +133,7 @@ const QUERY = /* groq */ `{
   "chat7d":    *[_type == "chatQuota" && day >= $since7] { "count": coalesce(count, 0) },
 
   "threads": *[_type == "supportThread"] | order(coalesce(lastUserAt, createdAt) desc) [0...10] {
-    threadId, name, email, status, path, lastUserAt, lastAdminAt,
+    threadId, name, email, nameEnc, emailEnc, status, path, lastUserAt, lastAdminAt,
     "messages": messages[]{ role, content, createdAt }
   }
 }`
@@ -183,8 +184,8 @@ export async function getAdminStats(): Promise<AdminStats> {
     const last = msgs.length ? msgs[msgs.length - 1] : undefined
     return {
       threadId: t.threadId,
-      name: t.name,
-      email: t.email,
+      name:  t.nameEnc  ? decryptOr(t.nameEnc,  undefined as any) : t.name,
+      email: t.emailEnc ? decryptOr(t.emailEnc, undefined as any) : t.email,
       status: t.status,
       path: t.path,
       lastUserAt: t.lastUserAt,
@@ -208,7 +209,14 @@ export async function getAdminStats(): Promise<AdminStats> {
       subscribers7d: raw.subscribers7d ?? 0,
     },
     topArticles:       raw.topArticles ?? [],
-    recentSubscribers: raw.recentSubscribers ?? [],
+    // Unsealed here rather than in the page, so /admin stays the only place a
+    // real address is ever materialised. Rows written before the migration
+    // still carry plaintext; fall back to it.
+    recentSubscribers: ((raw.recentSubscribers ?? []) as any[]).map((r) => ({
+      ...r,
+      email: r.emailEnc ? decryptOr(r.emailEnc) : (r.email ?? "—"),
+      name:  r.nameEnc  ? decryptOr(r.nameEnc, "") : r.name,
+    })),
     eas:               raw.eas ?? [],
     schedules:         raw.schedules ?? [],
     clicks,

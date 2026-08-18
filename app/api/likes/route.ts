@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
         _type: "like",
         article: { _type: "reference", _ref: articleId },
         userId,
-        userEmail: session.user.email ?? "",
         createdAt: new Date().toISOString(),
       })
     }

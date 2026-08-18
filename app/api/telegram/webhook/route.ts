@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { sanityWrite } from "@/lib/sanityWrite"
+import { decryptOr } from "@/lib/pii"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -64,10 +65,10 @@ export async function POST(req: NextRequest) {
     return ok()
   }
 
-  let thread: { _id: string; name?: string } | null = null
+  let thread: { _id: string; name?: string; nameEnc?: string } | null = null
   try {
     thread = await sanityWrite.fetch(
-      `*[_type == "supportThread" && $mid in telegramMsgIds][0]{ _id, name }`,
+      `*[_type == "supportThread" && $mid in telegramMsgIds][0]{ _id, name, nameEnc }`,
       { mid: replyToId },
     )
   } catch (err) {
@@ -97,6 +98,8 @@ export async function POST(req: NextRequest) {
     return ok()
   }
 
-  await sendTelegram(fromChat, `✓ ສົ່ງໃຫ້${thread.name ? ` ${thread.name}` : "ລູກຄ້າ"}ແລ້ວ`)
+  // `name` is the pre-migration plaintext; `nameEnc` is what new threads carry.
+  const who = thread.nameEnc ? decryptOr(thread.nameEnc, "") : (thread.name ?? "")
+  await sendTelegram(fromChat, `✓ ສົ່ງໃຫ້${who ? ` ${who}` : "ລູກຄ້າ"}ແລ້ວ`)
   return ok()
 }
