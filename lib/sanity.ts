@@ -9,6 +9,12 @@ export const sanityClient = createClient({
   dataset,
   apiVersion: "2025-04-25",
   useCdn:     false,
+  // Server-only. Next inlines nothing but NEXT_PUBLIC_* into the browser
+  // bundle, so the one client component that imports this file
+  // (BrokerSection, for urlFor) sees `undefined` here — the token never
+  // ships to the client. Required once the dataset is private; a no-op
+  // while it is still public.
+  token:      process.env.SANITY_API_READ_TOKEN ?? process.env.SANITY_API_TOKEN,
 })
 
 const builder = imageUrlBuilder(sanityClient)

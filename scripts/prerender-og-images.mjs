@@ -24,6 +24,8 @@ const sanity = createClient({
   dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET   || 'production',
   apiVersion: '2025-04-25',
   useCdn: false,
+  // Needed once the production dataset is private — this runs at build time.
+  token: process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_TOKEN,
 })
 
 // ── candle layout (same as runtime template) ────────────────────────────────
