@@ -48,7 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const decoded = decodeURIComponent(id)
   const doc = await fetchDoc(decoded)
   const ev = doc?.event
-  const title = ev?.nameLao ? `${ev.nameLao} | LaoForexTrader` : "ເຫດການເສດຖະກິດ | LaoForexTrader"
+  const title   = ev?.nameLao ?? "ເຫດການເສດຖະກິດ"
+  const ogTitle = `${title} | LaoForexTrader`
   const description = ev?.description?.slice(0, 160)
     ?? ev?.analysis?.slice(0, 160)
     ?? `ການວິເຄາະເຫດການເສດຖະກິດ ${ev?.country ?? ""} ${ev?.nameEn ?? ""} ສຳລັບເທຣດເດີລາວ`.trim()
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical },
-    openGraph: { title, description, url: canonical, type: "article" },
+    openGraph: { title: ogTitle, description, url: canonical, type: "article" },
   }
 }
 

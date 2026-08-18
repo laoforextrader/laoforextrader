@@ -47,7 +47,10 @@ export function buildArticleMetadata(article: Article, pathname: string): Metada
 
 export function buildBrokerMetadata(broker: any, pathname: string): Metadata {
   const url   = `${SITE_URL}${pathname.startsWith("/") ? pathname : "/" + pathname}`
-  const title = `ລີວິວ ${broker.name} | ${SITE_NAME}`
+  // Bare title: the root layout template appends " | LaoForexTrader".
+  // og:/twitter: get no template, so they carry the suffix themselves.
+  const title   = `ລີວິວ ${broker.name}`
+  const ogTitle = `${title} | ${SITE_NAME}`
   const desc  = broker?.excerpt ?? `ລີວິວ ${broker.name} ຝາກຂັ້ນຕ່ຳ $${broker?.minDeposit ?? "—"}`
   const slug  = broker?.slug?.current
   const imageUrl = slug ? `${SITE_URL}/og/broker/${slug}.png` : FALLBACK_OG
@@ -57,7 +60,7 @@ export function buildBrokerMetadata(broker: any, pathname: string): Metadata {
     description: desc,
     alternates:  { canonical: url },
     openGraph: {
-      title,
+      title:       ogTitle,
       description: desc,
       url,
       siteName:    SITE_NAME,
@@ -67,7 +70,7 @@ export function buildBrokerMetadata(broker: any, pathname: string): Metadata {
     },
     twitter: {
       card:        "summary_large_image",
-      title,
+      title:       ogTitle,
       description: desc,
       images:      [imageUrl],
     },

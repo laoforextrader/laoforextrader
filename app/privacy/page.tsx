@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ | LaoForexTrader",
+  title: "ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ",
 }
 
 const SECTIONS = [

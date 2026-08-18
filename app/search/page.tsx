@@ -87,7 +87,7 @@ async function search(q: string): Promise<Hit[]> {
 
 export async function generateMetadata({ searchParams }: Props) {
   const { q } = await searchParams
-  const title = q ? `ຄົ້ນຫາ "${q}" | LaoForexTrader` : "ຄົ້ນຫາ | LaoForexTrader"
+  const title = q ? `ຄົ້ນຫາ "${q}"` : "ຄົ້ນຫາ"
   return { title, robots: { index: false } }
 }
 

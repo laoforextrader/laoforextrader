@@ -11,7 +11,7 @@ import { Article } from "@/types"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "ຂ່າວ Forex ປະຈຳວັນ | LaoForexTrader",
+  title: "ຂ່າວ Forex ປະຈຳວັນ",
   description: "ຂ່າວ Forex, Economic Calendar, ການວິເຄາະທາງເຕັກນິກປະຈຳວັນ ສຳລັບ Trader ລາວ",
 }
 

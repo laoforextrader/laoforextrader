@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "ກ່ຽວກັບ | LaoForexTrader",
+  title: "ກ່ຽວກັບ",
 }
 
 const STATS: [string, string][] = [

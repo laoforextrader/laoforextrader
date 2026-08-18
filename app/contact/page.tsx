@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import FounderSection from "@/components/sections/FounderSection"
 
 export const metadata: Metadata = {
-  title: "ຕິດຕໍ່ | LaoForexTrader",
+  title: "ຕິດຕໍ່",
 }
 
 const CONTACTS = [

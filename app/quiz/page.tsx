@@ -5,7 +5,7 @@ import QuizCard, { type QuizCardData } from '@/components/quiz/QuizCard'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Forex Quiz Challenge | LaoForexTrader',
+  title: 'Forex Quiz Challenge',
   description: 'ທົດສອບຄວາມຮູ້ Forex ຂອງທ່ານ 3 ລະດັບ 90 ຂໍ້',
 }
 

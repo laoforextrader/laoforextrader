@@ -4,7 +4,7 @@ import { Article } from "@/types"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "ວິເຄາະ | LaoForexTrader",
+  title: "ວິເຄາະ",
 }
 
 export const revalidate = 60
