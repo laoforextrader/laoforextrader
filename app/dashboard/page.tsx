@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/admin/auth"
+import { getEmailOptIn } from "@/lib/subscribers"
+import { EmailOptInCard } from "@/components/newsletter/EmailOptInCard"
 import { Bookmark, Clock, MessageSquare, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -19,6 +21,7 @@ export default async function DashboardPage() {
   if (!session) redirect("/login")
   const user = session.user
   const isAdmin = isAdminEmail(user?.email)
+  const optIn = user?.email ? await getEmailOptIn(user.email) : false
 
   return (
     <div style={{ background: "#EDEEF2", minHeight: "80vh" }}>
@@ -40,6 +43,9 @@ export default async function DashboardPage() {
             </span>
           </div>
         </div>
+
+        {/* Email consent — asked for here, never assumed from a sign-in */}
+        <EmailOptInCard initialOptIn={optIn} />
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>

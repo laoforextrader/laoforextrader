@@ -29,6 +29,15 @@ export const subscriberSchema = {
     { name: "createdAt",     title: "ສະມາຊິກຕັ້ງແຕ່",       type: "datetime" },
     { name: "lastLoginAt",   title: "ເຂົ້າສຸດທ້າຍ",          type: "datetime" },
     { name: "loginCount",    title: "ຈຳນວນຄັ້ງເຂົ້າ",        type: "number", initialValue: 0 },
+    // Consent is tracked separately from membership. Signing in with Google
+    // creates a subscriber doc but grants NO permission to email that person —
+    // they clicked "log in to comment", not "send me mail". Only emailOptIn
+    // does, and only the send path may read it.
+    { name: "emailOptIn",    title: "ຍິນຍອມຮັບອີເມວ",       type: "boolean", initialValue: false },
+    { name: "optInAt",       title: "ວັນທີຍິນຍອມ",           type: "datetime" },
+    { name: "optInSource",   title: "ຍິນຍອມຈາກໜ້າໃດ",      type: "string",
+      description: "dashboard | footer | manual" },
+
     { name: "verified",      title: "ຢັ້ງຢືນແລ້ວ",            type: "boolean", initialValue: false,
       description: "Google login users are auto-verified; newsletter signups are not until they confirm." },
     { name: "unsubscribed",  title: "ຍົກເລີກສະມາຊິກແລ້ວ", type: "boolean", initialValue: false },

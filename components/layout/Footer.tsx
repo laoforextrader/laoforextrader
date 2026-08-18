@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
 
 const LINKS = {
   "ເນື້ອຫາ":   [{ label:"ລີວິວ Broker",  href:"/broker"},{ label:"ການສຶກສາ",href:"/education"},{ label:"ວິເຄາະ",href:"/analysis"},{ label:"ຂ່າວ",href:"/news"}],
@@ -44,6 +45,10 @@ export function Footer() {
             </div>
           ))}
         </div>
+        <div className="mb-8">
+          <NewsletterSignup />
+        </div>
+
         <div className="border-t border-gray-100 pt-5 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="font-lao text-[10px] text-gray-400">© 2025 LaoForexTrader · ສ້າງດ້ວຍ ❤️ ສຳລັບ Trader ລາວ</p>
           <p className="font-lao text-[10px] text-gray-300">⚠ ການລົງທຶນມີຄວາມສ່ຽງ · ໃຊ້ຂໍ້ມູນດ້ວຍຄວາມລະມັດລະວັງ</p>

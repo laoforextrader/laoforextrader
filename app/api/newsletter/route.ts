@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
       name: body?.name,
       source: "newsletter",
       verified: false,
+      // Unlike a Google sign-in, this form exists for exactly one purpose, so
+      // submitting it is the request itself.
+      optIn: true,
     })
     if (!ok) {
       return NextResponse.json({ error: "Could not save subscription" }, { status: 500 })
