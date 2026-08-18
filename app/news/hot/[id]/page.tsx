@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { formatDateDDMMYYYY } from "@/lib/news/sources-shared"
+import { newsRobots } from "@/lib/news/freshness"
 import type { Metadata } from "next"
 
 export const revalidate = 60
@@ -47,6 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical },
+    // Older than the indexing window -> noindex,follow (see lib/news/freshness).
+    robots: newsRobots(doc?.date),
     openGraph: { title: ogTitle, description, url: canonical, type: "article", images },
   }
 }

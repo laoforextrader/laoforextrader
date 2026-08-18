@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next"
 import { sanityClient } from "@/lib/sanity"
+import { newsIndexCutoff } from "@/lib/news/freshness"
 
 const BASE = "https://www.laoforextrader.com"
 
@@ -35,14 +36,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       `*[_type == "quiz"] { slug }`,
       {}, { next: { revalidate: 60 } },
     ),
-    // Last 30 days of daily updates — that's where /news/event/* and
-    // /news/hot/* IDs come from. Older docs are typically archived from
-    // discovery, so the cap keeps the sitemap focused on fresh content.
+    // Daily updates inside the indexing window — that's where /news/event/*
+    // and /news/hot/* IDs come from. Anything older is served with
+    // `noindex,follow`, so listing it here would contradict the page itself.
+    // Filtered by DATE (not "last 30 docs") so both sides agree exactly even
+    // when the pipeline misses a day.
     sanityClient.fetch<SanityDaily[]>(
-      `*[_type == "dailyUpdate"] | order(date desc)[0...30] {
+      `*[_type == "dailyUpdate" && date >= $newsCutoff] | order(date desc) {
         date, "topEvents": topEvents[]{id}, "hotNews": hotNews[]{id}
       }`,
-      {}, { next: { revalidate: 60 } },
+      { newsCutoff: newsIndexCutoff() }, { next: { revalidate: 60 } },
     ),
   ])
 
