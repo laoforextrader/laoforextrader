@@ -40,6 +40,11 @@ export const subscriberSchema = {
 
     { name: "verified",      title: "ຢັ້ງຢືນແລ້ວ",            type: "boolean", initialValue: false,
       description: "Google login users are auto-verified; newsletter signups are not until they confirm." },
+    // Written by scripts/send-newsletter.ts so a re-run after a crash resumes
+    // instead of mailing everyone twice.
+    { name: "lastEmailAt",       title: "ສົ່ງອີເມວຫຼ້າສຸດ",   type: "datetime", readOnly: true },
+    { name: "lastEmailCampaign", title: "ແຄມເປນຫຼ້າສຸດ",   type: "string",   readOnly: true },
+
     { name: "unsubscribed",  title: "ຍົກເລີກສະມາຊິກແລ້ວ", type: "boolean", initialValue: false },
     { name: "unsubscribedAt", title: "ວັນທີຍົກເລີກ",         type: "datetime" },
   ],
