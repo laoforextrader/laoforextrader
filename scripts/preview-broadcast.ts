@@ -2,12 +2,17 @@
 // Uses live EA stats from Sanity. Saves to /broadcast-preview/.
 //
 // Run: npx tsx scripts/preview-broadcast.ts
+//
+// The captions come from runEaSummaryBroadcast({ send: false }) — the exact
+// function the cron calls — so what this prints is what LINE would receive.
+// It used to reimplement the percentage/money maths locally, and the copy
+// drifted: it never learned about MEGI_COMING_SOON, and it kept the old
+// balance-derived money formula after the real one was fixed.
 
 import "dotenv/config"
 import { config as dotenvConfig } from "dotenv"
 dotenvConfig({ path: ".env.local" })
 
-import { createClient } from "@sanity/client"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 import { mkdir, writeFile, readFile } from "node:fs/promises"
@@ -18,38 +23,25 @@ import {
   type Period,
   type EACardInput,
 } from "../lib/broadcast/templates/eaCard"
+import {
+  fetchEAStats,
+  fmtPct,
+  monthsSinceFirstReturn,
+  periodPctFor,
+  type EAStatsLite,
+} from "../lib/broadcast/sanity"
+import { runEaSummaryBroadcast } from "../lib/broadcast/eaSummary"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, "..")
 const OUT_DIR = join(ROOT, "broadcast-preview")
 const FONT_PATH = join(ROOT, "public", "fonts", "NotoSansLao-Bold-v2.ttf")
 
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "f8cr9afb",
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET   || "production",
-  apiVersion: "2025-04-25",
-  useCdn: false,
-})
-
 // Numeric date helpers — user wants DD-MM-YYYY everywhere now
 function pad(n: number): string { return n < 10 ? `0${n}` : String(n) }
 function ddmmyyyy(d: Date): string {
   return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`
 }
-function mmyyyy(d: Date): string {
-  return `${pad(d.getMonth() + 1)}-${d.getFullYear()}`
-}
-
-interface SanityEAStats {
-  eaId: string
-  profitTotalPct?: number
-  balance?: number
-  currency?: string
-  monthlyReturns?: { month: string; profitPct: number }[]
-  dailyReturns?: { date: string; profitPct: number }[]
-  updateMode?: string
-}
-
 interface EAConfig {
   eaId: string
   name: string
@@ -84,146 +76,11 @@ const EAS: EAConfig[] = [
   },
 ]
 
-function fmtPct(n: number | undefined, fallback: string): string {
-  if (n === undefined || n === null || isNaN(n)) return fallback
-  const sign = n >= 0 ? "+" : ""
-  return `${sign}${n.toFixed(1)}%`
-}
-
-async function fetchStats(eaId: string): Promise<SanityEAStats | null> {
-  try {
-    const r = await sanity.fetch<SanityEAStats>(
-      `*[_type == "eaStats" && eaId == $eaId][0] {
-        eaId, updateMode, profitTotalPct, balance, currency,
-        monthlyReturns[] { month, profitPct },
-        dailyReturns[] { date, profitPct }
-      }`,
-      { eaId },
-    )
-    if (!r || r.updateMode === "off") return null
-    return r
-  } catch {
-    return null
-  }
-}
-
-function periodPctNumber(s: SanityEAStats | null, period: Period): number | null {
-  if (!s) return null
-  if (period === "daily") {
-    const d = s.dailyReturns ?? []
-    const v = d[d.length - 1]?.profitPct
-    return typeof v === "number" && !isNaN(v) ? v : null
-  }
-  if (period === "weekly") {
-    const d = s.dailyReturns ?? []
-    if (d.length === 0) return null
-    return d.slice(-7).reduce((acc, r) => acc + (r.profitPct ?? 0), 0)
-  }
-  const m = s.monthlyReturns ?? []
-  const v = m[m.length - 1]?.profitPct
-  return typeof v === "number" && !isNaN(v) ? v : null
-}
-
-const CENT_CURRENCIES: Record<string, string> = { USC: "USD", CNT: "USD", EUC: "EUR" }
-
-function periodAmount(s: SanityEAStats | null, period: Period): { amount: number; currency: string } | null {
-  if (!s?.balance || s.balance <= 0) return null
-  const pct = periodPctNumber(s, period)
-  if (pct === null || pct <= -100) return null
-  let amount = (s.balance * pct) / (100 + pct)
-  let currency = s.currency || "USD"
-  if (CENT_CURRENCIES[currency]) {
-    amount = amount / 100
-    currency = CENT_CURRENCIES[currency]
-  }
-  return { amount, currency }
-}
-
-function fmtMoney(amount: number, currency: string): string {
-  const sign = amount >= 0 ? "+" : "-"
-  const abs = Math.abs(amount)
-  const formatted = abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const symbol = currency === "USD" ? "$"
-              : currency === "EUR" ? "€"
-              : currency === "GBP" ? "£"
-              : currency === "JPY" ? "¥"
-              : ""
-  return symbol ? `${sign}${symbol}${formatted}` : `${sign}${formatted} ${currency}`
-}
-
-function periodPctFor(s: SanityEAStats | null, period: Period, fallbacks: EAConfig["fallbacks"]): string {
-  if (period === "daily") {
-    const d = s?.dailyReturns ?? []
-    return fmtPct(d[d.length - 1]?.profitPct, fallbacks.daily)
-  }
-  if (period === "weekly") {
-    const d = s?.dailyReturns ?? []
-    if (d.length === 0) return fallbacks.weekly
-    const last7 = d.slice(-7)
-    const sum = last7.reduce((acc, r) => acc + (r.profitPct ?? 0), 0)
-    return fmtPct(sum, fallbacks.weekly)
-  }
-  // monthly
-  const m = s?.monthlyReturns ?? []
-  return fmtPct(m[m.length - 1]?.profitPct, fallbacks.monthly)
-}
-
-function totalPct(s: SanityEAStats | null, fallback: string): string {
-  return fmtPct(s?.profitTotalPct, fallback)
-}
-
 function dateLabel(period: Period, now: Date): string {
   if (period === "daily") return ddmmyyyy(now)
-  if (period === "weekly") {
-    const start = new Date(now)
-    start.setDate(now.getDate() - 6)
-    return `${ddmmyyyy(start)} → ${ddmmyyyy(now)}`
-  }
-  return mmyyyy(now)
-}
-
-function monthsSince(monthStr: string | undefined): number {
-  if (!monthStr) return 0
-  const m = monthStr.match(/^(\d{4})-(\d{1,2})$/)
-  if (!m) return 0
-  const sy = parseInt(m[1], 10)
-  const sm = parseInt(m[2], 10) - 1
-  if (isNaN(sy) || isNaN(sm)) return 0
-  const now = new Date()
-  const months = (now.getFullYear() - sy) * 12 + (now.getMonth() - sm) + 1
-  return Math.max(1, months)
-}
-
-function buildText(
-  period: Period, dateLabelStr: string,
-  sgridePeriod: string, sgrideTotal: string, sgrideAmount: string | null,
-  megiPeriod: string, megiTotal: string, megiAmount: string | null,
-): string {
-  const periodLabelLao =
-    period === "daily" ? "ມື້ນີ້" : period === "weekly" ? "ອາທິດນີ້" : "ເດືອນນີ້"
-  const titleLao =
-    period === "daily" ? "ຜົນງານປະຈຳວັນ"
-  : period === "weekly" ? "ສະຫຼຸບປະຈຳອາທິດ"
-                        : "ສະຫຼຸບປະຈຳເດືອນ"
-  const sgrideLine = sgrideAmount
-    ? `   ${periodLabelLao}: ${sgridePeriod} (${sgrideAmount})`
-    : `   ${periodLabelLao}: ${sgridePeriod}`
-  const megiLine = megiAmount
-    ? `   ${periodLabelLao}: ${megiPeriod} (${megiAmount})`
-    : `   ${periodLabelLao}: ${megiPeriod}`
-  return [
-    `📊 ${titleLao} TheRocket EA · ${dateLabelStr}`,
-    ``,
-    `🚀 SGride`,
-    sgrideLine,
-    `   ລວມ: ${sgrideTotal}`,
-    ``,
-    `⚡ MegiHedge v2.0`,
-    megiLine,
-    `   ລວມ: ${megiTotal}`,
-    ``,
-    `▶ ເບິ່ງລາຍລະອຽດ: https://www.laoforextrader.com/ea-system`,
-  ].join("\n")
+  const start = new Date(now)
+  start.setDate(now.getDate() - 6)
+  return `${ddmmyyyy(start)} → ${ddmmyyyy(now)}`
 }
 
 function findLocalChrome(): string | null {
@@ -272,9 +129,9 @@ async function main() {
   const fontDataUri = `data:font/ttf;base64,${fontBuf.toString("base64")}`
 
   console.log("[preview] fetching EA stats…")
-  const statsByEa = new Map<string, SanityEAStats | null>()
+  const statsByEa = new Map<string, EAStatsLite | null>()
   for (const ea of EAS) {
-    const s = await fetchStats(ea.eaId)
+    const s = await fetchEAStats(ea.eaId)
     statsByEa.set(ea.eaId, s)
     console.log(`[preview]   ${ea.eaId}: ${s ? "✓ live data" : "✗ falling back to defaults"}`)
   }
@@ -297,17 +154,15 @@ async function main() {
 
   const periods: Period[] = ["daily", "weekly", "monthly"]
   for (const period of periods) {
-    const dl = dateLabel(period, now)
-    const periodPcts: Record<string, string> = {}
-    const totalPcts: Record<string, string> = {}
+    // The caption owns the monthly date label (it has to match the month it
+    // reports on), so only the card images need one computed here.
+    const dl = period === "monthly" ? "" : dateLabel(period, now)
 
     for (const ea of EAS) {
       const stats = statsByEa.get(ea.eaId) ?? null
-      const periodPctStr = periodPctFor(stats, period, ea.fallbacks)
-      const totalPctStr  = totalPct(stats, ea.fallbacks.total)
-      const monthsRunning = monthsSince(stats?.monthlyReturns?.[0]?.month) || 7
-      periodPcts[ea.eaId] = periodPctStr
-      totalPcts[ea.eaId]  = totalPctStr
+      const periodPctStr = periodPctFor(stats, period, ea.fallbacks[period], now)
+      const totalPctStr  = fmtPct(stats?.profitTotalPct, ea.fallbacks.total)
+      const monthsRunning = monthsSinceFirstReturn(stats)
 
       const input: EACardInput = {
         ea: { name: ea.name, icon: ea.icon, theme: ea.theme },
@@ -324,15 +179,8 @@ async function main() {
       console.log(`[preview] ${period}/${ea.shortName}: jpg ${(sizes.jpg / 1024).toFixed(1)} KB`)
     }
 
-    const sgrideAmt = periodAmount(statsByEa.get("sgride") ?? null, period)
-    const megiAmt   = periodAmount(statsByEa.get("megihedge") ?? null, period)
-    const sgrideAmtStr = sgrideAmt ? fmtMoney(sgrideAmt.amount, sgrideAmt.currency) : null
-    const megiAmtStr   = megiAmt   ? fmtMoney(megiAmt.amount,   megiAmt.currency)   : null
-    const text = buildText(
-      period, dl,
-      periodPcts["sgride"], totalPcts["sgride"], sgrideAmtStr,
-      periodPcts["megihedge"], totalPcts["megihedge"], megiAmtStr,
-    )
+    // Exactly what the cron would push, minus the LINE call.
+    const { textPreview: text } = await runEaSummaryBroadcast({ period, send: false, now })
     const txtPath = join(OUT_DIR, `${period}.txt`)
     await writeFile(txtPath, text, "utf8")
 

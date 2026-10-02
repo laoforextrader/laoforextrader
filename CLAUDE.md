@@ -50,6 +50,10 @@ Schedule docs hold `period` (daily/weekly/monthly), `hour`, `dayOfWeek`, `dayOfM
 
 Dispatcher has a **50-minute idempotency window** (`IDEMPOTENCY_WINDOW_MIN`) so a missed/retried hourly call won't double-fire. `markBroadcastRun()` writes `lastRunAt` + `lastStatus` back to the schedule doc.
 
+**A monthly report covers the month that just CLOSED.** `ea-monthly` fires on `dayOfMonth: 1`, so by the time it runs the clock is already in the new month. `reportMonthKey()` resolves the previous month in Bangkok time and both the number and the caption label are keyed off it. This was a live bug: the code took `monthlyReturns[length - 1]`, and the MQL always fills that last slot with the *current* month, so the 1 Oct 2026 report pushed October's one-day-old +1.3% under a "ສະຫຼຸບປະຈຳເດືອນ" heading instead of September's +24.69%. Never select a month by array position.
+
+When live data exists but the reported month is missing, `periodPctFor` returns `—` rather than the config fallback. The fallbacks are placeholders for a not-yet-live EA; substituting one for a gap in real data would publish an invented number as a result.
+
 `runEaSummaryBroadcast({period})` in `lib/broadcast/eaSummary.ts` is the only template currently wired. It:
 - Reads `eaStats` for `sgride` + `megihedge` from Sanity
 - For `monthly` only: renders two 1080×1080 JPEG cards via Puppeteer + Chromium (`lib/broadcast/render.ts`) and uploads to Sanity assets
@@ -68,6 +72,10 @@ profitTotal    = balance + totalWithdrawals − totalDeposits
 profitTotalPct = profitTotal / totalDeposits × 100
 ```
 `CollectStats()` tallies `DEAL_TYPE_BALANCE` + `DEAL_TYPE_CREDIT` + `DEAL_TYPE_BONUS` for cash flow. Older versions summed every `DEAL_TYPE_BUY/SELL` deal — that inflated the % on shared accounts because it didn't separate EAs from manual trades. If a number looks off, suspect a missing deal type (e.g. broker uses `DEAL_TYPE_CORRECTION`) before suspecting the formula.
+
+**Every percentage is measured against lifetime deposits, not period-opening balance.** `profitPct = periodProfit / startBalance × 100` where `startBalance` = `totalDeposits`. So SGride's "September +24.69%" means September's profit equalled 24.69% of deposited capital — it is *not* the account's growth that month, and the monthly figures run past +140% because $2,000 was deposited against $13,345 of lifetime profit. Keeping that definition is a deliberate call (switching to a true monthly return needs the MQL to bucket month-opening balances, hence a recompile), so **every surface that publishes these numbers must name the base**: the LINE caption carries a `ℹ️ % ຄິດທຽບກັບທຶນເລີ່ມຕົ້ນ` footnote and `EAStatsCard` a matching strip. Two consequences: the period's money value is an exact `pct/100 × startBalance` and must never be back-derived from the current balance (doing so overstated the LINE figures 2.5–3× on an account that had withdrawn $9,000), and summing daily percentages for the weekly figure is valid only because they share that one denominator.
+
+**Cent accounts report money in cents.** SGride is one (`CNT`, account 20217728): MT5 hands over `balance: 634505.67` for a real $6,345.06, and the MQL passes it through raw. `lib/eaMoney.ts` owns the conversion (`USC`/`CNT`/`EUC` → ÷100) plus the money formatters, and **anything rendering a money figure from `eaStats` must go through it** — the public card, `/ea`, `/admin` and the broadcast caption all did not, and showed 100× the real numbers. Percentages are ratios of two cent figures and need no conversion.
 
 **Memory model: persistent buckets + one-time bootstrap + file persistence.** The expensive operation is `HistoryDealGet*` on bootstrap — touching every deal forces MT5 to load it into the terminal's process-wide deal cache, which it never frees. On a high-volume account that's 1+ GB resident. No MQL API releases that cache.
 
@@ -153,5 +161,6 @@ If `npm run build` fails on chromium download, it's the prerender step — inves
 
 - **Don't add Vercel crons.** Slot is taken; use cron-job.org and add a `broadcastSchedule` doc instead. The dispatcher generalizes — a new schedule + new template function is enough for a new recurring LINE flow.
 - **Time zones lie quietly.** When a "schedule fired at the wrong time" comes up, check three places: cron-job.org TZ setting, the Bangkok-formatted matcher in `dispatcher.ts`, and (for EA data) the broker server clock — they often disagree.
+- **`scripts/preview-broadcast.ts` must call the real path.** It previews captions via `runEaSummaryBroadcast({ send: false })`. It used to reimplement the percentage and money maths, and the copy drifted — it never learned about `MEGI_COMING_SOON` and kept the old balance-derived money formula after the real one was fixed, so the preview stopped predicting what LINE received.
 - **MQL changes need a manual recompile on the user's MT5.** Editing `mql/EAStatsReporter.mq5` won't take effect until the user opens MetaEditor → F7 → re-attaches the EA. Always mention this when shipping MQL changes.
 - **Build runs prerender first.** Long iteration loops that only need `next build` can shave time by running it directly, but anything touching OG layout must go through the full `npm run build`.

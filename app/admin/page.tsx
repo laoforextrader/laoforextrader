@@ -18,6 +18,7 @@ import { authOptions } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/admin/auth"
 import { categoryRoute } from "@/lib/utils"
 import { getAdminStats, scheduleHealth, eaHealth } from "@/lib/admin/stats"
+import { fmtMoneyPlain, toRealMoney } from "@/lib/eaMoney"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -246,6 +247,10 @@ export default async function AdminPage() {
               <p style={{ fontSize: 12, color: "#9CA3AF" }}>ຍັງບໍ່ມີ eaStats doc</p>
             ) : stats.eas.map((ea) => {
               const last = ea.monthlyReturns?.length ? ea.monthlyReturns[ea.monthlyReturns.length - 1] : null
+              // Cent accounts report money in cents — see lib/eaMoney.ts
+              const bal = typeof ea.balance === "number"
+                ? toRealMoney(ea.balance, ea.currency)
+                : null
               return (
                 <div key={ea.eaId} style={{ borderTop: "1px solid #F3F4F6", padding: "11px 0" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 5 }}>
@@ -256,8 +261,8 @@ export default async function AdminPage() {
                   </div>
                   <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 11, color: "#6B7280" }}>
                     <span>ກຳໄລລວມ <b style={{ ...MONO, color: (ea.profitTotalPct ?? 0) >= 0 ? "#047857" : "#B91C1C" }}>{pct(ea.profitTotalPct)}</b></span>
-                    <span>ເດືອນລ່າສຸດ <b style={{ ...MONO, color: (last?.profitPct ?? 0) >= 0 ? "#047857" : "#B91C1C" }}>{pct(last?.profitPct)}</b></span>
-                    <span>Balance <b style={MONO}>${n(ea.balance)}</b></span>
+                    <span>ເດືອນ {last?.month ?? "—"} <b style={{ ...MONO, color: (last?.profitPct ?? 0) >= 0 ? "#047857" : "#B91C1C" }}>{pct(last?.profitPct)}</b></span>
+                    <span>Balance <b style={MONO}>{bal ? fmtMoneyPlain(bal.amount, bal.currency) : "—"}</b></span>
                   </div>
                   <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>
                     ອັບເດດ {ago(ea.lastUpdate)} · ໂໝດ {ea.updateMode ?? "?"}

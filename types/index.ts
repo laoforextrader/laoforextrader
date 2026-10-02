@@ -137,6 +137,8 @@ export interface EAStats {
   balance?: number
   equity?: number
   startBalance?: number
+  totalDeposits?: number
+  totalWithdrawals?: number
   profitTotal?: number
   profitTotalPct?: number
   monthlyReturns?: Array<{ _key?: string; month: string; profitPct: number }>

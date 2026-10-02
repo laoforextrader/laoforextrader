@@ -33,7 +33,8 @@ export const QUERIES = {
     *[_type == "eaStats" && updateMode != "off"] | order(coalesce(profitTotalPct, 0) desc) {
       _id, eaId, title, updateMode,
       account, server, broker, currency,
-      balance, equity, startBalance, profitTotal, profitTotalPct,
+      balance, equity, startBalance,
+      totalDeposits, totalWithdrawals, profitTotal, profitTotalPct,
       monthlyReturns[] { _key, month, profitPct },
       dailyReturns[] { _key, date, profitPct },
       lastUpdate
@@ -43,7 +44,8 @@ export const QUERIES = {
     *[_type == "eaStats" && eaId == "${eaId}"][0] {
       _id, eaId, title, updateMode,
       account, server, broker, currency,
-      balance, equity, startBalance, profitTotal, profitTotalPct,
+      balance, equity, startBalance,
+      totalDeposits, totalWithdrawals, profitTotal, profitTotalPct,
       monthlyReturns[] { _key, month, profitPct },
       dailyReturns[] { _key, date, profitPct },
       lastUpdate

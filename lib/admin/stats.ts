@@ -26,6 +26,7 @@ export interface EaRow {
   updateMode?: "off" | "daily" | "realtime"
   broker?: string
   account?: string
+  currency?: string
   balance?: number
   equity?: number
   profitTotal?: number
@@ -117,7 +118,7 @@ const QUERY = /* groq */ `{
     },
 
   "eas": *[_type == "eaStats"] | order(eaId asc) {
-    eaId, title, updateMode, broker, account, balance, equity,
+    eaId, title, updateMode, broker, account, currency, balance, equity,
     profitTotal, profitTotalPct, lastUpdate, monthlyReturns, dailyReturns
   },
 

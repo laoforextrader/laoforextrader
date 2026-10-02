@@ -2,6 +2,7 @@
 // upload generated images as assets, persist run state.
 
 import { createClient } from "@sanity/client"
+import { capitalBase, toRealMoney, type Money } from "../eaMoney"
 import type { BroadcastSchedule, BroadcastPeriod } from "./types"
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "f8cr9afb"
@@ -47,8 +48,11 @@ export async function markBroadcastRun(scheduleId: string, status: string): Prom
 export interface EAStatsLite {
   eaId: string
   updateMode?: string
+  profitTotal?: number
   profitTotalPct?: number
   balance?: number
+  startBalance?: number
+  totalDeposits?: number
   currency?: string
   monthlyReturns?: { month: string; profitPct: number }[]
   dailyReturns?: { date: string; profitPct: number }[]
@@ -57,7 +61,8 @@ export interface EAStatsLite {
 export async function fetchEAStats(eaId: string): Promise<EAStatsLite | null> {
   const r = await broadcastSanity.fetch<EAStatsLite | null>(
     `*[_type == "eaStats" && eaId == $eaId][0] {
-      eaId, updateMode, profitTotalPct, balance, currency,
+      eaId, updateMode, profitTotal, profitTotalPct,
+      balance, startBalance, totalDeposits, currency,
       monthlyReturns[] { month, profitPct },
       dailyReturns[] { date, profitPct }
     }`,
@@ -87,10 +92,49 @@ export function fmtPct(n: number | undefined, fallback: string): string {
   return `${sign}${n.toFixed(1)}%`
 }
 
+/**
+ * The calendar month a monthly report covers: the previous month in Bangkok
+ * time — the last month that actually closed.
+ *
+ * The `ea-monthly` schedule fires on the 1st at 21:00 Bangkok, so by the
+ * time the report runs "now" is already inside the NEW month. This used to
+ * read `monthlyReturns[length - 1]`, and BuildPayload() always fills that
+ * last slot with the *current* month, so the monthly summary reported a
+ * one-day-old month as though it were a full one: September's +24.69% went
+ * out as October's +1.3%. Resolving the key explicitly fixes that, and the
+ * caption label is derived from the same key so the two cannot disagree.
+ */
+export function reportMonthKey(now: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(now)
+  const get = (t: string) => parseInt(parts.find(p => p.type === t)?.value ?? "", 10)
+  const year = get("year")
+  const month = get("month")
+  const m = month === 1 ? 12 : month - 1
+  const y = month === 1 ? year - 1 : year
+  return `${y}-${String(m).padStart(2, "0")}`
+}
+
+// undefined = no live data at all (caller shows its placeholder)
+// null      = live data, but the reported month is missing or unusable
+//             (caller must NOT substitute a placeholder — that would
+//              publish a made-up number as a real result)
+function monthlyPct(s: EAStatsLite | null, now: Date): number | null | undefined {
+  const m = s?.monthlyReturns ?? []
+  if (m.length === 0) return undefined
+  const hit = m.find(r => r.month === reportMonthKey(now))
+  if (!hit) return null
+  return typeof hit.profitPct === "number" && !isNaN(hit.profitPct) ? hit.profitPct : null
+}
+
 export function periodPctFor(
   s: EAStatsLite | null,
   period: BroadcastPeriod,
   fallback: string,
+  now: Date = new Date(),
 ): string {
   if (period === "daily") {
     const d = s?.dailyReturns ?? []
@@ -103,13 +147,18 @@ export function periodPctFor(
     const sum = last7.reduce((acc, r) => acc + (r.profitPct ?? 0), 0)
     return fmtPct(sum, fallback)
   }
-  // monthly
-  const m = s?.monthlyReturns ?? []
-  return fmtPct(m[m.length - 1]?.profitPct, fallback)
+  const v = monthlyPct(s, now)
+  if (v === undefined) return fallback
+  if (v === null) return "—"
+  return fmtPct(v, fallback)
 }
 
 /** Raw period percentage as a number (for further math). */
-export function periodPctNumber(s: EAStatsLite | null, period: BroadcastPeriod): number | null {
+export function periodPctNumber(
+  s: EAStatsLite | null,
+  period: BroadcastPeriod,
+  now: Date = new Date(),
+): number | null {
   if (!s) return null
   if (period === "daily") {
     const d = s.dailyReturns ?? []
@@ -121,52 +170,40 @@ export function periodPctNumber(s: EAStatsLite | null, period: BroadcastPeriod):
     if (d.length === 0) return null
     return d.slice(-7).reduce((acc, r) => acc + (r.profitPct ?? 0), 0)
   }
-  const m = s.monthlyReturns ?? []
-  const v = m[m.length - 1]?.profitPct
-  return typeof v === "number" && !isNaN(v) ? v : null
+  return monthlyPct(s, now) ?? null
 }
 
-// Cent-account currency codes that brokers use (balance is reported in
-// cents, divide by 100 to get the real dollar/euro figure).
-const CENT_CURRENCIES: Record<string, string> = {
-  USC: "USD",
-  CNT: "USD",
-  EUC: "EUR",
-}
-
-/** Returns the dollar amount for the period — derived from current balance and pct. */
-export function periodAmountFor(s: EAStatsLite | null, period: BroadcastPeriod): { amount: number; currency: string } | null {
-  if (!s?.balance || s.balance <= 0) return null
-  const pct = periodPctNumber(s, period)
+/**
+ * The period's profit as money, in the account's real currency.
+ *
+ * Every profitPct the EA sends is `periodProfit / startBalance * 100`, so
+ * the money figure is an exact multiplication — nothing has to be guessed.
+ * This used to back-derive it from the current balance instead:
+ *
+ *     amount = balance * pct / (100 + pct)
+ *
+ * which silently assumed pct was a return on the period's OPENING balance.
+ * On SGride — $2,000 deposited, $9,000 withdrawn, $6,345 balance — that
+ * overstated every figure by 2.5-3x: September went out as $1,256.39
+ * against an actual $493.80.
+ */
+export function periodAmountFor(
+  s: EAStatsLite | null,
+  period: BroadcastPeriod,
+  now: Date = new Date(),
+): Money | null {
+  if (!s) return null
+  const base = capitalBase(s)
+  if (!base) return null
+  const pct = periodPctNumber(s, period, now)
   if (pct === null) return null
-  // Period start balance ≈ current balance ÷ (1 + pct/100)
-  // Period dollar = balance − start balance = balance × pct / (100 + pct)
-  if (pct <= -100) return null
-  let amount = (s.balance * pct) / (100 + pct)
-  let currency = s.currency || "USD"
-  // Convert Cent-account values into the underlying real currency
-  if (CENT_CURRENCIES[currency]) {
-    amount = amount / 100
-    currency = CENT_CURRENCIES[currency]
-  }
-  return { amount, currency }
+  return { amount: (base.amount * pct) / 100, currency: base.currency }
 }
 
-/** Format a money figure for the broadcast text. */
-export function fmtMoney(amount: number, currency: string): string {
-  const sign = amount >= 0 ? "+" : "-"
-  const abs = Math.abs(amount)
-  const formatted = abs.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-  const symbol = currency === "USD" ? "$"
-              : currency === "EUR" ? "€"
-              : currency === "GBP" ? "£"
-              : currency === "JPY" ? "¥"
-              : ""
-  if (symbol) return `${sign}${symbol}${formatted}`
-  return `${sign}${formatted} ${currency}`
+/** Lifetime profit as money, in the account's real currency. */
+export function totalAmountFor(s: EAStatsLite | null): Money | null {
+  if (typeof s?.profitTotal !== "number" || isNaN(s.profitTotal)) return null
+  return toRealMoney(s.profitTotal, s.currency)
 }
 
 export function monthsSinceFirstReturn(s: EAStatsLite | null, fallback = 7): number {

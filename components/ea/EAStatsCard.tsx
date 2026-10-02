@@ -1,14 +1,17 @@
 import { sanityClient, QUERIES } from "@/lib/sanity"
+import {
+  capitalBase,
+  fmtMoney,
+  fmtMoneyPlain,
+  isCentAccount,
+  realCurrency,
+  toRealMoney,
+} from "@/lib/eaMoney"
 import { EAStats } from "@/types"
 
 interface Props {
   eaId: string
   showTitle?: boolean
-}
-
-function fmtNum(n?: number, digits = 2) {
-  if (n === undefined || n === null || isNaN(n)) return "—"
-  return n.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits })
 }
 
 function fmtPct(n?: number) {
@@ -45,6 +48,21 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
   const totalPct = stats.profitTotalPct
   const todayPct = daily.length ? daily[daily.length - 1].profitPct : undefined
 
+  // Cent accounts (SGride is CNT) report every money figure in cents, so the
+  // raw numbers are 100x the real ones. Percentages are ratios and need no
+  // conversion. See lib/eaMoney.ts.
+  const cents = isCentAccount(stats.currency)
+  const money = (n?: number) =>
+    n === undefined || n === null || isNaN(n) ? null : toRealMoney(n, stats.currency)
+  const mBalance = money(stats.balance)
+  const mEquity  = money(stats.equity)
+  const mProfit  = money(stats.profitTotal)
+  const mWithdrawn = money(stats.totalWithdrawals)
+
+  // Every profitPct in the doc is profit / startBalance, so name the base
+  // rather than let "+667%" read as account growth.
+  const base = capitalBase(stats)
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden" style={{ boxShadow: "0 4px 20px rgba(0,0,0,.04)" }}>
       <div style={{ height: 3, background: "linear-gradient(90deg,#10B981,#2563EB)" }} />
@@ -79,7 +97,11 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Currency</div>
-          <div className="text-[14px] font-bold text-gray-900 font-mono">{stats.currency ?? "—"}</div>
+          <div className="text-[14px] font-bold text-gray-900 font-mono">
+            {cents
+              ? `${stats.currency} → ${realCurrency(stats.currency)}`
+              : stats.currency ?? "—"}
+          </div>
         </div>
       </div>
 
@@ -90,20 +112,20 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
           <div className="text-[28px] font-extrabold leading-none" style={{ color: pctColor(totalPct), letterSpacing: "-0.02em" }}>
             {fmtPct(totalPct)}
           </div>
-          {stats.profitTotal !== undefined && (
+          {mProfit && (
             <div className="text-[11px] text-gray-400 mt-1">
-              ${fmtNum(stats.profitTotal)} {stats.currency}
+              {fmtMoney(mProfit.amount, mProfit.currency)}
             </div>
           )}
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5">Balance</div>
           <div className="text-[20px] font-extrabold text-gray-900 leading-none">
-            ${fmtNum(stats.balance)}
+            {mBalance ? fmtMoneyPlain(mBalance.amount, mBalance.currency) : "—"}
           </div>
-          {stats.equity !== undefined && (
+          {mEquity && (
             <div className="text-[11px] text-gray-400 mt-1">
-              Equity ${fmtNum(stats.equity)}
+              Equity {fmtMoneyPlain(mEquity.amount, mEquity.currency)}
             </div>
           )}
         </div>
@@ -114,6 +136,16 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
           </div>
         </div>
       </div>
+
+      {/* What the percentages are a percentage OF */}
+      {base && (
+        <div className="px-6 py-3 border-b border-gray-100 bg-gray-50 text-[11px] text-gray-500 leading-relaxed">
+          ℹ️ ທຸກ % ຄິດທຽບກັບ<strong className="text-gray-700 font-bold"> ທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}</strong>
+          {mWithdrawn && mWithdrawn.amount > 0 && (
+            <> · ຖອນອອກແລ້ວ {fmtMoneyPlain(mWithdrawn.amount, mWithdrawn.currency, 0)}</>
+          )}
+        </div>
+      )}
 
       {/* Monthly bars */}
       {monthly.length > 0 && (

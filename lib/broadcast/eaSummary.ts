@@ -7,15 +7,26 @@
 // schedules are dispatched (daily is rejected by the dispatcher).
 // Designed so we can swap data sources or add EAs without changing the
 // dispatcher.
+//
+// WHAT THE PERCENTAGES MEAN. Every profitPct in an `eaStats` doc is
+// `periodProfit / startBalance * 100`, where startBalance is the account's
+// lifetime deposits (see BuildPayload in mql/EAStatsReporter.mq5). So
+// SGride's "+24.7% in September" means September's profit equalled 24.7% of
+// deposited capital — it is NOT the account's growth over that month. The
+// caption states the capital base so the figure can't be read as a monthly
+// rate of return.
 
 import { broadcastLineMessages, lineConfigured, type LineMessage } from "./line"
 import {
   fetchEAStats,
   fmtPct,
-  fmtMoney,
   periodPctFor,
   periodAmountFor,
+  reportMonthKey,
+  totalAmountFor,
+  type EAStatsLite,
 } from "./sanity"
+import { capitalBase, fmtMoney, fmtMoneyPlain } from "../eaMoney"
 import type { BroadcastPeriod, BroadcastResult } from "./types"
 
 interface EAConfig {
@@ -56,12 +67,17 @@ const EAS: EAConfig[] = [
 // instead of live profit numbers. Flip to false when the EA goes live.
 const MEGI_COMING_SOON = true
 
+const EMOJI: Record<EAConfig["icon"], string> = { rocket: "🚀", zap: "⚡" }
+
 function pad(n: number): string { return n < 10 ? `0${n}` : String(n) }
 function ddmmyyyy(d: Date): string {
   return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`
 }
-function mmyyyy(d: Date): string {
-  return `${pad(d.getMonth() + 1)}-${d.getFullYear()}`
+
+/** "2026-09" → "09-2026", matching the DD-MM-YYYY style used elsewhere. */
+function monthKeyToLabel(key: string): string {
+  const [y, m] = key.split("-")
+  return `${m}-${y}`
 }
 
 function dateLabel(period: BroadcastPeriod, now: Date): string {
@@ -71,7 +87,9 @@ function dateLabel(period: BroadcastPeriod, now: Date): string {
     start.setDate(now.getDate() - 6)
     return `${ddmmyyyy(start)} → ${ddmmyyyy(now)}`
   }
-  return mmyyyy(now)
+  // Monthly reports cover the month that just closed, resolved in Bangkok
+  // time — the same key periodPctFor() reads, so label and number agree.
+  return monthKeyToLabel(reportMonthKey(now))
 }
 
 function periodTitleLao(period: BroadcastPeriod): string {
@@ -80,45 +98,83 @@ function periodTitleLao(period: BroadcastPeriod): string {
                               : "ສະຫຼຸບປະຈຳເດືອນ"
 }
 
-function periodLabelLao(period: BroadcastPeriod): string {
-  return period === "daily" ? "ມື້ນີ້" : period === "weekly" ? "ອາທິດນີ້" : "ເດືອນນີ້"
+/** The row label for the period's figure. Monthly names the actual month. */
+function periodLabelLao(period: BroadcastPeriod, dateStr: string): string {
+  return period === "daily"  ? "ມື້ນີ້"
+       : period === "weekly" ? "ອາທິດນີ້"
+                             : `ເດືອນ ${dateStr}`
 }
 
-function buildText(
+interface EABlock {
+  emoji: string
+  shortName: string
+  comingSoon: boolean
+  periodPct: string
+  periodAmount: string | null
+  totalPct: string
+  totalAmount: string | null
+  /** Capital every % is measured against, e.g. "$2,000". */
+  capital: string | null
+}
+
+function buildEABlock(
+  cfg: EAConfig,
+  stats: EAStatsLite | null,
   period: BroadcastPeriod,
-  dateStr: string,
-  sgridePct: string, sgrideTotal: string, sgrideAmount: string | null,
-  megiPct: string, megiTotal: string, megiAmount: string | null,
-): string {
-  const periodLabel = periodLabelLao(period)
-  const title = periodTitleLao(period)
-  const sgrideLine = sgrideAmount
-    ? `   ${periodLabel}: ${sgridePct} (${sgrideAmount})`
-    : `   ${periodLabel}: ${sgridePct}`
-  const megiLine = megiAmount
-    ? `   ${periodLabel}: ${megiPct} (${megiAmount})`
-    : `   ${periodLabel}: ${megiPct}`
-  const megiBlock = MEGI_COMING_SOON
-    ? [
-        `⚡ MegiHedge v2.0`,
-        `   🔜 ກຳລັງຈະເປີດໂຕ (Coming Soon)`,
-      ]
-    : [
-        `⚡ MegiHedge v2.0`,
-        megiLine,
-        `   ລວມ: ${megiTotal}`,
-      ]
-  return [
-    `📊 ${title} TheRocket EA · ${dateStr}`,
-    ``,
-    `🚀 SGride`,
-    sgrideLine,
-    `   ລວມ: ${sgrideTotal}`,
-    ``,
-    ...megiBlock,
-    ``,
-    `▶ ເບິ່ງລາຍລະອຽດ: https://www.laoforextrader.com/ea-system`,
-  ].join("\n")
+  now: Date,
+  comingSoon: boolean,
+): EABlock {
+  const amount = periodAmountFor(stats, period, now)
+  const total  = totalAmountFor(stats)
+  const base   = capitalBase(stats ?? {})
+  return {
+    emoji: EMOJI[cfg.icon],
+    shortName: cfg.shortName,
+    comingSoon,
+    periodPct: periodPctFor(stats, period, cfg.fallbacks[period], now),
+    periodAmount: amount ? fmtMoney(amount.amount, amount.currency) : null,
+    totalPct: fmtPct(stats?.profitTotalPct, cfg.fallbacks.total),
+    totalAmount: total ? fmtMoney(total.amount, total.currency) : null,
+    capital: base ? fmtMoneyPlain(base.amount, base.currency, 0) : null,
+  }
+}
+
+function buildText(period: BroadcastPeriod, dateStr: string, blocks: EABlock[]): string {
+  const rowLabel = periodLabelLao(period, dateStr)
+
+  const lines: string[] = [
+    `📊 ${periodTitleLao(period)} TheRocket EA · ${dateStr}`,
+  ]
+
+  for (const b of blocks) {
+    lines.push(``, `${b.emoji} ${b.shortName}`)
+    if (b.comingSoon) {
+      lines.push(`   🔜 ກຳລັງຈະເປີດໂຕ (Coming Soon)`)
+      continue
+    }
+    lines.push(
+      b.periodAmount
+        ? `   ${rowLabel}: ${b.periodPct} (${b.periodAmount})`
+        : `   ${rowLabel}: ${b.periodPct}`,
+    )
+    lines.push(
+      b.totalAmount
+        ? `   ລວມທັງໝົດ: ${b.totalPct} (${b.totalAmount})`
+        : `   ລວມທັງໝົດ: ${b.totalPct}`,
+    )
+  }
+
+  // Say what the percentages are a percentage OF. Without this the figures
+  // read as monthly rates of return, which they are not.
+  const bases = blocks
+    .filter(b => !b.comingSoon && b.capital)
+    .map(b => `${b.shortName} ${b.capital}`)
+  if (bases.length > 0) {
+    lines.push(``, `ℹ️ % ຄິດທຽບກັບທຶນເລີ່ມຕົ້ນ · ${bases.join(" · ")}`)
+  }
+
+  lines.push(``, `▶ ເບິ່ງລາຍລະອຽດ: https://www.laoforextrader.com/ea-system`)
+  return lines.join("\n")
 }
 
 export interface RunOptions {
@@ -142,22 +198,10 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
     fetchEAStats("megihedge"),
   ])
 
-  // Build text inputs first
-  const sgrideCfg = EAS[0]
-  const megiCfg   = EAS[1]
-  const sgridePeriod = periodPctFor(sgrideStats, period, sgrideCfg.fallbacks[period])
-  const sgrideTotal  = fmtPct(sgrideStats?.profitTotalPct, sgrideCfg.fallbacks.total)
-  const megiPeriod   = periodPctFor(megiStats,   period, megiCfg.fallbacks[period])
-  const megiTotal    = fmtPct(megiStats?.profitTotalPct, megiCfg.fallbacks.total)
-  const sgrideAmount = periodAmountFor(sgrideStats, period)
-  const megiAmount   = periodAmountFor(megiStats, period)
-  const sgrideAmountStr = sgrideAmount ? fmtMoney(sgrideAmount.amount, sgrideAmount.currency) : null
-  const megiAmountStr   = megiAmount   ? fmtMoney(megiAmount.amount,   megiAmount.currency)   : null
-  const textPreview  = buildText(
-    period, dl,
-    sgridePeriod, sgrideTotal, sgrideAmountStr,
-    megiPeriod,   megiTotal,   megiAmountStr,
-  )
+  const textPreview = buildText(period, dl, [
+    buildEABlock(EAS[0], sgrideStats, period, now, false),
+    buildEABlock(EAS[1], megiStats,   period, now, MEGI_COMING_SOON),
+  ])
 
   // All broadcasts are text-only — no EA card images for any period.
   const imageUrls: string[] = []
