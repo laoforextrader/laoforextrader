@@ -21,13 +21,16 @@ export default async function EAToolsPage() {
       <h1 className="font-lao font-bold text-2xl mb-2">
         EA & <span className="text-gold">Tools</span>
       </h1>
-      <p className="font-lao text-white/40 text-sm mb-8">
+      {/* Leftover white text from the old dark theme: this page has no dark
+          block of its own, so it was rendering at 1.06:1 on the page
+          background — effectively invisible in light mode. */}
+      <p className="font-lao text-fg-3 text-sm mb-8">
         Expert Advisor · Robot Forex · MT4/MT5 · VPS · Automation
       </p>
       <div className="flex flex-col">
         {articles.map((a) => <ArticleCard key={a._id} article={a} />)}
         {articles.length === 0 && (
-          <div className="text-center py-16 text-white/25 font-lao">
+          <div className="text-center py-16 text-fg-3 font-lao">
             ກຳລັງໂຫຼດ...
           </div>
         )}
