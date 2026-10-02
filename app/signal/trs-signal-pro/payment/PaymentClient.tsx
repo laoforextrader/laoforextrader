@@ -36,13 +36,13 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
   }
 
   return (
-    <div style={{ background: "linear-gradient(180deg,#F8FAFF 0%,#EEF3FF 100%)", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(180deg,var(--surface-2) 0%,var(--accent-soft) 100%)", minHeight: "100vh" }}>
       <div className="max-w-[1060px] mx-auto px-6 py-10">
         {/* Breadcrumb */}
         <div className="mb-6">
           <Link
             href="/signal/trs-signal-pro"
-            className="inline-flex items-center gap-1.5 font-lao text-[12px] text-gray-500 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-1.5 font-lao text-[12px] text-fg-3 hover:text-blue-600 transition-colors"
           >
             <ArrowLeft size={14} />
             ກັບໄປຫນ້າ Signal
@@ -67,8 +67,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
         <div
           className="mb-8 overflow-hidden"
           style={{
-            background: "#fff",
-            border: "1px solid #DBEAFE",
+            background: "var(--surface)",
+            border: "1px solid var(--accent-line)",
             borderRadius: 16,
             boxShadow: "0 4px 14px rgba(37,99,235,0.06)",
           }}
@@ -91,8 +91,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             <PriceBox plan="1y" period="1 ປີ"      lak="2,000,000" usdt="$93" save="ປະຢັດ 1M" highlight onClick={onSelectPlan} selected={plan === "1y"} />
           </div>
           <div
-            className="font-lao text-center py-2.5 text-[11px] text-gray-500"
-            style={{ borderTop: "1px solid #F1F5F9", background: "#FAFBFF" }}
+            className="font-lao text-center py-2.5 text-[11px] text-fg-3"
+            style={{ borderTop: "1px solid var(--line-2)", background: "var(--surface-2)" }}
           >
             ⚠️ ອັດຕາ USD/LAK ປ່ຽນທຸກວັນ · ຢືນຢັນກັບ admin ກ່ອນໂອນ USDT
           </div>
@@ -102,7 +102,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
         <div className="mb-5">
           <div
             className="font-lao text-center mb-3"
-            style={{ fontSize: 12, fontWeight: 700, color: "#6B7280", letterSpacing: "0.04em" }}
+            style={{ fontSize: 12, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.04em" }}
           >
             ເລືອກວິທີຊຳລະ
           </div>
@@ -111,8 +111,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             aria-label="Payment method"
             className="grid grid-cols-2 gap-2 max-w-[420px] mx-auto"
             style={{
-              background: "#fff",
-              border: "1.5px solid #E2E6F0",
+              background: "var(--surface)",
+              border: "1.5px solid var(--line)",
               borderRadius: 12,
               padding: 4,
             }}
@@ -140,7 +140,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
           {method === "bcel" && (
           <div
             style={{
-              background: "#fff",
+              background: "var(--surface)",
               border: "2px solid #00A651",
               borderRadius: 16,
               padding: 24,
@@ -153,12 +153,12 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
                 BCEL OnePay
               </h3>
             </div>
-            <p className="font-lao text-[12.5px] text-gray-500 mb-4">
+            <p className="font-lao text-[12.5px] text-fg-3 mb-4">
               ໂອນຈາກ BCEL One app — ໄວ ປອດໄພ ບໍ່ມີຄ່າທຳນຽມ
             </p>
 
             <div className="flex justify-center mb-3">
-              <div style={{ background: "#fff", padding: 10, borderRadius: 12, border: "1px solid #E2E6F0" }}>
+              <div style={{ background: "var(--surface)", padding: 10, borderRadius: 12, border: "1px solid var(--line)" }}>
                 <Image
                   src="/payment/bcel-qr.png"
                   alt="BCEL OnePay QR"
@@ -200,7 +200,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
               <div
                 className="text-center mb-4 font-lao"
                 style={{
-                  background: "#FEF3C7",
+                  background: "var(--warn-soft)",
                   border: "1px dashed #FBBF24",
                   borderRadius: 10,
                   padding: 10,
@@ -214,19 +214,19 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
 
             <div
               style={{
-                background: "#F0FDF4",
-                border: "1px solid #BBF7D0",
+                background: "var(--success-soft)",
+                border: "1px solid var(--success-line)",
                 borderRadius: 10,
                 padding: 12,
                 marginBottom: 12,
               }}
             >
-              <div className="font-lao text-[11px] text-gray-500 mb-1">ຊື່ບັນຊີ</div>
+              <div className="font-lao text-[11px] text-fg-3 mb-1">ຊື່ບັນຊີ</div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="font-lao text-[14px] font-bold text-gray-900">LASSAME MUANGSONG MR</div>
+                <div className="font-lao text-[14px] font-bold text-fg">LASSAME MUANGSONG MR</div>
                 <CopyButton value="LASSAME MUANGSONG MR" />
               </div>
-              <div className="font-lao text-[11px] text-gray-500 mb-1">ເລກບັນຊີ</div>
+              <div className="font-lao text-[11px] text-fg-3 mb-1">ເລກບັນຊີ</div>
               <div className="flex items-center justify-between gap-2">
                 <div
                   style={{
@@ -246,8 +246,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             <div
               className="font-lao"
               style={{
-                background: "#FFFBEB",
-                border: "1px solid #FDE68A",
+                background: "var(--warn-soft)",
+                border: "1px solid var(--warn-line)",
                 borderRadius: 10,
                 padding: 12,
                 fontSize: 12.5,
@@ -272,7 +272,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
           {method === "usdt" && (
           <div
             style={{
-              background: "#fff",
+              background: "var(--surface)",
               border: "2px solid #26A17B",
               borderRadius: 16,
               padding: 24,
@@ -300,12 +300,12 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
                 ⚡ AUTO-VERIFY
               </span>
             </div>
-            <p className="font-lao text-[12.5px] text-gray-500 mb-4">
+            <p className="font-lao text-[12.5px] text-fg-3 mb-4">
               ໂອນ Crypto ຈາກ Binance/OKX/wallet — ລະບົບກວດ TX ໃຫ້ອັດຕະໂນມັດ
             </p>
 
             <div className="flex justify-center mb-3">
-              <div style={{ background: "#fff", padding: 10, borderRadius: 12, border: "1px solid #E2E6F0" }}>
+              <div style={{ background: "var(--surface)", padding: 10, borderRadius: 12, border: "1px solid var(--line)" }}>
                 <Image
                   src="/payment/usdt-qr.png"
                   alt="USDT TRC20 QR"
@@ -346,7 +346,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
               <div
                 className="text-center mb-4 font-lao"
                 style={{
-                  background: "#FEF3C7",
+                  background: "var(--warn-soft)",
                   border: "1px dashed #FBBF24",
                   borderRadius: 10,
                   padding: 10,
@@ -360,14 +360,14 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
 
             <div
               style={{
-                background: "#F0FDFA",
-                border: "1px solid #99F6E4",
+                background: "var(--success-soft)",
+                border: "1px solid var(--success-line)",
                 borderRadius: 10,
                 padding: 12,
                 marginBottom: 12,
               }}
             >
-              <div className="font-lao text-[11px] text-gray-500 mb-1">ທີ່ຢູ່ (TRC20)</div>
+              <div className="font-lao text-[11px] text-fg-3 mb-1">ທີ່ຢູ່ (TRC20)</div>
               <div className="flex items-center justify-between gap-2">
                 <div
                   style={{
@@ -388,8 +388,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             <div
               className="font-lao"
               style={{
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
+                background: "var(--danger-soft)",
+                border: "1px solid var(--danger-line)",
                 borderRadius: 10,
                 padding: 12,
                 fontSize: 12.5,
@@ -409,8 +409,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             <div
               className="font-lao"
               style={{
-                background: "#FFFBEB",
-                border: "1px solid #FDE68A",
+                background: "var(--warn-soft)",
+                border: "1px solid var(--warn-line)",
                 borderRadius: 10,
                 padding: 12,
                 fontSize: 12.5,
@@ -447,7 +447,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
             style={{
               fontSize: 28,
               letterSpacing: "-0.02em",
-              background: "linear-gradient(135deg,#FCD34D,#FFFFFF,#A78BFA)",
+              background: "linear-gradient(135deg,#FCD34D,var(--surface),#A78BFA)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -465,8 +465,8 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              background: "#fff",
-              color: "#2563EB",
+              background: "var(--surface)",
+              color: "var(--accent)",
               textDecoration: "none",
               padding: "14px 32px",
               borderRadius: 10,
@@ -484,7 +484,7 @@ export default function PaymentClient({ initialPlan }: { initialPlan: string }) 
 
         {/* Telegram fallback */}
         <div className="mt-5 text-center">
-          <p className="font-lao text-[12px] text-gray-500 mb-2">
+          <p className="font-lao text-[12px] text-fg-3 mb-2">
             ມີຄຳຖາມ ຫຼື ບໍ່ສະບາຍໃຊ້ຟອມ?
           </p>
           <a
@@ -520,12 +520,12 @@ function PriceBox({
     <button
       type="button"
       onClick={() => onClick(plan)}
-      className="text-center transition-all hover:bg-blue-50"
+      className="text-center transition-all hover:bg-accent-soft"
       style={{
         padding: "16px 12px",
-        background: selected ? "linear-gradient(180deg,#DBEAFE,#BFDBFE)" : baseBg,
-        borderRight: "1px solid #F1F5F9",
-        borderBottom: "1px solid #F1F5F9",
+        background: selected ? "linear-gradient(180deg,var(--accent-soft-2),var(--accent-line))" : baseBg,
+        borderRight: "1px solid var(--line-2)",
+        borderBottom: "1px solid var(--line-2)",
         position: "relative",
         textDecoration: "none",
         color: "inherit",
@@ -573,14 +573,14 @@ function PriceBox({
           ✓ ເລືອກແລ້ວ
         </div>
       )}
-      <div className="font-lao text-[11.5px] text-gray-500 mb-1">{period}</div>
+      <div className="font-lao text-[11.5px] text-fg-3 mb-1">{period}</div>
       <div
         className="font-lao font-bold"
-        style={{ fontSize: 16, color: "#111827", letterSpacing: "-0.01em" }}
+        style={{ fontSize: 16, color: "var(--fg)", letterSpacing: "-0.01em" }}
       >
         {lak}
       </div>
-      <div className="font-lao text-[10.5px] text-gray-500 -mt-0.5">ກີບ</div>
+      <div className="font-lao text-[10.5px] text-fg-3 -mt-0.5">ກີບ</div>
       <div
         style={{
           fontFamily: "JetBrains Mono, monospace",
@@ -595,7 +595,7 @@ function PriceBox({
       {save && (
         <div
           className="font-lao mt-1.5"
-          style={{ fontSize: 10, fontWeight: 700, color: "#10B981" }}
+          style={{ fontSize: 10, fontWeight: 700, color: "var(--success)" }}
         >
           🎉 {save}
         </div>
@@ -632,7 +632,7 @@ function MethodTab({
         cursor: "pointer",
         border: "none",
         background: active ? activeColor : "transparent",
-        color: active ? "#fff" : "#374151",
+        color: active ? "#fff" : "var(--fg-2)",
         boxShadow: active ? `0 6px 14px ${activeColor}40` : "none",
       }}
     >

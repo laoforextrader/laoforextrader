@@ -84,7 +84,7 @@ export function TelegramRequired() {
     <div
       className="max-w-[560px] mx-auto mb-8"
       style={{
-        background: "#fff",
+        background: "var(--surface)",
         border: `1.5px solid ${TG_BLUE}33`,
         borderRadius: 16,
         boxShadow: "0 6px 20px rgba(34,158,217,0.10)",
@@ -97,10 +97,10 @@ export function TelegramRequired() {
           <TelegramLogo size={30} />
         </span>
         <div>
-          <div className="font-lao font-bold text-[15px]" style={{ color: "#0F172A" }}>
+          <div className="font-lao font-bold text-[15px]" style={{ color: "var(--fg)" }}>
             ທ່ານ ຕ້ອງມີ Telegram ກ່ອນ
           </div>
-          <div className="font-lao text-[12px]" style={{ color: "#64748B" }}>
+          <div className="font-lao text-[12px]" style={{ color: "var(--fg-3)" }}>
             ສັນຍານທັງໝົດສົ່ງຜ່ານ Telegram — ກະລຸນາຕິດຕັ້ງ Telegram ກ່ອນສະໝັກ
           </div>
         </div>
@@ -113,7 +113,7 @@ export function TelegramRequired() {
         aria-expanded={open}
         className="w-full flex items-center justify-center gap-1.5 font-lao font-semibold text-[13px] transition-colors"
         style={{
-          background: open ? "#F1F9FE" : "#F8FBFE",
+          background: open ? "var(--surface-2)" : "var(--surface-2)",
           color: TG_BLUE,
           borderTop: `1px solid ${TG_BLUE}22`,
           padding: "10px 14px",
@@ -130,10 +130,10 @@ export function TelegramRequired() {
 
       {/* Expandable how-to */}
       {open && (
-        <div className="px-5 py-5" style={{ borderTop: `1px solid ${TG_BLUE}22`, background: "#FBFDFF" }}>
+        <div className="px-5 py-5" style={{ borderTop: `1px solid ${TG_BLUE}22`, background: "var(--surface-2)" }}>
           <ol
             className="font-lao text-[13px] space-y-2 mb-4"
-            style={{ color: "#334155", paddingLeft: 18, listStyle: "decimal" }}
+            style={{ color: "var(--fg-2)", paddingLeft: 18, listStyle: "decimal" }}
           >
             <li>ດາວໂຫລດ app Telegram ຈາກ App Store ຫຼື Play Store</li>
             <li>ເປີດ app → ໃສ່ເບີໂທລະສັບ → ຢືນຢັນ OTP</li>

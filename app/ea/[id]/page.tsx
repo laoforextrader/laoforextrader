@@ -23,7 +23,7 @@ export default async function EAStatsPage({ params }: Props) {
   if (!stats || stats.updateMode === "off") notFound()
 
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <div className="max-w-[860px] mx-auto px-6 py-10">
         <EAStatsCard eaId={id} />
       </div>

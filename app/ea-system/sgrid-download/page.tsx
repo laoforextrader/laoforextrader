@@ -64,7 +64,7 @@ export default async function SGridDownloadPage() {
   const peak = values.length ? Math.max(...values.map((v) => Math.abs(v))) : 1
 
   return (
-    <div style={{ background: "#EDEEF2" }}>
+    <div style={{ background: "var(--bg)" }}>
       {/* ── hero ───────────────────────────────────────────────────────── */}
       <section style={{ background: "linear-gradient(160deg,#0B1020 0%,#141B36 60%,#1B2450 100%)", padding: "56px 20px 48px" }}>
         <div style={{ maxWidth: 880, margin: "0 auto" }}>
@@ -79,7 +79,7 @@ export default async function SGridDownloadPage() {
             🚀 TheRocket EA SGrid
           </span>
 
-          {/* globals.css forces `h1..h6 { color: #111827 !important }`, which beats
+          {/* globals.css forces `h1..h6 { color: var(--fg) !important }`, which beats
               an inline style. The rest of the site works around it by colouring an
               inner span instead — same trick here. */}
           <h1 className="font-lao" style={{ fontSize: 32, lineHeight: 1.4, fontWeight: 800, margin: "0 0 12px" }}>
@@ -117,16 +117,16 @@ export default async function SGridDownloadPage() {
       <div style={{ maxWidth: 880, margin: "0 auto", padding: "36px 20px 56px" }}>
         {/* ── monthly performance ──────────────────────────────────────── */}
         {months.length > 0 && (
-          <section style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: 24, marginBottom: 20 }}>
-            <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>ຜົນງານແຕ່ລະເດືອນ</h2>
-            <p className="font-lao" style={{ fontSize: 12, color: "#6B7280", margin: "0 0 20px" }}>
+          <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
+            <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 4px" }}>ຜົນງານແຕ່ລະເດືອນ</h2>
+            <p className="font-lao" style={{ fontSize: 12, color: "var(--fg-3)", margin: "0 0 20px" }}>
               ຕົວເລກດຶງມາຈາກບັນຊີຈິງໂດຍກົງ ອັບເດດອັດຕະໂນມັດ
             </p>
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 150 }}>
               {months.map((m) => (
                 <div key={m.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "#15803D", fontFamily: "Arial,sans-serif" }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success-ink)", fontFamily: "Arial,sans-serif" }}>
                     {m.profitPct.toFixed(0)}%
                   </span>
                   <div
@@ -138,7 +138,7 @@ export default async function SGridDownloadPage() {
                       borderRadius: 5,
                     }}
                   />
-                  <span className="font-lao" style={{ fontSize: 8, color: "#9CA3AF", whiteSpace: "nowrap" }}>{monthLabel(m.month)}</span>
+                  <span className="font-lao" style={{ fontSize: 8, color: "var(--fg-4)", whiteSpace: "nowrap" }}>{monthLabel(m.month)}</span>
                 </div>
               ))}
             </div>
@@ -146,9 +146,9 @@ export default async function SGridDownloadPage() {
         )}
 
         {/* ── conditions: a LINE conversation, not a checklist ────────── */}
-        <section style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: 24, marginBottom: 20 }}>
-          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>ເງື່ອນໄຂການໃຊ້ງານ</h2>
-          <p className="font-lao" style={{ fontSize: 12.5, lineHeight: 1.85, color: "#6B7280", margin: "0 0 18px" }}>
+        <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
+          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 4px" }}>ເງື່ອນໄຂການໃຊ້ງານ</h2>
+          <p className="font-lao" style={{ fontSize: 12.5, lineHeight: 1.85, color: "var(--fg-3)", margin: "0 0 18px" }}>
             ຕິດຕໍ່ສອບຖາມເງື່ອນໄຂການໃຊ້ EA ໄດ້ທາງ LINE — ພວກເຮົາຕອບທຸກຂໍ້ຄວາມ
           </p>
           <a
@@ -169,8 +169,8 @@ export default async function SGridDownloadPage() {
         </section>
 
         {/* ── download ─────────────────────────────────────────────────── */}
-        <section style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: 24, marginBottom: 20 }}>
-          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>ໄຟລ໌ດາວໂຫຼດ</h2>
+        <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
+          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 16px" }}>ໄຟລ໌ດາວໂຫຼດ</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {FILES.map((f) => (
               <a
@@ -180,25 +180,25 @@ export default async function SGridDownloadPage() {
                 rel="noopener noreferrer"
                 style={{
                   display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 12,
-                  border: "1px solid #E2E6F0", background: "#F9FAFB", textDecoration: "none",
+                  border: "1px solid var(--line)", background: "var(--surface-2)", textDecoration: "none",
                 }}
               >
                 <span style={{ fontSize: 20 }}>{f.ready ? "⬇" : "💬"}</span>
                 <span style={{ flex: 1 }}>
-                  <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "#111827", fontFamily: "Arial,sans-serif" }}>{f.label}</span>
-                  <span className="font-lao" style={{ display: "block", fontSize: 11.5, color: "#6B7280", marginTop: 2 }}>
+                  <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--fg)", fontFamily: "Arial,sans-serif" }}>{f.label}</span>
+                  <span className="font-lao" style={{ display: "block", fontSize: 11.5, color: "var(--fg-3)", marginTop: 2 }}>
                     {f.ready ? f.note : `${f.note} — ຂໍຮັບທາງ LINE`}
                   </span>
                 </span>
-                <span className="font-lao" style={{ fontSize: 12, fontWeight: 700, color: "#2563EB" }}>{f.ready ? "ດາວໂຫຼດ" : "ຂໍຮັບ"} →</span>
+                <span className="font-lao" style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)" }}>{f.ready ? "ດາວໂຫຼດ" : "ຂໍຮັບ"} →</span>
               </a>
             ))}
           </div>
         </section>
 
         {/* ── channels ─────────────────────────────────────────────────── */}
-        <section style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: 24, marginBottom: 20 }}>
-          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>ຕິດຕາມພວກເຮົາ</h2>
+        <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
+          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 16px" }}>ຕິດຕາມພວກເຮົາ</h2>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {CHANNELS.map((c) => (
               <a
@@ -208,21 +208,21 @@ export default async function SGridDownloadPage() {
                 rel="noopener noreferrer"
                 style={{
                   display: "flex", alignItems: "center", gap: 9, padding: "9px 14px", borderRadius: 12,
-                  border: "1px solid #E2E6F0", background: "#F9FAFB", textDecoration: "none",
+                  border: "1px solid var(--line)", background: "var(--surface-2)", textDecoration: "none",
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={c.icon} alt="" width={20} height={20} style={{ display: "block" }} />
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: "#374151", fontFamily: "Arial,sans-serif" }}>{c.name}</span>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--fg-2)", fontFamily: "Arial,sans-serif" }}>{c.name}</span>
               </a>
             ))}
           </div>
         </section>
 
-        <p className="font-lao" style={{ fontSize: 11.5, lineHeight: 1.9, color: "#9CA3AF", textAlign: "center", margin: 0 }}>
+        <p className="font-lao" style={{ fontSize: 11.5, lineHeight: 1.9, color: "var(--fg-4)", textAlign: "center", margin: 0 }}>
           ⚠ ຜົນງານທີ່ຜ່ານມາບໍ່ໄດ້ຮັບປະກັນຜົນໃນອະນາຄົດ · ການ Trade ມີຄວາມສ່ຽງ ອາດເສຍທຶນທັງໝົດ
           <br />
-          ໃຊ້ເງິນທີ່ທ່ານຮັບຄວາມສ່ຽງໄດ້ເທົ່ານັ້ນ · <Link href="/ea-system" style={{ color: "#6B7280" }}>ເບິ່ງ EA ທັງໝົດ</Link>
+          ໃຊ້ເງິນທີ່ທ່ານຮັບຄວາມສ່ຽງໄດ້ເທົ່ານັ້ນ · <Link href="/ea-system" style={{ color: "var(--fg-3)" }}>ເບິ່ງ EA ທັງໝົດ</Link>
         </p>
       </div>
     </div>

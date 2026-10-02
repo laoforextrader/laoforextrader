@@ -23,7 +23,7 @@ export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
         <div className="text-[10px] font-bold uppercase tracking-widest text-orange-600 mb-1 flex items-center gap-1.5">
           🔥 News / Hot Story
         </div>
-        <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
+        <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-fg">
           ຂ່າວສຳຄັນຂອງມື້
         </h2>
       </div>
@@ -33,10 +33,10 @@ export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
           <Link
             key={item._key ?? item.id}
             href={`/news/hot/${encodeURIComponent(item.id)}`}
-            className="group flex bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all"
+            className="group flex bg-surface rounded-2xl overflow-hidden border border-line-2 hover:border-orange-300 hover:shadow-md transition-all"
           >
             {/* Image LEFT — square */}
-            <div className="flex-shrink-0 w-[140px] h-[140px] bg-gray-100 overflow-hidden">
+            <div className="flex-shrink-0 w-[140px] h-[140px] bg-surface-3 overflow-hidden">
               {item.imageUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
@@ -48,7 +48,7 @@ export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
               ) : (
                 <div
                   className="w-full h-full flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg,#FFF7ED,#FEE2E2)" }}
+                  style={{ background: "linear-gradient(135deg,var(--warn-soft),var(--danger-soft))" }}
                 >
                   <span className="text-[36px] opacity-60">📰</span>
                 </div>
@@ -57,11 +57,11 @@ export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
 
             {/* Content RIGHT — title + summary stacked */}
             <div className="flex-1 min-w-0 p-4 flex flex-col">
-              <h3 className="font-lao text-[15px] font-bold text-gray-900 group-hover:text-orange-600 transition-colors leading-snug mb-1.5 line-clamp-2">
+              <h3 className="font-lao text-[15px] font-bold text-fg group-hover:text-orange-600 transition-colors leading-snug mb-1.5 line-clamp-2">
                 {item.title}
               </h3>
               {item.summary && (
-                <p className="font-lao text-[12px] text-gray-600 leading-relaxed line-clamp-3 flex-1">
+                <p className="font-lao text-[12px] text-fg-3 leading-relaxed line-clamp-3 flex-1">
                   {item.summary}
                 </p>
               )}

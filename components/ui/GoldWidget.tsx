@@ -11,10 +11,10 @@ export function GoldWidget({ initial }: { initial?: GoldSnapshot | null }) {
     <div className="hidden lg:block card p-4 animate-float shadow-xl">
       {/* XAUUSD header */}
       <div className="flex justify-between items-center mb-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">XAUUSD Live</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-fg-4">XAUUSD Live</span>
         <span
           className={`flex items-center gap-1 text-[10px] font-mono font-semibold ${
-            isLive ? "text-green-600" : "text-gray-400"
+            isLive ? "text-green-600" : "text-fg-4"
           }`}
         >
           <span
@@ -27,14 +27,14 @@ export function GoldWidget({ initial }: { initial?: GoldSnapshot | null }) {
       </div>
 
       {/* Spot price */}
-      <div className="font-mono text-2xl font-medium text-gray-900 mb-0.5">
+      <div className="font-mono text-2xl font-medium text-fg mb-0.5">
         {xauusd
           ? xauusd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
           : "—"}
       </div>
       <div
         className={`font-mono text-[11px] font-semibold mb-2 ${
-          hasChange ? (up ? "text-green-600" : "text-red-500") : "text-gray-400"
+          hasChange ? (up ? "text-green-600" : "text-red-500") : "text-fg-4"
         }`}
       >
         {hasChange ? (
@@ -51,7 +51,7 @@ export function GoldWidget({ initial }: { initial?: GoldSnapshot | null }) {
       {/* Lao gold price */}
       <div
         className="flex items-center gap-2 px-2.5 py-2 rounded-lg"
-        style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}
+        style={{ background: "var(--warn-soft)", border: "1px solid var(--warn-line)" }}
       >
         <span style={{ fontSize: 18, lineHeight: 1 }}>🪙</span>
         <div>
@@ -61,12 +61,12 @@ export function GoldWidget({ initial }: { initial?: GoldSnapshot | null }) {
               fontWeight: 700,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: "#D97706",
+              color: "var(--warn)",
             }}
           >
             ລາຄາຄຳລາວ / ບາດ
           </div>
-          <div style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#92400E" }}>
+          <div style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "var(--warn-ink)" }}>
             {laoGoldLAK ? `${laoGoldLAK.toLocaleString("en-US")} ກີບ` : "—"}
           </div>
         </div>

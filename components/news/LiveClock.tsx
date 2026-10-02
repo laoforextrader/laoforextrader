@@ -26,7 +26,7 @@ export function LiveClock() {
 
   if (!now) {
     return (
-      <div className="inline-flex items-center gap-2 bg-white/70 border border-gray-200 rounded-full px-3 py-1.5 text-[11px] text-gray-400">
+      <div className="inline-flex items-center gap-2 bg-surface-2 border border-line-2 rounded-full px-3 py-1.5 text-[11px] text-fg-4">
         <span className="font-mono">— —</span>
       </div>
     )
@@ -34,11 +34,11 @@ export function LiveClock() {
   const { dateStr, timeStr } = format(now)
 
   return (
-    <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm">
+    <div className="inline-flex items-center gap-2 bg-surface border border-line-2 rounded-full px-3 py-1.5 shadow-sm">
       <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-      <span className="font-mono text-[11px] font-bold text-gray-700">{timeStr}</span>
-      <span className="font-mono text-[10px] text-gray-400">{dateStr}</span>
-      <span className="font-mono text-[10px] font-bold text-blue-600">GMT+7</span>
+      <span className="font-mono text-[11px] font-bold text-fg-2">{timeStr}</span>
+      <span className="font-mono text-[10px] text-fg-4">{dateStr}</span>
+      <span className="font-mono text-[10px] font-bold text-accent">GMT+7</span>
     </div>
   )
 }

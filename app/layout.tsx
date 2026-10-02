@@ -8,6 +8,7 @@ import ChatWidgetLoader from "@/components/chat/ChatWidgetLoader"
 import { OptInSync } from "@/components/newsletter/OptInSync"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { JsonLd, organizationLd, websiteLd } from "@/lib/structuredData"
+import ThemeScript from "@/components/theme/ThemeScript"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.laoforextrader.com"),
@@ -30,16 +31,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="lo">
+    <html lang="lo" suppressHydrationWarning>
       <head>
+        <ThemeScript />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
         <JsonLd data={[organizationLd(), websiteLd()]} />
       </head>
       <body style={{
-        background: "#EDEEF2",
-        color: "#111827",
+        background: "var(--bg)",
+        color: "var(--fg)",
         fontFamily: "'Noto Sans Lao', sans-serif",
         minHeight: "100vh",
         display: "flex",
@@ -48,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProviderWrapper>
           <Navbar />
           <MarketTicker />
-          <main style={{ flex: 1, color: "#111827" }}>{children}</main>
+          <main style={{ flex: 1, color: "var(--fg)" }}>{children}</main>
           <Footer />
           <ChatWidgetLoader />
           {/* Turns the login checkbox into real consent once the session lands */}

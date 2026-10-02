@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss"
 
 const config: Config = {
+  // Manual toggle, not prefers-color-scheme: ThemeScript puts `dark` on
+  // <html> from localStorage, falling back to the OS setting.
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,6 +14,39 @@ const config: Config = {
       colors: {
         blue: { DEFAULT: "#2563EB", light: "#EEF3FF", mid: "#BFCFFF", dark: "#1D4ED8" },
         indigo: { DEFAULT: "#4F46E5" },
+
+        // Theme tokens — defined in app/globals.css, flipped by html.dark.
+        // Use these for every neutral; reach for a literal colour only when
+        // it must stay put in both themes (white on a brand-blue button).
+        bg: "var(--bg)",
+        surface: {
+          DEFAULT: "var(--surface)",
+          2: "var(--surface-2)",
+          3: "var(--surface-3)",
+          sunken: "var(--surface-sunken)",
+        },
+        fg: {
+          DEFAULT: "var(--fg)",
+          2: "var(--fg-2)",
+          3: "var(--fg-3)",
+          4: "var(--fg-4)",
+          inverse: "var(--fg-inverse)",
+        },
+        line: { DEFAULT: "var(--line)", 2: "var(--line-2)" },
+        accent: {
+          DEFAULT: "var(--accent)",
+          strong: "var(--accent-strong)",
+          2: "var(--accent-2)",
+          soft: "var(--accent-soft)",
+          soft2: "var(--accent-soft-2)",
+          line: "var(--accent-line)",
+          ink: "var(--accent-ink)",
+        },
+        ok:   { DEFAULT: "var(--success)", soft: "var(--success-soft)", line: "var(--success-line)", ink: "var(--success-ink)" },
+        bad:  { DEFAULT: "var(--danger)",  soft: "var(--danger-soft)",  line: "var(--danger-line)",  ink: "var(--danger-ink)" },
+        warn: { DEFAULT: "var(--warn)",    soft: "var(--warn-soft)",    line: "var(--warn-line)",    ink: "var(--warn-ink)" },
+        pink: { DEFAULT: "var(--pink)" },
+        violet: { DEFAULT: "var(--violet)", soft: "var(--violet-soft)", line: "var(--violet-line)" },
       },
       fontFamily: {
         // ใช้ Noto Sans Lao ทั้งหมด

@@ -69,7 +69,7 @@ const WHY_POINTS = [
 
 export default function TRSSignalProPage() {
   return (
-    <div style={{ background: "#EDEEF2" }}>
+    <div style={{ background: "var(--bg)" }}>
       {/* ── HERO ── */}
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
@@ -208,7 +208,7 @@ export default function TRSSignalProPage() {
             >
               <div style={{ color: "#FCD34D", fontWeight: 700, marginBottom: 6 }}>🟢 BUY XAUUSD · H1</div>
               <div>Entry &nbsp; <span style={{ color: "#fff" }}>4488.50</span></div>
-              <div>SL &nbsp;&nbsp;&nbsp;&nbsp; <span style={{ color: "#EF4444" }}>4483.20</span> &nbsp;(-53 pips)</div>
+              <div>SL &nbsp;&nbsp;&nbsp;&nbsp; <span style={{ color: "var(--danger)" }}>4483.20</span> &nbsp;(-53 pips)</div>
               <div>TP &nbsp;&nbsp;&nbsp;&nbsp; <span style={{ color: "#4ADE80" }}>4496.20</span> &nbsp;(+77 pips)</div>
               <div style={{ color: "#A78BFA", marginTop: 6 }}>Score · 82/100</div>
               <div
@@ -300,7 +300,7 @@ export default function TRSSignalProPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="bg-white border-b border-gray-200">
+      <section className="bg-surface border-b border-line-2">
         <div className="max-w-[1060px] mx-auto px-6 py-14">
           <div className="text-center mb-12">
             <div className="section-eyebrow">ຂັ້ນຕອນເຮັດວຽກ</div>
@@ -337,13 +337,13 @@ export default function TRSSignalProPage() {
                 style={{ paddingTop: 32 }}
               >
                 <div className={styles.stepNumber}>{p.step}</div>
-                <h3 className="font-lao font-bold text-[15px] text-gray-900 mb-1.5">{p.title}</h3>
-                <p className="font-lao text-[13px] text-gray-500 leading-relaxed">{p.desc}</p>
+                <h3 className="font-lao font-bold text-[15px] text-fg mb-1.5">{p.title}</h3>
+                <p className="font-lao text-[13px] text-fg-3 leading-relaxed">{p.desc}</p>
                 {i < PROCESS.length - 1 && (
                   <ArrowRight
                     className="hidden md:block absolute"
                     size={18}
-                    style={{ right: -14, top: "50%", color: "#9CA3AF" }}
+                    style={{ right: -14, top: "50%", color: "var(--fg-4)" }}
                   />
                 )}
               </div>
@@ -407,7 +407,7 @@ export default function TRSSignalProPage() {
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" className="bg-white border-t border-b border-gray-200">
+      <section id="pricing" className="bg-surface border-t border-b border-line-2">
         <div className="max-w-[1060px] mx-auto px-6 py-14">
           <div className="text-center mb-10">
             <div className="section-eyebrow">ແພັກເກັດ</div>
@@ -469,15 +469,15 @@ export default function TRSSignalProPage() {
           <div
             className="mt-8 p-6 text-center"
             style={{
-              background: "linear-gradient(135deg,#EEF3FF,#DBEAFE)",
+              background: "linear-gradient(135deg,var(--accent-soft),var(--accent-soft-2))",
               borderRadius: 16,
-              border: "1px solid #BFCFFF",
+              border: "1px solid var(--accent-line)",
             }}
           >
-            <h3 className="font-lao font-bold text-[16px] text-gray-900 mb-1">
+            <h3 className="font-lao font-bold text-[16px] text-fg mb-1">
               💰 ສ່ວນຫຼຸດສຳລັບ Pro
             </h3>
-            <p className="font-lao text-[12px] text-gray-500 mb-4">
+            <p className="font-lao text-[12px] text-fg-3 mb-4">
               ສະໝັກຫຼາຍເດືອນ · ປະຢັດກວ່າ
             </p>
             <div className="flex flex-wrap justify-center gap-8">
@@ -493,7 +493,7 @@ export default function TRSSignalProPage() {
                 >
                   3 ເດືອນ
                 </div>
-                <div className="font-lao text-[13px] text-gray-700">
+                <div className="font-lao text-[13px] text-fg-2">
                   600,000 ກີບ <span className="text-emerald-600 font-bold">· ປະຢັດ 150,000</span>
                 </div>
               </div>
@@ -509,7 +509,7 @@ export default function TRSSignalProPage() {
                 >
                   1 ປີ
                 </div>
-                <div className="font-lao text-[13px] text-gray-700">
+                <div className="font-lao text-[13px] text-fg-2">
                   2,000,000 ກີບ <span className="text-emerald-600 font-bold">· ປະຢັດ 1,000,000</span>
                 </div>
               </div>
@@ -542,9 +542,9 @@ export default function TRSSignalProPage() {
       <section
         id="contact"
         style={{
-          background: "linear-gradient(180deg,#EEF3FF 0%,#DBEAFE 50%,#EEF3FF 100%)",
-          borderTop: "1px solid #BFCFFF",
-          borderBottom: "1px solid #BFCFFF",
+          background: "linear-gradient(180deg,var(--accent-soft) 0%,var(--accent-soft-2) 50%,var(--accent-soft) 100%)",
+          borderTop: "1px solid var(--accent-line)",
+          borderBottom: "1px solid var(--accent-line)",
         }}
       >
         <div className="max-w-[760px] mx-auto px-6 py-14 text-center">
@@ -555,8 +555,8 @@ export default function TRSSignalProPage() {
           <p className="section-sub">ຕິດຕໍ່ admin ຜ່ານ Telegram ເພື່ອຮັບລິ້ງ Pro Channel</p>
 
           <div className="card p-6 text-left mt-4 max-w-[520px] mx-auto">
-            <h3 className="font-lao font-bold text-[15px] text-gray-900 mb-3">📋 ຂັ້ນຕອນສະໝັກ</h3>
-            <ol className="font-lao text-[13.5px] text-gray-700 space-y-2.5" style={{ paddingLeft: 18, listStyle: "decimal" }}>
+            <h3 className="font-lao font-bold text-[15px] text-fg mb-3">📋 ຂັ້ນຕອນສະໝັກ</h3>
+            <ol className="font-lao text-[13.5px] text-fg-2 space-y-2.5" style={{ paddingLeft: 18, listStyle: "decimal" }}>
               <li>ກົດປຸ່ມລຸ່ມ → ໄປຫນ້າຊຳລະເງິນ</li>
               <li>ໂອນຜ່ານ BCEL OnePay ຫຼື USDT TRC20</li>
               <li>ສົ່ງ Slip / TX hash ຜ່ານຟອມໃນເວັບ</li>
@@ -579,7 +579,7 @@ export default function TRSSignalProPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "#fff",
+                  background: "var(--surface)",
                   color: "#0088cc",
                   textDecoration: "none",
                   padding: "12px 22px",
@@ -596,16 +596,16 @@ export default function TRSSignalProPage() {
             </div>
           </div>
 
-          <p className="font-lao text-[12px] text-gray-500 mt-6">
+          <p className="font-lao text-[12px] text-fg-3 mt-6">
             ⚠️ ການເທຣດ Forex / Gold ມີຄວາມສ່ຽງ · ສັນຍານສຳລັບການສຶກສາ ບໍ່ແມ່ນຄຳແນະນຳການລົງທຶນ
           </p>
         </div>
       </section>
 
       {SIGNAL_APP_URL && (
-        <section className="bg-white">
+        <section className="bg-surface">
           <div className="max-w-[1060px] mx-auto px-6 py-10 text-center">
-            <p className="font-lao text-[13px] text-gray-500 mb-3">
+            <p className="font-lao text-[13px] text-fg-3 mb-3">
               ສຳລັບ admin ແລະ Pro member · ເບິ່ງ dashboard ສັນຍານທັງໝົດ
             </p>
             <a href={SIGNAL_APP_URL} target="_blank" rel="noopener noreferrer" className="btn-outline">
@@ -640,9 +640,9 @@ function PricingCard({
       style={{
         background: highlight
           ? "linear-gradient(160deg,#0f172a,#1e3a8a)"
-          : "#fff",
-        color: highlight ? "#fff" : "#111827",
-        border: highlight ? "2px solid #4F46E5" : "1.5px solid #E2E6F0",
+          : "var(--surface)",
+        color: highlight ? "#fff" : "var(--fg)",
+        border: highlight ? "2px solid #4F46E5" : "1.5px solid var(--line)",
         borderRadius: 16,
         padding: 28,
         boxShadow: highlight ? "0 14px 40px rgba(79,70,229,0.25)" : "0 1px 2px rgba(0,0,0,0.02)",
@@ -680,7 +680,7 @@ function PricingCard({
                 color: "transparent",
                 letterSpacing: "-0.01em",
               }
-            : { color: "#111827" }
+            : { color: "var(--fg)" }
         }
       >
         {title}
@@ -693,7 +693,7 @@ function PricingCard({
                   fontSize: 36,
                   fontWeight: 800,
                   letterSpacing: "-0.02em",
-                  background: "linear-gradient(135deg,#FFFFFF,#BFDBFE)",
+                  background: "linear-gradient(135deg,var(--surface),var(--accent-line))",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -706,7 +706,7 @@ function PricingCard({
         </span>
         <span
           className="font-lao"
-          style={{ fontSize: 12, color: highlight ? "rgba(255,255,255,0.7)" : "#6B7280", marginLeft: 6 }}
+          style={{ fontSize: 12, color: highlight ? "rgba(255,255,255,0.7)" : "var(--fg-3)", marginLeft: 6 }}
         >
           {period}
         </span>
@@ -719,16 +719,16 @@ function PricingCard({
               <Check
                 size={16}
                 strokeWidth={2.5}
-                style={{ color: highlight ? "#4ADE80" : "#10B981", flexShrink: 0, marginTop: 2 }}
+                style={{ color: highlight ? "#4ADE80" : "var(--success)", flexShrink: 0, marginTop: 2 }}
               />
             ) : (
               <XIcon
                 size={16}
                 strokeWidth={2.5}
-                style={{ color: highlight ? "rgba(255,255,255,0.4)" : "#9CA3AF", flexShrink: 0, marginTop: 2 }}
+                style={{ color: highlight ? "rgba(255,255,255,0.4)" : "var(--fg-4)", flexShrink: 0, marginTop: 2 }}
               />
             )}
-            <span style={{ color: highlight ? "rgba(255,255,255,0.85)" : "#374151" }}>{f.text}</span>
+            <span style={{ color: highlight ? "rgba(255,255,255,0.85)" : "var(--fg-2)" }}>{f.text}</span>
           </li>
         ))}
       </ul>
@@ -739,14 +739,14 @@ function PricingCard({
         style={{
           display: "block",
           textAlign: "center",
-          background: highlight ? "linear-gradient(135deg,#2563EB,#4F46E5)" : "#fff",
-          color: highlight ? "#fff" : "#1F2937",
+          background: highlight ? "linear-gradient(135deg,#2563EB,#4F46E5)" : "var(--surface)",
+          color: highlight ? "#fff" : "var(--fg)",
           padding: "12px",
           borderRadius: 10,
           textDecoration: "none",
           fontWeight: 700,
           fontSize: 14,
-          border: highlight ? "none" : "1.5px solid #9CA3AF",
+          border: highlight ? "none" : "1.5px solid var(--line-2)",
           fontFamily: "Noto Sans Lao, sans-serif",
           boxShadow: highlight ? "0 4px 14px rgba(37,99,235,0.32)" : "none",
         }}

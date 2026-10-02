@@ -11,22 +11,22 @@ export default async function QuizzesHomeSection() {
   const items = quizzes.slice(0, 4)
 
   return (
-    <section className="bg-white border-t border-gray-200 border-b border-gray-200">
+    <section className="bg-surface border-t border-line-2 border-b border-line-2">
       <div className="max-w-[1060px] mx-auto px-6 py-12">
         <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-widest text-blue-600 mb-2">
+            <div className="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">
               ທົດສອບຄວາມຮູ້
             </div>
-            <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
+            <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-fg">
               Forex Quiz Challenge
             </h2>
-            <p className="font-lao text-[13px] text-gray-500 mt-1">
+            <p className="font-lao text-[13px] text-fg-3 mt-1">
               3 ລະດັບ · 90 ຂໍ້ · ເກັບຄະແນນ
             </p>
           </div>
           <Link href="/quiz"
-            className="font-lao text-[12px] font-semibold text-blue-600 hover:text-blue-700">
+            className="font-lao text-[12px] font-semibold text-accent hover:text-accent-strong">
             ເບິ່ງທັງໝົດ →
           </Link>
         </div>

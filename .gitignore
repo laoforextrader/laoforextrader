@@ -24,3 +24,6 @@ newsletter-preview-local.html
 
 # Local-only email preview served by the dev server
 public/newsletter-preview.html
+
+# local theme screenshots (scripts/theme-shots.mjs)
+theme-preview/

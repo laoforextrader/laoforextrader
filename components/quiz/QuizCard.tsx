@@ -36,11 +36,11 @@ export default function QuizCard({ quiz, compact = false }: Props) {
 
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--surface)',
       borderRadius: 18,
       overflow: 'hidden',
       boxShadow: '0 4px 20px rgba(0,0,0,.08)',
-      border: '1px solid #F3F4F6',
+      border: '1px solid var(--line-2)',
       opacity: locked ? 0.85 : 1,
       display: 'flex', flexDirection: 'column',
     }}>
@@ -82,9 +82,9 @@ export default function QuizCard({ quiz, compact = false }: Props) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '12px 24px', borderRadius: 100,
-              border: '1.5px solid #E5E7EB',
+              border: '1.5px solid var(--line-2)',
               fontSize: 14, fontWeight: 600,
-              background: '#F9FAFB', color: '#6B7280',
+              background: 'var(--surface-2)', color: 'var(--fg-3)',
               cursor: 'pointer',
               fontFamily: 'Noto Sans Lao, sans-serif',
             }}

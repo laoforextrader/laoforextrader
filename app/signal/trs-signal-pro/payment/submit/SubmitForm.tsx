@@ -133,12 +133,12 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
   const isUSDT = form.method === "usdt_trc20"
 
   return (
-    <div style={{ background: "linear-gradient(180deg,#F8FAFF 0%,#EEF3FF 100%)", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(180deg,var(--surface-2) 0%,var(--accent-soft) 100%)", minHeight: "100vh" }}>
       <div className="max-w-[600px] mx-auto px-6 py-10">
         <div className="mb-6">
           <Link
             href={`/signal/trs-signal-pro/payment${initialPlan ? `?plan=${initialPlan}` : ""}`}
-            className="inline-flex items-center gap-1.5 font-lao text-[12px] text-gray-500 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-1.5 font-lao text-[12px] text-fg-3 hover:text-blue-600 transition-colors"
           >
             <ArrowLeft size={14} />
             ກັບໄປຫນ້າຊຳລະເງິນ
@@ -160,18 +160,18 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         <form onSubmit={onSubmit} className="card p-6">
           {/* Plan */}
           <div className="mb-4">
-            <label className="font-lao text-[12px] font-semibold text-gray-700 block mb-1.5">
+            <label className="font-lao text-[12px] font-semibold text-fg-2 block mb-1.5">
               ແພັກເກັດ
             </label>
             <select
               value={form.plan}
               onChange={(e) => setForm({ ...form, plan: e.target.value })}
-              className="w-full font-lao text-[14px] text-gray-900"
+              className="w-full font-lao text-[14px] text-fg"
               style={{
                 padding: "10px 12px",
                 borderRadius: 8,
-                border: "1.5px solid #E2E6F0",
-                background: "#fff",
+                border: "1.5px solid var(--line)",
+                background: "var(--surface)",
                 outline: "none",
               }}
             >
@@ -183,7 +183,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
 
           {/* Method */}
           <div className="mb-4">
-            <label className="font-lao text-[12px] font-semibold text-gray-700 block mb-1.5">
+            <label className="font-lao text-[12px] font-semibold text-fg-2 block mb-1.5">
               ວິທີຊຳລະ
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -206,45 +206,45 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
 
           {/* Telegram username */}
           <div className="mb-4">
-            <label className="font-lao text-[12px] font-semibold text-gray-700 block mb-1.5">
-              Telegram Username <span style={{ color: "#EF4444" }}>*</span>
+            <label className="font-lao text-[12px] font-semibold text-fg-2 block mb-1.5">
+              Telegram Username <span style={{ color: "var(--danger)" }}>*</span>
             </label>
             <input
               type="text"
               value={form.telegram_username}
               onChange={(e) => setForm({ ...form, telegram_username: e.target.value })}
               placeholder="@yourusername"
-              className="w-full font-lao text-[14px] text-gray-900"
+              className="w-full font-lao text-[14px] text-fg"
               style={{
                 padding: "10px 12px",
                 borderRadius: 8,
-                border: "1.5px solid #E2E6F0",
-                background: "#fff",
+                border: "1.5px solid var(--line)",
+                background: "var(--surface)",
                 outline: "none",
               }}
               required
             />
-            <div className="font-lao text-[11px] text-gray-500 mt-1">
+            <div className="font-lao text-[11px] text-fg-3 mt-1">
               ເພື່ອສົ່ງລິ້ງ Pro Channel ໃຫ້ທ່ານ
             </div>
           </div>
 
           {/* Name */}
           <div className="mb-4">
-            <label className="font-lao text-[12px] font-semibold text-gray-700 block mb-1.5">
-              ຊື່ <span className="text-gray-400">(ບໍ່ບັງຄັບ)</span>
+            <label className="font-lao text-[12px] font-semibold text-fg-2 block mb-1.5">
+              ຊື່ <span className="text-fg-4">(ບໍ່ບັງຄັບ)</span>
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="ຊື່ຂອງທ່ານ"
-              className="w-full font-lao text-[14px] text-gray-900"
+              className="w-full font-lao text-[14px] text-fg"
               style={{
                 padding: "10px 12px",
                 borderRadius: 8,
-                border: "1.5px solid #E2E6F0",
-                background: "#fff",
+                border: "1.5px solid var(--line)",
+                background: "var(--surface)",
                 outline: "none",
               }}
             />
@@ -252,8 +252,8 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
 
           {/* Payment ref */}
           <div className="mb-4">
-            <label className="font-lao text-[12px] font-semibold text-gray-700 block mb-1.5">
-              {isUSDT ? "TX Hash" : "ເລກອ້າງອີງ Slip"} <span style={{ color: "#EF4444" }}>*</span>
+            <label className="font-lao text-[12px] font-semibold text-fg-2 block mb-1.5">
+              {isUSDT ? "TX Hash" : "ເລກອ້າງອີງ Slip"} <span style={{ color: "var(--danger)" }}>*</span>
             </label>
             <input
               type="text"
@@ -264,17 +264,17 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
               style={{
                 padding: "10px 12px",
                 borderRadius: 8,
-                border: "1.5px solid #E2E6F0",
-                background: "#fff",
+                border: "1.5px solid var(--line)",
+                background: "var(--surface)",
                 outline: "none",
                 fontFamily: "JetBrains Mono, monospace",
                 fontSize: 12.5,
-                color: "#111827",
+                color: "var(--fg)",
                 wordBreak: "break-all",
               }}
               required
             />
-            <div className="font-lao text-[11px] text-gray-500 mt-1">
+            <div className="font-lao text-[11px] text-fg-3 mt-1">
               {isUSDT
                 ? "ຄັດລອກຈາກ Binance/OKX → Transaction History"
                 : "ເລກອ້າງອີງຢູ່ໃນ slip BCEL One ຫຼື screenshot Slip"}
@@ -283,20 +283,20 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
 
           {/* Notes */}
           <div className="mb-5">
-            <label className="font-lao text-[12px] font-semibold text-gray-700 block mb-1.5">
-              ໝາຍເຫດເພີ່ມເຕີມ <span className="text-gray-400">(ບໍ່ບັງຄັບ)</span>
+            <label className="font-lao text-[12px] font-semibold text-fg-2 block mb-1.5">
+              ໝາຍເຫດເພີ່ມເຕີມ <span className="text-fg-4">(ບໍ່ບັງຄັບ)</span>
             </label>
             <textarea
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               placeholder="ເຊັ່ນ: ໂອນຈາກບັນຊີ XXX, ສະຫາຍແນະນຳ, ฯลฯ"
               rows={2}
-              className="w-full font-lao text-[13px] text-gray-900"
+              className="w-full font-lao text-[13px] text-fg"
               style={{
                 padding: "10px 12px",
                 borderRadius: 8,
-                border: "1.5px solid #E2E6F0",
-                background: "#fff",
+                border: "1.5px solid var(--line)",
+                background: "var(--surface)",
                 outline: "none",
                 resize: "vertical",
               }}
@@ -307,8 +307,8 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
             <div
               className="font-lao mb-4 flex items-start gap-2"
               style={{
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
+                background: "var(--danger-soft)",
+                border: "1px solid var(--danger-line)",
                 borderRadius: 8,
                 padding: "10px 12px",
                 fontSize: 13,
@@ -347,7 +347,7 @@ export function SubmitForm({ initialPlan }: { initialPlan: string }) {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="font-lao text-[11.5px] text-gray-500">
+          <p className="font-lao text-[11.5px] text-fg-3">
             ບໍ່ສະບາຍໃຊ້ຟອມ? <a
               href={ADMIN_CONTACT}
               target="_blank"
@@ -379,7 +379,7 @@ function MethodButton({
         borderRadius: 10,
         fontSize: 13.5,
         background: active ? color : "#fff",
-        color: active ? "#fff" : "#1F2937",
+        color: active ? "#fff" : "var(--fg)",
         border: `1.5px solid ${active ? color : "#E2E6F0"}`,
         cursor: "pointer",
         boxShadow: active ? `0 4px 12px ${color}33` : "none",

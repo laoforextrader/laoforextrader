@@ -133,16 +133,16 @@ export default function EASystemPage() {
       />
 
       {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}
-      <section style={{ background: "#fff", borderTop: "1px solid #D4D8E5", borderBottom: "1px solid #D4D8E5" }}>
+      <section style={{ background: "var(--surface)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
         <div style={{ maxWidth: 1060, margin: "0 auto", padding: "48px 24px" }}>
           <div style={{
             fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
-            textTransform: "uppercase", color: "#2563EB", marginBottom: 5,
+            textTransform: "uppercase", color: "var(--accent)", marginBottom: 5,
           }}>
             How it Works
           </div>
           <div style={{
-            fontSize: 26, fontWeight: 800, color: "#111827",
+            fontSize: 26, fontWeight: 800, color: "var(--fg)",
             letterSpacing: "-0.025em", marginBottom: 24,
           }}>
             ເລີ່ມໃຊ້ໃນ <span style={{
@@ -158,25 +158,25 @@ export default function EASystemPage() {
               { num: "3", title: "Trade ອັດຕະໂນມັດ",   sub: "ບໍ່ຕ້ອງເຝົ້ານຳ" },
             ].map(s => (
               <div key={s.num} style={{
-                background: "#F9FAFB", border: "1px solid #E2E6F0",
+                background: "var(--surface-2)", border: "1px solid var(--line)",
                 borderRadius: 12, padding: 20, textAlign: "center",
               }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: "50%",
-                  background: "#EEF3FF", border: "1.5px solid #BFCFFF",
+                  background: "var(--accent-soft)", border: "1.5px solid var(--accent-line)",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 14, fontWeight: 700, color: "#2563EB", marginBottom: 12,
+                  fontSize: 14, fontWeight: 700, color: "var(--accent)", marginBottom: 12,
                 }}>
                   {s.num}
                 </div>
                 <div style={{
-                  fontSize: 14, fontWeight: 600, color: "#111827", marginBottom: 4,
+                  fontSize: 14, fontWeight: 600, color: "var(--fg)", marginBottom: 4,
                   fontFamily: "Noto Sans Lao, sans-serif",
                 }}>
                   {s.title}
                 </div>
                 <div style={{
-                  fontSize: 12, color: "#6B7280",
+                  fontSize: 12, color: "var(--fg-3)",
                   fontFamily: "Noto Sans Lao, sans-serif",
                 }}>
                   {s.sub}
@@ -186,9 +186,9 @@ export default function EASystemPage() {
           </div>
 
           <div style={{
-            background: "#FFFBEB", border: "1px solid #FDE68A",
+            background: "var(--warn-soft)", border: "1px solid var(--warn-line)",
             borderRadius: 8, padding: "10px 16px", marginTop: 20,
-            fontSize: 11, color: "#92400E", lineHeight: 1.6,
+            fontSize: 11, color: "var(--warn-ink)", lineHeight: 1.6,
             fontFamily: "Noto Sans Lao, sans-serif",
           }}>
             ⚠ Risk Disclosure: ການລົງທຶນໃນ Forex ມີຄວາມສ່ຽງ · ຜົນງານໃນອະດີດບໍ່ຮັບປະກັນຜົນໃນອະນາຄົດ
@@ -223,7 +223,7 @@ export default function EASystemPage() {
               group="broker"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                background: "#fff", color: "#1E3A8A", textDecoration: "none",
+                background: "var(--surface)", color: "var(--accent-ink)", textDecoration: "none",
                 padding: "13px 28px", borderRadius: 10,
                 fontSize: 14, fontWeight: 700,
                 fontFamily: "Noto Sans Lao, sans-serif",

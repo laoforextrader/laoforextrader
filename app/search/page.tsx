@@ -97,10 +97,10 @@ export default async function SearchPage({ searchParams }: Props) {
   const results = trimmed.length >= 2 ? await search(trimmed) : []
 
   return (
-    <div className="bg-white min-h-[80vh]">
+    <div className="bg-surface min-h-[80vh]">
       <div className="max-w-[1060px] mx-auto px-6 py-10">
         <div className="mb-8">
-          <h1 className="font-sans font-extrabold text-[28px] tracking-tight text-gray-900 mb-3">
+          <h1 className="font-sans font-extrabold text-[28px] tracking-tight text-fg mb-3">
             ຄົ້ນຫາ
           </h1>
           <Suspense fallback={null}>
@@ -109,22 +109,22 @@ export default async function SearchPage({ searchParams }: Props) {
         </div>
 
         {trimmed.length < 2 ? (
-          <div className="py-12 text-center text-gray-400 font-lao text-sm">
+          <div className="py-12 text-center text-fg-4 font-lao text-sm">
             ພິມຢ່າງໜ້ອຍ 2 ຕົວອັກສອນເພື່ອເລີ່ມຄົ້ນຫາ
           </div>
         ) : results.length === 0 ? (
           <div className="py-12 text-center">
             <div className="text-[40px] mb-3">🔍</div>
-            <div className="font-lao text-base text-gray-700 mb-1">
+            <div className="font-lao text-base text-fg-2 mb-1">
               ບໍ່ພົບຜົນຄົ້ນຫາ "<span className="font-semibold">{trimmed}</span>"
             </div>
-            <div className="font-lao text-xs text-gray-400">
+            <div className="font-lao text-xs text-fg-4">
               ລອງຄຳອື່ນ ຫຼື ຄຳສັ້ນກວ່າ
             </div>
           </div>
         ) : (
           <>
-            <div className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+            <div className="text-[11px] font-bold uppercase tracking-widest text-fg-4 mb-4">
               ພົບ {results.length} ຜົນ
             </div>
             <ul className="flex flex-col gap-3">
@@ -132,28 +132,28 @@ export default async function SearchPage({ searchParams }: Props) {
                 <li key={r._id}>
                   <Link
                     href={r.url}
-                    className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-500 hover:shadow-md transition-all group"
+                    className="block bg-surface border border-line-2 rounded-xl p-4 hover:border-blue-500 hover:shadow-md transition-all group"
                   >
                     <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest mb-1.5">
                       <span className={
-                        r.type === "broker" ? "text-blue-600"
-                        : r.type === "quiz" ? "text-purple-600"
+                        r.type === "broker" ? "text-accent"
+                        : r.type === "quiz" ? "text-violet"
                         : "text-amber-600"
                       }>
                         {TYPE_LABEL[r.type]}
                       </span>
                       {r.category && CATEGORY_LABEL[r.category] && (
                         <>
-                          <span className="text-gray-300">·</span>
-                          <span className="text-gray-500">{CATEGORY_LABEL[r.category]}</span>
+                          <span className="text-fg-4">·</span>
+                          <span className="text-fg-3">{CATEGORY_LABEL[r.category]}</span>
                         </>
                       )}
                     </div>
-                    <h2 className="font-lao text-[16px] font-bold text-gray-900 group-hover:text-blue-700 transition-colors mb-1">
+                    <h2 className="font-lao text-[16px] font-bold text-fg group-hover:text-accent-strong transition-colors mb-1">
                       {r.title}
                     </h2>
                     {r.excerpt && (
-                      <p className="font-lao text-[13px] text-gray-500 line-clamp-2 leading-relaxed">
+                      <p className="font-lao text-[13px] text-fg-3 line-clamp-2 leading-relaxed">
                         {r.excerpt}
                       </p>
                     )}

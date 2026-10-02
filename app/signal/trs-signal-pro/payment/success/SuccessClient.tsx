@@ -93,7 +93,7 @@ export function SuccessClient({
   const isPolling  = status === "pending" && !!pendingId && !!publicToken
 
   return (
-    <div style={{ background: "linear-gradient(180deg,#F8FAFF 0%,#EEF3FF 100%)", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(180deg,var(--surface-2) 0%,var(--accent-soft) 100%)", minHeight: "100vh" }}>
       <div className="max-w-[600px] mx-auto px-6 py-16">
         {/* Status badge */}
         <div className="text-center mb-6">
@@ -121,7 +121,7 @@ export function SuccessClient({
               <>ສົ່ງສຳເລັດ · <span>ລໍຖ້າ admin</span></>
             )}
           </h1>
-          <p className="font-lao text-[13.5px] text-gray-600 mt-2">
+          <p className="font-lao text-[13.5px] text-fg-3 mt-2">
             {isApproved
               ? "ກົດປຸ່ມລຸ່ມເພື່ອເຂົ້າ Pro Channel"
               : isRejected
@@ -131,7 +131,7 @@ export function SuccessClient({
               : "Slip ຂອງທ່ານເຂົ້າຄິວແລ້ວ admin ຈະກວດແລະສົ່ງລິ້ງໃຫ້ໃນ 5-30 ນາທີ"}
           </p>
           {isPolling && (
-            <p className="font-lao text-[11px] text-gray-400 mt-2">
+            <p className="font-lao text-[11px] text-fg-4 mt-2">
               🔄 ກວດສະຖານະທຸກ 5 ວິນາທີ · ບໍ່ປິດໜ້ານີ້
             </p>
           )}
@@ -141,12 +141,12 @@ export function SuccessClient({
         {isApproved && inviteLink && (
           <div
             className="card p-6 text-center"
-            style={{ background: "linear-gradient(135deg,#ECFDF5,#D1FAE5)", border: "2px solid #10B981" }}
+            style={{ background: "linear-gradient(135deg,var(--success-soft),var(--success-soft))", border: "2px solid #10B981" }}
           >
-            <h2 className="font-lao font-bold text-[16px] text-gray-900 mb-3">
+            <h2 className="font-lao font-bold text-[16px] text-fg mb-3">
               🔗 ລິ້ງ Pro Channel
             </h2>
-            <p className="font-lao text-[12px] text-gray-600 mb-4">
+            <p className="font-lao text-[12px] text-fg-3 mb-4">
               ໃຊ້ໄດ້ຄັ້ງດຽວ · ໝົດອາຍຸໃນ 24 ຊົ່ວໂມງ · ກົດດ່ຽວນີ້
             </p>
             <a
@@ -176,7 +176,7 @@ export function SuccessClient({
             <div
               className="mt-5 flex items-center gap-2"
               style={{
-                background: "#fff",
+                background: "var(--surface)",
                 border: "1.5px solid #10B981",
                 borderRadius: 10,
                 padding: "8px 10px",
@@ -191,8 +191,8 @@ export function SuccessClient({
                   fontSize: 12,
                   fontWeight: 600,
                   color: "#065F46",
-                  background: "#ECFDF5",
-                  border: "1px solid #A7F3D0",
+                  background: "var(--success-soft)",
+                  border: "1px solid var(--success-line)",
                   borderRadius: 8,
                   padding: "8px 10px",
                   textAlign: "left",
@@ -211,7 +211,7 @@ export function SuccessClient({
         {isRejected && (
           <div
             className="card p-6 text-center"
-            style={{ background: "#FEF2F2", border: "2px solid #EF4444" }}
+            style={{ background: "var(--danger-soft)", border: "2px solid #EF4444" }}
           >
             <h2 className="font-lao font-bold text-[15px]" style={{ color: "#7F1D1D", marginBottom: 8 }}>
               ❌ ການໂອນບໍ່ຜ່ານ
@@ -221,8 +221,8 @@ export function SuccessClient({
                 className="font-lao text-[13px] mb-4"
                 style={{
                   color: "#991B1B",
-                  background: "#fff",
-                  border: "1px solid #FECACA",
+                  background: "var(--surface)",
+                  border: "1px solid var(--danger-line)",
                   borderRadius: 8,
                   padding: 10,
                 }}
@@ -256,11 +256,11 @@ export function SuccessClient({
         {/* PENDING — explain wait + optional bot capture */}
         {!isApproved && !isRejected && (
           <div className="card p-6">
-            <h2 className="font-lao font-bold text-[15px] text-gray-900 mb-3">
+            <h2 className="font-lao font-bold text-[15px] text-fg mb-3">
               📋 ຂັ້ນຕອນຕໍ່ໄປ
             </h2>
             <ol
-              className="font-lao text-[13.5px] text-gray-700"
+              className="font-lao text-[13.5px] text-fg-2"
               style={{ paddingLeft: 20, listStyle: "decimal", lineHeight: 1.85 }}
             >
               <li>Slip ຂອງທ່ານເຂົ້າຄິວ admin ແລ້ວ ✓</li>
@@ -276,8 +276,8 @@ export function SuccessClient({
             <div
               className="font-lao mt-4 p-3"
               style={{
-                background: "#FFFBEB",
-                border: "1px solid #FDE68A",
+                background: "var(--warn-soft)",
+                border: "1px solid var(--warn-line)",
                 borderRadius: 8,
                 fontSize: 12.5,
                 color: "#78350F",
@@ -322,7 +322,7 @@ export function SuccessClient({
               target="_blank"
               rel="noopener noreferrer"
               className="font-lao"
-              style={{ color: "#6B7280", fontSize: 13, textDecoration: "underline" }}
+              style={{ color: "var(--fg-3)", fontSize: 13, textDecoration: "underline" }}
             >
               ກົດ start Telegram Bot ເພື່ອເຂົ້າອັດຕະໂນມັດ
             </a>
@@ -332,7 +332,7 @@ export function SuccessClient({
         <div className="mt-8 text-center">
           <Link
             href="/signal/trs-signal-pro"
-            className="font-lao text-[12.5px] text-gray-500 hover:text-blue-600 transition-colors"
+            className="font-lao text-[12.5px] text-fg-3 hover:text-blue-600 transition-colors"
             style={{ textDecoration: "underline" }}
           >
             ກັບໄປຫນ້າ Signal

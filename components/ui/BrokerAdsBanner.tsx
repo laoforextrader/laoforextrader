@@ -9,23 +9,23 @@ export default function BrokerAdsBanner({ html }: Props) {
 
   return (
     <div style={{
-      background: '#fff',
-      border: '1px solid #E2E6F0',
+      background: 'var(--surface)',
+      border: '1px solid var(--line)',
       borderRadius: 12,
       overflow: 'hidden',
       margin: '24px 0',
     }}>
       <div style={{
         padding: '6px 14px',
-        background: '#F9FAFB',
-        borderBottom: '1px solid #E2E6F0',
+        background: 'var(--surface-2)',
+        borderBottom: '1px solid var(--line)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
         <span style={{
           fontSize: 10,
-          color: '#9CA3AF',
+          color: 'var(--fg-4)',
           fontWeight: 600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',

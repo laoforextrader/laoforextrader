@@ -29,9 +29,9 @@ export function CopyButton({ value, label = "Copy" }: { value: string; label?: s
       onClick={onCopy}
       className="inline-flex items-center gap-1.5 font-lao text-[12px] font-semibold transition-colors"
       style={{
-        background: copied ? "#10B981" : "#EEF3FF",
-        color: copied ? "#fff" : "#2563EB",
-        border: `1px solid ${copied ? "#10B981" : "#BFCFFF"}`,
+        background: copied ? "#10B981" : "var(--accent-soft)",
+        color: copied ? "#fff" : "var(--accent)",
+        border: `1px solid ${copied ? "#10B981" : "var(--accent-line)"}`,
         padding: "5px 10px",
         borderRadius: 8,
         cursor: "pointer",

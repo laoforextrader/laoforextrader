@@ -21,10 +21,10 @@ function fmtPct(n?: number) {
 }
 
 function pctColor(n?: number) {
-  if (n === undefined || n === null || isNaN(n)) return "#6B7280"
+  if (n === undefined || n === null || isNaN(n)) return "var(--fg-3)"
   if (n > 0) return "#10B981"
   if (n < 0) return "#EF4444"
-  return "#6B7280"
+  return "var(--fg-3)"
 }
 
 export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
@@ -64,17 +64,17 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
   const base = capitalBase(stats)
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden" style={{ boxShadow: "0 4px 20px rgba(0,0,0,.04)" }}>
+    <div className="bg-surface rounded-2xl border border-line-2 overflow-hidden" style={{ boxShadow: "0 4px 20px rgba(0,0,0,.04)" }}>
       <div style={{ height: 3, background: "linear-gradient(90deg,#10B981,#2563EB)" }} />
 
       {showTitle && (
-        <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-line-2">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">🟢 LIVE STATS</div>
-            <h3 className="text-[18px] font-extrabold text-gray-900 tracking-tight">{stats.title}</h3>
+            <h3 className="text-[18px] font-extrabold text-fg tracking-tight">{stats.title}</h3>
           </div>
           {stats.lastUpdate && (
-            <div className="text-[10px] text-gray-400 font-mono">
+            <div className="text-[10px] text-fg-4 font-mono">
               อัพเดท {new Date(stats.lastUpdate).toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" })}
             </div>
           )}
@@ -82,22 +82,22 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
       )}
 
       {/* Account info */}
-      <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100 bg-gray-50">
+      <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-line-2 bg-surface-2">
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">ບັນຊີ</div>
-          <div className="text-[14px] font-bold text-gray-900 font-mono">#{stats.account ?? "—"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1">ບັນຊີ</div>
+          <div className="text-[14px] font-bold text-fg font-mono">#{stats.account ?? "—"}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Server</div>
-          <div className="text-[14px] font-bold text-gray-900 font-mono truncate">{stats.server ?? "—"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1">Server</div>
+          <div className="text-[14px] font-bold text-fg font-mono truncate">{stats.server ?? "—"}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Broker</div>
-          <div className="text-[14px] font-bold text-gray-900 truncate">{stats.broker ?? "—"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1">Broker</div>
+          <div className="text-[14px] font-bold text-fg truncate">{stats.broker ?? "—"}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Currency</div>
-          <div className="text-[14px] font-bold text-gray-900 font-mono">
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1">Currency</div>
+          <div className="text-[14px] font-bold text-fg font-mono">
             {cents
               ? `${stats.currency} → ${realCurrency(stats.currency)}`
               : stats.currency ?? "—"}
@@ -106,31 +106,31 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
       </div>
 
       {/* Big metrics */}
-      <div className="px-6 py-5 grid grid-cols-2 sm:grid-cols-3 gap-6 border-b border-gray-100">
+      <div className="px-6 py-5 grid grid-cols-2 sm:grid-cols-3 gap-6 border-b border-line-2">
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5">ກຳໄລລວມ</div>
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1.5">ກຳໄລລວມ</div>
           <div className="text-[28px] font-extrabold leading-none" style={{ color: pctColor(totalPct), letterSpacing: "-0.02em" }}>
             {fmtPct(totalPct)}
           </div>
           {mProfit && (
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[11px] text-fg-4 mt-1">
               {fmtMoney(mProfit.amount, mProfit.currency)}
             </div>
           )}
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5">Balance</div>
-          <div className="text-[20px] font-extrabold text-gray-900 leading-none">
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1.5">Balance</div>
+          <div className="text-[20px] font-extrabold text-fg leading-none">
             {mBalance ? fmtMoneyPlain(mBalance.amount, mBalance.currency) : "—"}
           </div>
           {mEquity && (
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[11px] text-fg-4 mt-1">
               Equity {fmtMoneyPlain(mEquity.amount, mEquity.currency)}
             </div>
           )}
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5">ມື້ນີ້</div>
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-1.5">ມື້ນີ້</div>
           <div className="text-[20px] font-extrabold leading-none" style={{ color: pctColor(todayPct) }}>
             {fmtPct(todayPct)}
           </div>
@@ -139,8 +139,8 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
 
       {/* What the percentages are a percentage OF */}
       {base && (
-        <div className="px-6 py-3 border-b border-gray-100 bg-gray-50 text-[11px] text-gray-500 leading-relaxed">
-          ℹ️ ທຸກ % ຄິດທຽບກັບ<strong className="text-gray-700 font-bold"> ທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}</strong>
+        <div className="px-6 py-3 border-b border-line-2 bg-surface-2 text-[11px] text-fg-3 leading-relaxed">
+          ℹ️ ທຸກ % ຄິດທຽບກັບ<strong className="text-fg-2 font-bold"> ທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}</strong>
           {mWithdrawn && mWithdrawn.amount > 0 && (
             <> · ຖອນອອກແລ້ວ {fmtMoneyPlain(mWithdrawn.amount, mWithdrawn.currency, 0)}</>
           )}
@@ -149,8 +149,8 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
 
       {/* Monthly bars */}
       {monthly.length > 0 && (
-        <div className="px-6 py-5 border-b border-gray-100">
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-3">ລາຍເດືອນ (12 ເດືອນຫຼ້າສຸດ)</div>
+        <div className="px-6 py-5 border-b border-line-2">
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-3">ລາຍເດືອນ (12 ເດືອນຫຼ້າສຸດ)</div>
           <div className="flex items-end gap-1.5 h-[100px]">
             {monthly.map(m => {
               const h = (Math.abs(m.profitPct) / monthlyMax) * 100
@@ -170,7 +170,7 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
                       }}
                     />
                   </div>
-                  <div className="text-[9px] text-gray-400 font-mono truncate w-full text-center">
+                  <div className="text-[9px] text-fg-4 font-mono truncate w-full text-center">
                     {m.month.slice(-2)}/{m.month.slice(2,4)}
                   </div>
                 </div>
@@ -183,7 +183,7 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
       {/* Daily sparkline */}
       {daily.length > 1 && (
         <div className="px-6 py-5">
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-3">ລາຍວັນ (30 ວັນ)</div>
+          <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-3">ລາຍວັນ (30 ວັນ)</div>
           <svg viewBox={`0 0 ${daily.length * 10} 60`} className="w-full" preserveAspectRatio="none" style={{ height: 60 }}>
             {daily.map((d, i) => {
               const h = (Math.abs(d.profitPct) / dailyMax) * 25
@@ -197,14 +197,14 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
                   y={y}
                   width={8}
                   height={h || 1}
-                  fill={positive ? "#10B981" : "#EF4444"}
+                  fill={positive ? "var(--success)" : "var(--danger)"}
                   opacity={0.85}
                 />
               )
             })}
             <line x1={0} x2={daily.length * 10} y1={30} y2={30} stroke="#E5E7EB" strokeWidth={0.5} />
           </svg>
-          <div className="flex justify-between text-[9px] text-gray-400 font-mono mt-2">
+          <div className="flex justify-between text-[9px] text-fg-4 font-mono mt-2">
             <span>{daily[0]?.date}</span>
             <span>{daily[daily.length - 1]?.date}</span>
           </div>

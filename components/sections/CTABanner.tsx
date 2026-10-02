@@ -13,7 +13,7 @@ export default function CTABanner() {
           </div>
         </div>
         <Link href="/ea-system"
-          style={{ display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#2563EB', background: '#fff', padding: '13px 32px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}>
+          style={{ display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--accent)', background: 'var(--surface)', padding: '13px 32px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}>
           ເລີ່ມເລີຍ →
         </Link>
       </div>

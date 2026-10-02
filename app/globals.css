@@ -24,8 +24,8 @@ img {
   html { scroll-behavior: smooth; }
 
   body {
-    background-color: #EDEEF2;
-    color: #111827 !important;
+    background-color: var(--bg);
+    color: var(--fg) !important;
     font-family: 'Noto Sans Lao', sans-serif;
     -webkit-font-smoothing: antialiased;
     font-size: 15px;
@@ -34,7 +34,7 @@ img {
 
   /* Force ทุก text element ให้เป็นสีเข้ม */
   h1, h2, h3, h4, h5, h6 {
-    color: #111827 !important;
+    color: var(--fg) !important;
     font-family: 'Noto Sans Lao', sans-serif;
   }
 
@@ -43,16 +43,138 @@ img {
   }
 
   /* ป้องกัน white text บน white bg */
-  a { color: #2563EB; }
+  a { color: var(--accent); }
   button { color: inherit; }
 
-  /* Reset สี white ที่อาจมาจาก dark theme เก่า */
-  :root {
-    --foreground: #111827;
-    --background: #EDEEF2;
-    color-scheme: light;
-  }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   THEME TOKENS
+
+   Every neutral in the UI resolves through one of these. The light values
+   are byte-for-byte the hexes that used to be hardcoded, so light mode is
+   unchanged; `html.dark` is the only thing that moves.
+
+   Three scopes, in cascade order:
+     :root                          → light (also the no-JS default)
+     html.dark                      → dark
+     html.dark:has([data-force-light]) → back to light, for pages that have
+       not been audited for dark yet (admin, the calculators, the payment
+       flow). They render <ForceLight /> and the whole chrome follows, so a
+       reader never lands on a half-converted page. Specificity (0,2,1)
+       beats html.dark (0,1,1), so this wins without !important.
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root,
+html.dark:has([data-force-light]) {
+  color-scheme: light;
+
+  --bg: #EDEEF2;          /* page background */
+  --surface: #FFFFFF;     /* cards, panels, sheets */
+  --surface-2: #F9FAFB;   /* subtle fill inside a card */
+  --surface-3: #F3F4F6;   /* hover / stronger subtle fill */
+  --surface-sunken: #EDEEF2;
+
+  --fg: #111827;          /* headings, strong text */
+  --fg-2: #374151;        /* body copy */
+  --fg-3: #6B7280;        /* muted / captions */
+  --fg-4: #9CA3AF;        /* faint / placeholder */
+  --fg-inverse: #FFFFFF;  /* text on an accent fill */
+
+  --surface-glass: rgba(255,255,255,0.96);  /* sticky navbar */
+
+  --line: #E2E6F0;        /* card borders */
+  --line-2: #E5E7EB;      /* hairlines, dividers */
+
+  --accent: #2563EB;      /* links + primary accent AS TEXT */
+  --accent-strong: #1D4ED8;
+  --violet: #9333EA;
+  --pink: #DB2777;
+  --accent-2: #4F46E5;
+  --accent-soft: #EEF3FF; /* pale accent fill */
+  --accent-line: #BFCFFF; /* pale accent border */
+  --accent-soft-2: #DBEAFE;
+  --accent-ink: #1E3A8A;  /* accent text on a pale accent fill */
+
+  --success: #059669;
+  --success-soft: #ECFDF5;
+  --success-line: #A7F3D0;
+  --success-ink: #065F46;  /* dark ink ON --success-soft */
+  --danger: #DC2626;
+  --danger-soft: #FEF2F2;
+  --danger-line: #FECACA;
+  --danger-ink: #991B1B;   /* dark ink ON --danger-soft */
+  --warn: #D97706;
+  --warn-soft: #FFFBEB;
+  --warn-line: #FDE68A;
+  --warn-ink: #92400E;     /* dark ink ON --warn-soft */
+  --violet-soft: #F5F3FF;
+  --violet-line: #DDD6FE;
+
+  --foreground: #111827;  /* legacy aliases */
+  --background: #EDEEF2;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --bg: #0E1117;
+  --surface: #171B24;
+  --surface-2: #1E232E;
+  --surface-3: #252B38;
+  --surface-sunken: #0A0D13;
+
+  /* Worst-case contrast, measured against the lightest dark surface
+     (--surface-3 #252B38) by scripts/audit-contrast.mjs:
+       fg 11.9:1 · fg-2 8.7:1 · fg-3 5.6:1 · fg-4 4.9:1
+     All four clear the 4.5:1 AA floor, because every one of them is used
+     for body-size copy somewhere. */
+  --fg: #F3F5F9;
+  --fg-2: #D3D8E3;
+  --fg-3: #9AA3B5;
+  --fg-4: #8F98AB;
+  --fg-inverse: #FFFFFF;
+
+  --surface-glass: rgba(23,27,36,0.94);
+
+  --line: #2B3242;
+  --line-2: #343C4D;
+
+  /* #2563EB only reaches 3.3:1 on --surface, below AA for body text, so
+     links lift to a lighter blue (7.3:1). Accent FILLS keep the brand
+     hex — they are untouched by this token. */
+  --accent: #7FB0FF;
+  --accent-strong: #9CC4FF;
+  --violet: #C4A5FF;
+  --pink: #F472B6;
+  --accent-2: #A5A0FF;
+  --accent-soft: #18233D;
+  --accent-line: #2A3A63;
+  --accent-soft-2: #1C2F52;
+  --accent-ink: #BBD2FF;
+
+  --success: #34D399;
+  --success-soft: #0E2A20;
+  --success-line: #1C4D3A;
+  --success-ink: #6EE7B7;
+  --danger: #F87171;
+  --danger-soft: #2E1618;
+  --danger-line: #4A2225;
+  --danger-ink: #FCA5A5;
+  --warn: #FBBF24;
+  --warn-soft: #2C2008;
+  --warn-line: #4A3A10;
+  --warn-ink: #FCD34D;
+  --violet-soft: #1F1B33;
+  --violet-line: #332B57;
+
+  --foreground: #F3F5F9;
+  --background: #0E1117;
+}
+
+/* Paint the page background before any component mounts, so a dark reader
+   never sees a white flash. */
+html { background-color: var(--bg); }
 
 @layer components {
   .btn-primary {
@@ -65,31 +187,32 @@ img {
   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.45); }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl cursor-pointer transition-all duration-200 bg-white;
-    color: #1F2937 !important;
-    border: 1.5px solid #9CA3AF;
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl cursor-pointer transition-all duration-200;
+    background: var(--surface);
+    color: var(--fg-2) !important;
+    border: 1.5px solid var(--fg-4);
     font-family: 'Noto Sans Lao', sans-serif;
   }
-  .btn-outline:hover { border-color: #2563EB; color: #2563EB !important; background: #EEF3FF; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent) !important; background: var(--accent-soft); }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2 rounded-lg cursor-pointer transition-all duration-200;
-    color: #2563EB !important;
-    background: #EEF3FF;
-    border: 1.5px solid #BFCFFF;
+    color: var(--accent) !important;
+    background: var(--accent-soft);
+    border: 1.5px solid var(--accent-line);
     font-family: 'Noto Sans Lao', sans-serif;
   }
-  .btn-ghost:hover { background: #BFCFFF; }
+  .btn-ghost:hover { background: var(--accent-line); }
 
-  .card { @apply bg-white rounded-xl; border: 1.5px solid #E2E6F0; color: #111827 !important; }
+  .card { @apply rounded-xl; background: var(--surface); border: 1.5px solid var(--line); color: var(--fg) !important; }
 
-  .section-eyebrow { @apply text-[11px] font-bold uppercase tracking-widest mb-1.5; color: #2563EB !important; }
-  .section-title { @apply text-3xl font-extrabold tracking-tight mb-1.5; color: #111827 !important; letter-spacing: -0.025em; text-wrap: balance; }
+  .section-eyebrow { @apply text-[11px] font-bold uppercase tracking-widest mb-1.5; color: var(--accent) !important; }
+  .section-title { @apply text-3xl font-extrabold tracking-tight mb-1.5; color: var(--fg) !important; letter-spacing: -0.025em; text-wrap: balance; }
   @media (max-width: 640px) {
     .section-title { font-size: 22px; line-height: 1.25; }
   }
   .section-title span { background: linear-gradient(135deg,#2563EB,#4F46E5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .section-sub { @apply text-sm mb-5; color: #374151 !important; }
+  .section-sub { @apply text-sm mb-5; color: var(--fg-2) !important; }
 }
 
 /* ── Animations ── */
@@ -156,15 +279,45 @@ img {
 
 /* ── Prose / Article body ── */
 .prose-lao {
-  color: #1F2937 !important;
+  color: var(--fg-2) !important;
   font-family: 'Noto Sans Lao', sans-serif;
   font-size: 15px;
   line-height: 1.8;
 }
-.prose-lao h1,.prose-lao h2,.prose-lao h3,.prose-lao h4 { color: #111827 !important; font-weight: 700; margin-top:1.8rem; margin-bottom:.8rem; }
-.prose-lao h2 { font-size:1.4rem; border-bottom:1px solid #E5E7EB; padding-bottom:.5rem; }
-.prose-lao p  { color: #374151 !important; margin-bottom:1rem; }
-.prose-lao ul,.prose-lao ol { color: #374151 !important; padding-left:1.5rem; margin-bottom:1rem; }
-.prose-lao strong { color: #111827 !important; font-weight:600; }
-.prose-lao a { color: #2563EB !important; text-decoration:underline; }
-.prose-lao blockquote { border-left:3px solid #BFCFFF; padding-left:1rem; color:#6B7280 !important; font-style:italic; margin:1.5rem 0; }
+.prose-lao h1,.prose-lao h2,.prose-lao h3,.prose-lao h4 { color: var(--fg) !important; font-weight: 700; margin-top:1.8rem; margin-bottom:.8rem; }
+.prose-lao h2 { font-size:1.4rem; border-bottom:1px solid var(--line-2); padding-bottom:.5rem; }
+.prose-lao p  { color: var(--fg-2) !important; margin-bottom:1rem; }
+.prose-lao ul,.prose-lao ol { color: var(--fg-2) !important; padding-left:1.5rem; margin-bottom:1rem; }
+.prose-lao strong { color: var(--fg) !important; font-weight:600; }
+.prose-lao a { color: var(--accent) !important; text-decoration:underline; }
+.prose-lao blockquote { border-left:3px solid var(--accent-line); padding-left:1rem; color:var(--fg-3) !important; font-style:italic; margin:1.5rem 0; }
+
+/* ── Theme toggle ───────────────────────────────────────────────────────────
+   Both icons ship in the markup and CSS hides one, so the button needs no
+   client state to paint correctly on the very first frame. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.theme-icon-dark { display: none; }
+html.dark .theme-icon-light { display: none; }
+html.dark .theme-icon-dark { display: inline-block; }
+/* A light-pinned route shows the light-mode icon even though html.dark is set. */
+html.dark:has([data-force-light]) .theme-icon-light { display: inline-block; }
+html.dark:has([data-force-light]) .theme-icon-dark  { display: none; }
+
+/* Images and charts authored on white get harsh in dark; take the edge off
+   without washing out photos or logos. */
+html.dark:not(:has([data-force-light])) img:not([data-no-dim]) { filter: brightness(.92); }

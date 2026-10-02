@@ -21,14 +21,14 @@ export default async function QuizListPage() {
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'rgba(37,99,235,.1)', border: '0.5px solid rgba(37,99,235,.3)',
           borderRadius: 100, padding: '4px 14px', fontSize: 11,
-          color: '#2563EB', fontWeight: 600, marginBottom: 12,
+          color: 'var(--accent)', fontWeight: 600, marginBottom: 12,
         }}>
           🎯 ທົດສອບຄວາມຮູ້
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: '#111827', marginBottom: 8 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--fg)', marginBottom: 8 }}>
           Forex Quiz Challenge
         </h1>
-        <p style={{ fontSize: 14, color: '#6B7280', fontFamily: 'Noto Sans Lao, sans-serif' }}>
+        <p style={{ fontSize: 14, color: 'var(--fg-3)', fontFamily: 'Noto Sans Lao, sans-serif' }}>
           3 ລະດັບ · 6 Quizzes · 90 ຂໍ້ · ເກັບຄະແນນ
         </p>
       </div>

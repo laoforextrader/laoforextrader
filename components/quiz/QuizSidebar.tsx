@@ -27,8 +27,8 @@ export default function QuizSidebar({ quiz }: Props) {
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 14,
-      overflow: 'hidden', border: '1px solid #F3F4F6',
+      background: 'var(--surface)', borderRadius: 14,
+      overflow: 'hidden', border: '1px solid var(--line-2)',
       boxShadow: '0 2px 12px rgba(0,0,0,.06)',
       margin: '24px 0',
     }}>
@@ -59,15 +59,15 @@ export default function QuizSidebar({ quiz }: Props) {
           justifyContent: 'space-between', marginBottom: 12,
         }}>
           <div style={{
-            fontSize: 11, color: '#6B7280',
+            fontSize: 11, color: 'var(--fg-3)',
             fontFamily: 'Noto Sans Lao, sans-serif',
           }}>
             {quiz.totalQuestions} ຂໍ້
           </div>
           <div style={{
             fontSize: 9, fontWeight: 700, padding: '3px 9px', borderRadius: 100,
-            background: showLockBadge ? '#EEF3FF' : '#ECFDF5',
-            color: showLockBadge ? '#2563EB' : '#059669',
+            background: showLockBadge ? 'var(--accent-soft)' : 'var(--success-soft)',
+            color: showLockBadge ? 'var(--accent)' : 'var(--success)',
           }}>
             {showLockBadge ? '🔒 Login' : 'ຟຣີ'}
           </div>

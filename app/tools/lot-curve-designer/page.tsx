@@ -19,7 +19,7 @@ export default function Page() {
   return (
     <>
       <LotCurveDesigner />
-      <div style={{ background: "#EDEEF2", padding: "0 24px 48px" }}>
+      <div style={{ background: "var(--bg)", padding: "0 24px 48px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18 }}>
           <CTASelector type="ea-sgride" />
           <CTASelector type="broker-interstellar" />

@@ -17,9 +17,9 @@ export interface RawCalRow {
 }
 
 const IMPACT_DOT: Record<string, string> = {
-  high:   "#EF4444",
+  high:   "var(--danger)",
   medium: "#F59E0B",
-  low:    "#10B981",
+  low:    "var(--success)",
 }
 
 // Major-pair currencies + we keep CN/HK because they move USD pairs heavily.
@@ -85,10 +85,10 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
     <section className="mb-12">
       <div className="flex items-end justify-between gap-3 mb-4 flex-wrap">
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-1">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1">
             🗓 Economic Calendar
           </div>
-          <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
+          <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-fg">
             ປະຕິທິນເສດຖະກິດປະຈຳວັນ
           </h2>
         </div>
@@ -96,7 +96,7 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
           <select
             value={impactFilter}
             onChange={e => setImpactFilter(e.target.value as any)}
-            className="text-[12px] font-lao bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
+            className="text-[12px] font-lao bg-surface border border-line-2 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
           >
             <option value="all">Impact ທັງໝົດ</option>
             <option value="high">ສູງ</option>
@@ -105,7 +105,7 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
           <select
             value={currencyFilter}
             onChange={e => setCurrencyFilter(e.target.value)}
-            className="text-[12px] font-lao bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
+            className="text-[12px] font-lao bg-surface border border-line-2 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
           >
             <option value="all">ສະກຸນທັງໝົດ</option>
             {allCurrencies.map(c => <option key={c} value={c}>{c}</option>)}
@@ -113,24 +113,24 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line-2 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-surface-2 border-b border-line-2">
               <tr className="text-left">
-                <th className="px-4 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">ເວລາ GMT+7</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-12 text-center">Imp</th>
-                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 w-24">Cur</th>
-                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500">Event</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-20">Forecast</th>
-                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-20">Previous</th>
-                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-gray-500 text-right w-20">Actual</th>
+                <th className="px-4 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3 w-24">ເວລາ GMT+7</th>
+                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3 w-12 text-center">Imp</th>
+                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3 w-24">Cur</th>
+                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3">Event</th>
+                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3 text-right w-20">Forecast</th>
+                <th className="px-2 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3 text-right w-20">Previous</th>
+                <th className="px-3 py-2.5 font-bold uppercase tracking-widest text-[10px] text-fg-3 text-right w-20">Actual</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-gray-400 text-[12px] font-lao">
+                  <td colSpan={7} className="px-4 py-10 text-center text-fg-4 text-[12px] font-lao">
                     ບໍ່ມີ event ໃນເງື່ອນໄຂນີ້
                   </td>
                 </tr>
@@ -139,8 +139,8 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
                 const cur = rowCurrency(r)
                 const imp = (r.impact ?? "low").toLowerCase()
                 return (
-                  <tr key={r._key ?? i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-mono font-semibold text-gray-700">
+                  <tr key={r._key ?? i} className="border-b border-line-2 last:border-0 hover:bg-surface-2">
+                    <td className="px-4 py-2.5 font-mono font-semibold text-fg-2">
                       {formatLaoTime(r.time) || "—"}
                     </td>
                     <td className="px-2 py-2.5 text-center">
@@ -153,23 +153,23 @@ export default function CalendarTable({ rows }: { rows: RawCalRow[] }) {
                     <td className="px-3 py-2.5">
                       <span className="inline-flex items-center gap-1.5">
                         <span className="text-[14px]">{CURRENCY_FLAG[cur] ?? "🌐"}</span>
-                        <span className="font-mono font-bold text-[12px] text-gray-800">{cur}</span>
+                        <span className="font-mono font-bold text-[12px] text-fg">{cur}</span>
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-gray-900 font-lao">
+                    <td className="px-3 py-2.5 text-fg font-lao">
                       {r.event}
                     </td>
-                    <td className="px-2 py-2.5 text-right font-mono text-gray-500">
+                    <td className="px-2 py-2.5 text-right font-mono text-fg-3">
                       {r.forecast || "—"}
                     </td>
-                    <td className="px-2 py-2.5 text-right font-mono text-gray-500">
+                    <td className="px-2 py-2.5 text-right font-mono text-fg-3">
                       {r.previous || "—"}
                     </td>
                     <td className="px-3 py-2.5 text-right font-mono">
                       {r.actual ? (
-                        <span className="font-semibold text-blue-600">{r.actual}</span>
+                        <span className="font-semibold text-accent">{r.actual}</span>
                       ) : (
-                        <span className="text-gray-300">—</span>
+                        <span className="text-fg-4">—</span>
                       )}
                     </td>
                   </tr>

@@ -53,28 +53,28 @@ const PERIOD_LO: Record<string, string> = { daily: "ລາຍວັນ", weekly:
 
 // ── shared styles ─────────────────────────────────────────────────────────
 const CARD: React.CSSProperties = {
-  background: "#fff", border: "1px solid #E2E6F0", borderRadius: 14, padding: 18,
+  background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 14, padding: 18,
 }
 const H2: React.CSSProperties = {
-  fontSize: 13, fontWeight: 700, color: "#111827", margin: "0 0 14px",
+  fontSize: 13, fontWeight: 700, color: "var(--fg)", margin: "0 0 14px",
   display: "flex", alignItems: "center", gap: 8,
   fontFamily: "'Noto Sans Lao', sans-serif",
 }
 const TH: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase",
+  fontSize: 10, fontWeight: 700, color: "var(--fg-4)", textTransform: "uppercase",
   letterSpacing: "0.06em", textAlign: "left", padding: "0 8px 8px 0", whiteSpace: "nowrap",
 }
 const TD: React.CSSProperties = {
-  fontSize: 12, color: "#374151", padding: "9px 8px 9px 0",
-  borderTop: "1px solid #F3F4F6", fontFamily: "'Noto Sans Lao', sans-serif",
+  fontSize: 12, color: "var(--fg-2)", padding: "9px 8px 9px 0",
+  borderTop: "1px solid var(--line-2)", fontFamily: "'Noto Sans Lao', sans-serif",
 }
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" }
 
 const HEALTH: Record<string, { bg: string; fg: string; text: string }> = {
-  ok:    { bg: "#ECFDF5", fg: "#047857", text: "ປົກກະຕິ" },
-  stale: { bg: "#FEF2F2", fg: "#B91C1C", text: "ຂໍ້ມູນຄ້າງ" },
-  never: { bg: "#FFFBEB", fg: "#B45309", text: "ຍັງບໍ່ເຄີຍ" },
-  off:   { bg: "#F3F4F6", fg: "#6B7280", text: "ປິດຢູ່" },
+  ok:    { bg: "var(--success-soft)", fg: "var(--success)", text: "ປົກກະຕິ" },
+  stale: { bg: "var(--danger-soft)", fg: "var(--danger)", text: "ຂໍ້ມູນຄ້າງ" },
+  never: { bg: "var(--warn-soft)", fg: "#B45309", text: "ຍັງບໍ່ເຄີຍ" },
+  off:   { bg: "var(--surface-3)", fg: "var(--fg-3)", text: "ປິດຢູ່" },
 }
 
 function Badge({ health }: { health: string }) {
@@ -88,18 +88,18 @@ function Badge({ health }: { health: string }) {
   )
 }
 
-function Tile({ icon: Icon, label, value, hint, tone = "#2563EB" }: {
+function Tile({ icon: Icon, label, value, hint, tone = "var(--accent)" }: {
   icon: any; label: string; value: string; hint?: string; tone?: string
 }) {
   return (
     <div style={{ ...CARD, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
         <Icon size={14} color={tone} strokeWidth={2.4} />
-        <span style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Noto Sans Lao', sans-serif" }}>{label}</span>
+        <span style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'Noto Sans Lao', sans-serif" }}>{label}</span>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: "#111827", lineHeight: 1.1, ...MONO }}>{value}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: "var(--fg)", lineHeight: 1.1, ...MONO }}>{value}</div>
       {hint && (
-        <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>{hint}</div>
+        <div style={{ fontSize: 11, color: "var(--fg-4)", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>{hint}</div>
       )}
     </div>
   )
@@ -121,13 +121,13 @@ export default async function AdminPage() {
 
   if (!stats) {
     return (
-      <div style={{ background: "#EDEEF2", minHeight: "80vh", padding: "40px 24px" }}>
+      <div style={{ background: "var(--bg)", minHeight: "80vh", padding: "40px 24px" }}>
         <div style={{ ...CARD, maxWidth: 640, margin: "0 auto" }}>
           <h1 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>ໂຫຼດຂໍ້ມູນບໍ່ໄດ້</h1>
-          <p style={{ fontSize: 12, color: "#6B7280", marginBottom: 10, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+          <p style={{ fontSize: 12, color: "var(--fg-3)", marginBottom: 10, fontFamily: "'Noto Sans Lao', sans-serif" }}>
             ສ່ວນຫຼາຍແມ່ນ <code style={MONO}>SANITY_API_TOKEN</code> ບໍ່ໄດ້ຕັ້ງຄ່າໃນ environment ນີ້.
           </p>
-          <pre style={{ ...MONO, fontSize: 11, color: "#B91C1C", background: "#FEF2F2", padding: 10, borderRadius: 8, overflowX: "auto" }}>{error}</pre>
+          <pre style={{ ...MONO, fontSize: 11, color: "var(--danger)", background: "var(--danger-soft)", padding: 10, borderRadius: 8, overflowX: "auto" }}>{error}</pre>
         </div>
       </div>
     )
@@ -139,26 +139,26 @@ export default async function AdminPage() {
   const alerts = staleEas.length + staleSchedules.length + stats.awaitingCount
 
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "80vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "80vh" }}>
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 56px" }}>
 
         {/* ── header ── */}
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: 0, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--fg)", margin: 0, fontFamily: "'Noto Sans Lao', sans-serif" }}>
               ພາບລວມເວັບໄຊ
             </h1>
-            <p style={{ fontSize: 11, color: "#6B7280", margin: "3px 0 0", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+            <p style={{ fontSize: 11, color: "var(--fg-3)", margin: "3px 0 0", fontFamily: "'Noto Sans Lao', sans-serif" }}>
               ຂໍ້ມູນສົດຈາກ Sanity · ວັນທີ <span style={MONO}>{stats.day}</span> (ເວລາລາວ)
             </p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 11, fontWeight: 600, color: "#2563EB", textDecoration: "none", background: "#fff", border: "1px solid #E2E6F0", borderRadius: 8, padding: "7px 12px", display: "inline-flex", alignItems: "center", gap: 5 }}>
+              style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", textDecoration: "none", background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 8, padding: "7px 12px", display: "inline-flex", alignItems: "center", gap: 5 }}>
               Google Analytics <ExternalLink size={11} />
             </a>
             <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 11, fontWeight: 600, color: "#2563EB", textDecoration: "none", background: "#fff", border: "1px solid #E2E6F0", borderRadius: 8, padding: "7px 12px", display: "inline-flex", alignItems: "center", gap: 5 }}>
+              style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", textDecoration: "none", background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 8, padding: "7px 12px", display: "inline-flex", alignItems: "center", gap: 5 }}>
               Search Console <ExternalLink size={11} />
             </a>
           </div>
@@ -166,10 +166,10 @@ export default async function AdminPage() {
 
         {/* ── alerts ── */}
         {alerts > 0 && (
-          <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: "12px 16px", marginBottom: 18 }}>
+          <div style={{ background: "var(--danger-soft)", border: "1px solid var(--danger-line)", borderRadius: 12, padding: "12px 16px", marginBottom: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-              <AlertTriangle size={14} color="#B91C1C" strokeWidth={2.5} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#B91C1C", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+              <AlertTriangle size={14} color="var(--danger)" strokeWidth={2.5} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--danger)", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                 ຕ້ອງກວດເບິ່ງ ({alerts})
               </span>
             </div>
@@ -189,16 +189,16 @@ export default async function AdminPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 12, marginBottom: 22 }}>
           <Tile icon={Eye} label="ຍອດເບິ່ງບົດຄວາມລວມ" value={n(totals.views)} hint={`${n(totals.articles)} ບົດຄວາມ`} />
           <Tile icon={Users} label="ສະມາຊິກ" value={n(totals.subscribers)} hint={`+${n(totals.subscribers7d)} ໃນ 7 ວັນ`} tone="#7C3AED" />
-          <Tile icon={MousePointerClick} label="ຄລິກສະໝັກ (7 ວັນ)" value={n(clickTotals.d7)} hint={`ມື້ນີ້ ${n(clickTotals.today)} ຄັ້ງ`} tone="#059669" />
+          <Tile icon={MousePointerClick} label="ຄລິກສະໝັກ (7 ວັນ)" value={n(clickTotals.d7)} hint={`ມື້ນີ້ ${n(clickTotals.today)} ຄັ້ງ`} tone="var(--success)" />
           <Tile icon={Bot} label="AI chat ມື້ນີ້" value={n(chat.today)} hint={`${n(chat.users)} ຄົນ · 7 ວັນ ${n(chat.d7)}`} tone="#EA580C" />
-          <Tile icon={MessageSquare} label="ລໍຖ້າຕອບ" value={n(stats.awaitingCount)} hint="ແຊັດຫາ admin" tone={stats.awaitingCount ? "#DC2626" : "#6B7280"} />
+          <Tile icon={MessageSquare} label="ລໍຖ້າຕອບ" value={n(stats.awaitingCount)} hint="ແຊັດຫາ admin" tone={stats.awaitingCount ? "var(--danger)" : "var(--fg-3)"} />
         </div>
 
         {/* ── 1. บทความฮิต ── */}
         <section style={{ ...CARD, marginBottom: 16 }}>
-          <h2 style={H2}><Eye size={14} color="#2563EB" /> ບົດຄວາມທີ່ຄົນອ່ານຫຼາຍທີ່ສຸດ</h2>
+          <h2 style={H2}><Eye size={14} color="var(--accent)" /> ບົດຄວາມທີ່ຄົນອ່ານຫຼາຍທີ່ສຸດ</h2>
           {stats.topArticles.length === 0 ? (
-            <p style={{ fontSize: 12, color: "#9CA3AF" }}>ຍັງບໍ່ມີຂໍ້ມູນ</p>
+            <p style={{ fontSize: 12, color: "var(--fg-4)" }}>ຍັງບໍ່ມີຂໍ້ມູນ</p>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
@@ -214,27 +214,27 @@ export default async function AdminPage() {
                 <tbody>
                   {stats.topArticles.map((a, i) => (
                     <tr key={a._id}>
-                      <td style={{ ...TD, color: "#9CA3AF", ...MONO }}>{i + 1}</td>
+                      <td style={{ ...TD, color: "var(--fg-4)", ...MONO }}>{i + 1}</td>
                       <td style={TD}>
-                        <Link href={`/${categoryRoute(a.category ?? "education")}/${a.slug}`} style={{ color: "#111827", textDecoration: "none", fontWeight: 500 }}>
+                        <Link href={`/${categoryRoute(a.category ?? "education")}/${a.slug}`} style={{ color: "var(--fg)", textDecoration: "none", fontWeight: 500 }}>
                           {a.title}
                         </Link>
                         {a.category && (
-                          <span style={{ marginLeft: 7, fontSize: 10, color: "#9CA3AF", background: "#F3F4F6", padding: "1px 6px", borderRadius: 4 }}>
+                          <span style={{ marginLeft: 7, fontSize: 10, color: "var(--fg-4)", background: "var(--surface-3)", padding: "1px 6px", borderRadius: 4 }}>
                             {a.category}
                           </span>
                         )}
                       </td>
                       <td style={{ ...TD, textAlign: "right", fontWeight: 700, ...MONO }}>{n(a.views)}</td>
-                      <td style={{ ...TD, textAlign: "right", ...MONO, color: a.likes ? "#DC2626" : "#D1D5DB" }}>{a.likes}</td>
-                      <td style={{ ...TD, textAlign: "right", ...MONO, color: a.comments ? "#2563EB" : "#D1D5DB" }}>{a.comments}</td>
+                      <td style={{ ...TD, textAlign: "right", ...MONO, color: a.likes ? "var(--danger)" : "var(--fg-4)" }}>{a.likes}</td>
+                      <td style={{ ...TD, textAlign: "right", ...MONO, color: a.comments ? "var(--accent)" : "var(--fg-4)" }}>{a.comments}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <p style={{ fontSize: 10, color: "#9CA3AF", marginTop: 10, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+          <p style={{ fontSize: 10, color: "var(--fg-4)", marginTop: 10, fontFamily: "'Noto Sans Lao', sans-serif" }}>
             ລວມທັງໝົດ: {n(totals.views)} ເບິ່ງ · {n(totals.likes)} ໄລ້ · {n(totals.comments)} ຄຳເຫັນ
           </p>
         </section>
@@ -242,9 +242,9 @@ export default async function AdminPage() {
         {/* ── 2. EA + broadcast ── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16, marginBottom: 16 }}>
           <section style={CARD}>
-            <h2 style={H2}><Activity size={14} color="#059669" /> ຜົນງານ EA (ສົດຈາກ MT5)</h2>
+            <h2 style={H2}><Activity size={14} color="var(--success)" /> ຜົນງານ EA (ສົດຈາກ MT5)</h2>
             {stats.eas.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#9CA3AF" }}>ຍັງບໍ່ມີ eaStats doc</p>
+              <p style={{ fontSize: 12, color: "var(--fg-4)" }}>ຍັງບໍ່ມີ eaStats doc</p>
             ) : stats.eas.map((ea) => {
               const last = ea.monthlyReturns?.length ? ea.monthlyReturns[ea.monthlyReturns.length - 1] : null
               // Cent accounts report money in cents — see lib/eaMoney.ts
@@ -252,19 +252,19 @@ export default async function AdminPage() {
                 ? toRealMoney(ea.balance, ea.currency)
                 : null
               return (
-                <div key={ea.eaId} style={{ borderTop: "1px solid #F3F4F6", padding: "11px 0" }}>
+                <div key={ea.eaId} style={{ borderTop: "1px solid var(--line-2)", padding: "11px 0" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 5 }}>
-                    <Link href={`/ea/${ea.eaId}`} style={{ fontSize: 13, fontWeight: 700, color: "#111827", textDecoration: "none", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                    <Link href={`/ea/${ea.eaId}`} style={{ fontSize: 13, fontWeight: 700, color: "var(--fg)", textDecoration: "none", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                       {ea.title || ea.eaId}
                     </Link>
                     <Badge health={eaHealth(ea)} />
                   </div>
-                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 11, color: "#6B7280" }}>
-                    <span>ກຳໄລລວມ <b style={{ ...MONO, color: (ea.profitTotalPct ?? 0) >= 0 ? "#047857" : "#B91C1C" }}>{pct(ea.profitTotalPct)}</b></span>
-                    <span>ເດືອນ {last?.month ?? "—"} <b style={{ ...MONO, color: (last?.profitPct ?? 0) >= 0 ? "#047857" : "#B91C1C" }}>{pct(last?.profitPct)}</b></span>
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 11, color: "var(--fg-3)" }}>
+                    <span>ກຳໄລລວມ <b style={{ ...MONO, color: (ea.profitTotalPct ?? 0) >= 0 ? "var(--success)" : "var(--danger)" }}>{pct(ea.profitTotalPct)}</b></span>
+                    <span>ເດືອນ {last?.month ?? "—"} <b style={{ ...MONO, color: (last?.profitPct ?? 0) >= 0 ? "var(--success)" : "var(--danger)" }}>{pct(last?.profitPct)}</b></span>
                     <span>Balance <b style={MONO}>{bal ? fmtMoneyPlain(bal.amount, bal.currency) : "—"}</b></span>
                   </div>
-                  <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                  <div style={{ fontSize: 10, color: "var(--fg-4)", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>
                     ອັບເດດ {ago(ea.lastUpdate)} · ໂໝດ {ea.updateMode ?? "?"}
                   </div>
                 </div>
@@ -275,19 +275,19 @@ export default async function AdminPage() {
           <section style={CARD}>
             <h2 style={H2}><Radio size={14} color="#7C3AED" /> LINE Broadcast</h2>
             {stats.schedules.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#9CA3AF" }}>ຍັງບໍ່ມີ broadcastSchedule doc</p>
+              <p style={{ fontSize: 12, color: "var(--fg-4)" }}>ຍັງບໍ່ມີ broadcastSchedule doc</p>
             ) : stats.schedules.map((s) => (
-              <div key={s.key} style={{ borderTop: "1px solid #F3F4F6", padding: "11px 0" }}>
+              <div key={s.key} style={{ borderTop: "1px solid var(--line-2)", padding: "11px 0" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 5 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#111827", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "var(--fg)", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                     {s.title || s.key}
                   </span>
                   <Badge health={scheduleHealth(s)} />
                 </div>
-                <div style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                <div style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                   {PERIOD_LO[s.period ?? ""] ?? s.period} · {String(s.hour ?? "?").padStart(2, "0")}:00 ICT
                 </div>
-                <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                <div style={{ fontSize: 10, color: "var(--fg-4)", marginTop: 4, fontFamily: "'Noto Sans Lao', sans-serif" }}>
                   ຍິງລ່າສຸດ {ago(s.lastRunAt)}{s.lastStatus ? ` · ${s.lastStatus}` : ""}
                 </div>
               </div>
@@ -298,9 +298,9 @@ export default async function AdminPage() {
         {/* ── 3. affiliate clicks + subscribers ── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16, marginBottom: 16 }}>
           <section style={CARD}>
-            <h2 style={H2}><MousePointerClick size={14} color="#059669" /> ຄລິກປຸ່ມສະໝັກ / ດາວໂຫຼດ</h2>
+            <h2 style={H2}><MousePointerClick size={14} color="var(--success)" /> ຄລິກປຸ່ມສະໝັກ / ດາວໂຫຼດ</h2>
             {stats.clicks.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.7, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+              <p style={{ fontSize: 12, color: "var(--fg-4)", lineHeight: 1.7, fontFamily: "'Noto Sans Lao', sans-serif" }}>
                 ຍັງບໍ່ມີຂໍ້ມູນ — ການນັບຄລິກຫາກໍ່ເປີດໃຊ້ ຕົວເລກຈະຂຶ້ນເມື່ອມີຄົນກົດປຸ່ມ
               </p>
             ) : (
@@ -323,7 +323,7 @@ export default async function AdminPage() {
                         </td>
                         <td style={{ ...TD, textAlign: "right", ...MONO }}>{n(c.today)}</td>
                         <td style={{ ...TD, textAlign: "right", ...MONO, fontWeight: 700 }}>{n(c.d7)}</td>
-                        <td style={{ ...TD, textAlign: "right", ...MONO, color: "#9CA3AF" }}>{n(c.d30)}</td>
+                        <td style={{ ...TD, textAlign: "right", ...MONO, color: "var(--fg-4)" }}>{n(c.d30)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -335,14 +335,14 @@ export default async function AdminPage() {
           <section style={CARD}>
             <h2 style={H2}><Users size={14} color="#7C3AED" /> ສະມາຊິກລ່າສຸດ</h2>
             {stats.recentSubscribers.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#9CA3AF" }}>ຍັງບໍ່ມີສະມາຊິກ</p>
+              <p style={{ fontSize: 12, color: "var(--fg-4)" }}>ຍັງບໍ່ມີສະມາຊິກ</p>
             ) : stats.recentSubscribers.map((s) => (
-              <div key={s.email} style={{ borderTop: "1px solid #F3F4F6", padding: "8px 0", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+              <div key={s.email} style={{ borderTop: "1px solid var(--line-2)", padding: "8px 0", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12, color: "#111827", fontFamily: "'Noto Sans Lao', sans-serif" }}>{s.name || "—"}</div>
-                  <div style={{ ...MONO, fontSize: 10, color: "#9CA3AF", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</div>
+                  <div style={{ fontSize: 12, color: "var(--fg)", fontFamily: "'Noto Sans Lao', sans-serif" }}>{s.name || "—"}</div>
+                  <div style={{ ...MONO, fontSize: 10, color: "var(--fg-4)", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</div>
                 </div>
-                <div style={{ fontSize: 10, color: "#9CA3AF", whiteSpace: "nowrap", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                <div style={{ fontSize: 10, color: "var(--fg-4)", whiteSpace: "nowrap", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                   {ago(s.createdAt)}
                 </div>
               </div>
@@ -356,22 +356,22 @@ export default async function AdminPage() {
             <h2 style={H2}><Bot size={14} color="#EA580C" /> TheRocket AI (ມື້ນີ້)</h2>
             <div style={{ display: "flex", gap: 22, marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 24, fontWeight: 700, color: "#111827", ...MONO }}>{n(chat.today)}</div>
-                <div style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Noto Sans Lao', sans-serif" }}>ຂໍ້ຄວາມ</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--fg)", ...MONO }}>{n(chat.today)}</div>
+                <div style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'Noto Sans Lao', sans-serif" }}>ຂໍ້ຄວາມ</div>
               </div>
               <div>
-                <div style={{ fontSize: 24, fontWeight: 700, color: "#111827", ...MONO }}>{n(chat.users)}</div>
-                <div style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Noto Sans Lao', sans-serif" }}>ຄົນໃຊ້</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--fg)", ...MONO }}>{n(chat.users)}</div>
+                <div style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'Noto Sans Lao', sans-serif" }}>ຄົນໃຊ້</div>
               </div>
               <div>
-                <div style={{ fontSize: 24, fontWeight: 700, color: "#111827", ...MONO }}>{n(chat.d7)}</div>
-                <div style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Noto Sans Lao', sans-serif" }}>7 ວັນ</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--fg)", ...MONO }}>{n(chat.d7)}</div>
+                <div style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'Noto Sans Lao', sans-serif" }}>7 ວັນ</div>
               </div>
             </div>
             {Object.keys(chat.byTier).length > 0 && (
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {Object.entries(chat.byTier).map(([tier, c]) => (
-                  <span key={tier} style={{ fontSize: 11, background: "#F3F4F6", color: "#374151", padding: "3px 9px", borderRadius: 6, ...MONO }}>
+                  <span key={tier} style={{ fontSize: 11, background: "var(--surface-3)", color: "var(--fg-2)", padding: "3px 9px", borderRadius: 6, ...MONO }}>
                     {tier}: {n(c)}
                   </span>
                 ))}
@@ -381,32 +381,32 @@ export default async function AdminPage() {
 
           <section style={CARD}>
             <h2 style={H2}>
-              <MessageSquare size={14} color="#DC2626" /> ແຊັດຫາ admin
+              <MessageSquare size={14} color="var(--danger)" /> ແຊັດຫາ admin
               {stats.awaitingCount > 0 && (
-                <span style={{ fontSize: 10, fontWeight: 700, background: "#FEF2F2", color: "#B91C1C", padding: "2px 7px", borderRadius: 5 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, background: "var(--danger-soft)", color: "var(--danger)", padding: "2px 7px", borderRadius: 5 }}>
                   {stats.awaitingCount} ລໍຖ້າຕອບ
                 </span>
               )}
             </h2>
             {stats.threads.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#9CA3AF" }}>ຍັງບໍ່ມີແຊັດ</p>
+              <p style={{ fontSize: 12, color: "var(--fg-4)" }}>ຍັງບໍ່ມີແຊັດ</p>
             ) : stats.threads.map((t) => (
               <div key={t.threadId} style={{
-                borderTop: "1px solid #F3F4F6", padding: "9px 0",
+                borderTop: "1px solid var(--line-2)", padding: "9px 0",
                 borderLeft: t.awaitingReply ? "3px solid #DC2626" : "3px solid transparent",
                 paddingLeft: 9,
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#111827", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fg)", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                     {t.name || "(ບໍ່ບອກຊື່)"}
                   </span>
-                  <span style={{ fontSize: 10, color: "#9CA3AF", whiteSpace: "nowrap", fontFamily: "'Noto Sans Lao', sans-serif" }}>
+                  <span style={{ fontSize: 10, color: "var(--fg-4)", whiteSpace: "nowrap", fontFamily: "'Noto Sans Lao', sans-serif" }}>
                     {ago(t.lastUserAt)}
                   </span>
                 </div>
                 {t.lastMsg && (
                   <div style={{
-                    fontSize: 11, color: "#6B7280", marginTop: 2, fontFamily: "'Noto Sans Lao', sans-serif",
+                    fontSize: 11, color: "var(--fg-3)", marginTop: 2, fontFamily: "'Noto Sans Lao', sans-serif",
                     display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                   }}>
                     {t.lastMsg}
@@ -417,13 +417,13 @@ export default async function AdminPage() {
                 </div>
               </div>
             ))}
-            <p style={{ fontSize: 10, color: "#9CA3AF", marginTop: 10, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+            <p style={{ fontSize: 10, color: "var(--fg-4)", marginTop: 10, fontFamily: "'Noto Sans Lao', sans-serif" }}>
               ຕອບໄດ້ທາງ Telegram — reply ໃສ່ຂໍ້ຄວາມແຈ້ງເຕືອນຂອງ thread ນັ້ນ
             </p>
           </section>
         </div>
 
-        <p style={{ fontSize: 10, color: "#9CA3AF", textAlign: "center", marginTop: 26, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+        <p style={{ fontSize: 10, color: "var(--fg-4)", textAlign: "center", marginTop: 26, fontFamily: "'Noto Sans Lao', sans-serif" }}>
           ໜ້ານີ້ເຫັນສະເພາະ admin · ຂໍ້ມູນຜູ້ເຂົ້າຊົມ (ມາຈາກໃສ, ຄຳຄົ້ນຫາ) ຢູ່ໃນ Google Analytics ແລະ Search Console
         </p>
       </div>

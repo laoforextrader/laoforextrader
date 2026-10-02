@@ -59,7 +59,7 @@ export default function BacktestGallery({ charts }: { charts: Chart[] }) {
               aria-label={`ເບິ່ງ ${c.title} ເຕັມຈໍ`}
               style={{
                 display: "block", width: "100%", padding: 0, border: "none",
-                background: "#fff", cursor: "zoom-in", position: "relative",
+                background: "var(--surface)", cursor: "zoom-in", position: "relative",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -157,7 +157,7 @@ export default function BacktestGallery({ charts }: { charts: Chart[] }) {
               onClick={e => e.stopPropagation()}
               style={{
                 display: "block", maxWidth: "100%", height: "auto",
-                borderRadius: 10, background: "#fff", boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                borderRadius: 10, background: "var(--surface)", boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
               }}
             />
           </div>

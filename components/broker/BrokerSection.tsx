@@ -11,25 +11,25 @@ import { trackClick, brokerTarget } from "@/lib/trackClick"
 interface Props { brokers: Broker[] }
 
 const BROKER_META: Record<string, { tag: string; tagClass: string; highlight?: boolean }> = {
-  "xm-global":   { tag: "#1 ທາງເລືອກ Trader ລາວ", tagClass: "bg-amber-50 text-amber-600", highlight: true },
-  "exness":       { tag: "ຖອນ Instant 24/7",        tagClass: "bg-blue-50 text-blue-600" },
-  "ic-markets":   { tag: "ດີທີ່ສຸດ ສຳລັບ EA",       tagClass: "bg-green-50 text-green-600" },
+  "xm-global":   { tag: "#1 ທາງເລືອກ Trader ລາວ", tagClass: "bg-warn-soft text-amber-600", highlight: true },
+  "exness":       { tag: "ຖອນ Instant 24/7",        tagClass: "bg-accent-soft text-accent" },
+  "ic-markets":   { tag: "ດີທີ່ສຸດ ສຳລັບ EA",       tagClass: "bg-ok-soft text-green-600" },
 }
 
 type RankStyle = { label: string; bg: string; color: string; border?: string }
 function getRankStyle(rank?: number): RankStyle | null {
   if (!rank) return null
   if (rank === 1) return { label: "🏆 #1 ແນະນຳ", bg: "linear-gradient(135deg,#F59E0B,#FCD34D)", color: "#78350F", border: "#F59E0B" }
-  if (rank === 2) return { label: "#2",           bg: "linear-gradient(135deg,#9CA3AF,#E5E7EB)", color: "#1F2937" }
+  if (rank === 2) return { label: "#2",           bg: "linear-gradient(135deg,#9CA3AF,var(--line-2))", color: "var(--fg)" }
   if (rank === 3) return { label: "#3",           bg: "linear-gradient(135deg,#B45309,#D97706)", color: "#FFF7ED" }
-  return { label: `#${rank}`, bg: "#F3F4F6", color: "#6B7280" }
+  return { label: `#${rank}`, bg: "var(--surface-3)", color: "var(--fg-3)" }
 }
 
 function getLogoStyle(name: string) {
-  if (name.toLowerCase().includes("xm"))     return { bg: "#FEF2F2", color: "#DC2626" }
-  if (name.toLowerCase().includes("exness")) return { bg: "#EEF3FF", color: "#2563EB" }
-  if (name.toLowerCase().includes("ic"))     return { bg: "#DCFCE7", color: "#059669" }
-  return { bg: "#F3F4F6", color: "#6B7280" }
+  if (name.toLowerCase().includes("xm"))     return { bg: "var(--danger-soft)", color: "var(--danger)" }
+  if (name.toLowerCase().includes("exness")) return { bg: "var(--accent-soft)", color: "var(--accent)" }
+  if (name.toLowerCase().includes("ic"))     return { bg: "var(--success-soft)", color: "var(--success)" }
+  return { bg: "var(--surface-3)", color: "var(--fg-3)" }
 }
 
 export function BrokerSection({ brokers }: Props) {
@@ -50,7 +50,7 @@ export function BrokerSection({ brokers }: Props) {
   }, [])
 
   return (
-    <section className="border-t border-gray-200" style={{ background: "#EDEEF2" }}>
+    <section className="border-t border-line-2" style={{ background: "var(--bg)" }}>
       <style>{`
         .bk-card { opacity:0; transform:translateY(16px) scale(.97); transition:opacity .3s, transform .3s, border-color .2s, box-shadow .3s; cursor:pointer; }
         .bk-card.in { opacity:1; transform:translateY(0) scale(1); }
@@ -63,7 +63,7 @@ export function BrokerSection({ brokers }: Props) {
 
         <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
           {brokers.map((broker, i) => {
-            const meta = BROKER_META[broker.slug?.current ?? ""] ?? { tag: "", tagClass: "bg-gray-100 text-gray-500" }
+            const meta = BROKER_META[broker.slug?.current ?? ""] ?? { tag: "", tagClass: "bg-surface-3 text-fg-3" }
             const logo = getLogoStyle(broker.name)
             const rankStyle = getRankStyle(broker.rank)
             const isTop = broker.rank === 1
@@ -71,8 +71,8 @@ export function BrokerSection({ brokers }: Props) {
 
             return (
               <div key={broker._id}
-                className="bk-card bg-white rounded-2xl p-5 relative overflow-hidden"
-                style={{ border: isTop ? "2px solid #F59E0B" : "1.5px solid #E5E7EB" }}
+                className="bk-card bg-surface rounded-2xl p-5 relative overflow-hidden"
+                style={{ border: isTop ? "2px solid #F59E0B" : "1.5px solid var(--line-2)" }}
                 onClick={() => router.push(`/broker/${slug}`)}>
 
                 {rankStyle && (
@@ -91,20 +91,20 @@ export function BrokerSection({ brokers }: Props) {
                     style={{
                       borderRadius: 12,
                       objectFit: "contain",
-                      background: "#fff",
-                      border: "1px solid #E2E6F0",
+                      background: "var(--surface)",
+                      border: "1px solid var(--line)",
                       padding: 4,
                       marginBottom: 12,
                     }}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-bold mb-3 border border-gray-100"
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-bold mb-3 border border-line-2"
                     style={{ background: logo.bg, color: logo.color }}>
                     {broker.name.slice(0, 2).toUpperCase()}
                   </div>
                 )}
 
-                <div className="text-[15px] font-bold text-gray-900 mb-0.5">{broker.name}</div>
+                <div className="text-[15px] font-bold text-fg mb-0.5">{broker.name}</div>
                 <div className="text-xs tracking-tight text-amber-400 mb-2" style={{ letterSpacing: "-1px" }}>
                   {"★".repeat(Math.floor(broker.rating ?? 4))}{"☆".repeat(5 - Math.floor(broker.rating ?? 4))}
                 </div>
@@ -115,18 +115,18 @@ export function BrokerSection({ brokers }: Props) {
                   </span>
                 )}
 
-                <div className="border-t border-gray-100 pt-3 flex flex-col gap-1.5">
+                <div className="border-t border-line-2 pt-3 flex flex-col gap-1.5">
                   <div className="flex justify-between text-[12px]">
-                    <span className="font-lao text-gray-400">ຝາກຂັ້ນຕ່ຳ</span>
-                    <span className="font-mono font-medium text-gray-800">${broker.minDeposit ?? "5"}</span>
+                    <span className="font-lao text-fg-4">ຝາກຂັ້ນຕ່ຳ</span>
+                    <span className="font-mono font-medium text-fg">${broker.minDeposit ?? "5"}</span>
                   </div>
                   <div className="flex justify-between text-[12px]">
-                    <span className="font-lao text-gray-400">Leverage</span>
-                    <span className="font-mono font-medium text-gray-800">{broker.maxLeverage ?? "1:1000"}</span>
+                    <span className="font-lao text-fg-4">Leverage</span>
+                    <span className="font-mono font-medium text-fg">{broker.maxLeverage ?? "1:1000"}</span>
                   </div>
                   <div className="flex justify-between text-[12px]">
-                    <span className="font-lao text-gray-400">ຝາກ BCEL</span>
-                    <span className={`font-mono font-medium ${broker.laoDeposit ? "text-green-600" : "text-gray-400"}`}>
+                    <span className="font-lao text-fg-4">ຝາກ BCEL</span>
+                    <span className={`font-mono font-medium ${broker.laoDeposit ? "text-green-600" : "text-fg-4"}`}>
                       {broker.laoDeposit ? "✓ ຮອງຮັບ" : "— Crypto"}
                     </span>
                   </div>
@@ -162,7 +162,7 @@ export function BrokerSection({ brokers }: Props) {
         <div className="text-center mb-3">
           <Link href="/broker" className="btn-ghost text-[12px]">ເບິ່ງ Broker ທັງໝົດ →</Link>
         </div>
-        <div className="text-center text-[12px] text-gray-400 font-lao flex items-center justify-center gap-1.5">
+        <div className="text-center text-[12px] text-fg-4 font-lao flex items-center justify-center gap-1.5">
           <span>⚠</span> ລີວິວຈາກການໃຊ້ງານຂອງພວກເຮົາເທົ່ານັ້ນ · ການລົງທຶນມີຄວາມສ່ຽງ
         </div>
       </div>

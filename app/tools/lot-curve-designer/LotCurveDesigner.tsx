@@ -6,11 +6,11 @@ import Chart from "chart.js/auto"
 const FIX = { pw: 1.3, ds: 2.0, dd: 0.7, df: 1.1, satCapMult: 20, satK: 0.25 }
 
 const MODES: Record<string, { name: string; desc: string; color: string; formula: string }> = {
-  linear: { name: "Linear", desc: "ເພີ່ມເທົ່າກັນທຸກໄມ້", color: "#2563EB",
+  linear: { name: "Linear", desc: "ເພີ່ມເທົ່າກັນທຸກໄມ້", color: "var(--accent)",
             formula: "lot = StartLot × level" },
-  power:  { name: "Power", desc: `p=${FIX.pw} (ຄ່າຄົງທີ່)`, color: "#059669",
+  power:  { name: "Power", desc: `p=${FIX.pw} (ຄ່າຄົງທີ່)`, color: "var(--success)",
             formula: `lot = StartLot × level^${FIX.pw}` },
-  decay:  { name: "Decaying Mult", desc: `${FIX.ds}/${FIX.dd}/${FIX.df} (ຄ່າຄົງທີ່)`, color: "#D97706",
+  decay:  { name: "Decaying Mult", desc: `${FIX.ds}/${FIX.dd}/${FIX.df} (ຄ່າຄົງທີ່)`, color: "var(--warn)",
             formula: `mult(lv) = ${FIX.df} + (${FIX.ds} − ${FIX.df}) × ${FIX.dd}^(lv−2) — ຄູນສະສົມທີລະ level` },
   sat:    { name: "Saturating", desc: `ເພດານ StartLot×${FIX.satCapMult}`, color: "#7C3AED",
             formula: `lot = Cap − (Cap − StartLot) × e^(−${FIX.satK}×(lv−1)),  Cap = StartLot × ${FIX.satCapMult}` },
@@ -77,9 +77,9 @@ function buildRows(mode: string, p: Params): Row[] {
 }
 
 // ── styles ──
-const card: React.CSSProperties = { background: "#fff", border: "1.5px solid #E2E6F0", borderRadius: 14, padding: "16px 18px" }
-const secTitle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B7280", margin: "22px 0 10px" }
-const inputStyle: React.CSSProperties = { width: "100%", background: "#F9FAFB", border: "1.5px solid #E5E7EB", color: "#111827", fontSize: 13, padding: "7px 10px", borderRadius: 8, outline: "none", fontFamily: "monospace" }
+const card: React.CSSProperties = { background: "var(--surface)", border: "1.5px solid var(--line)", borderRadius: 14, padding: "16px 18px" }
+const secTitle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--fg-3)", margin: "22px 0 10px" }
+const inputStyle: React.CSSProperties = { width: "100%", background: "var(--surface-2)", border: "1.5px solid var(--line-2)", color: "var(--fg)", fontSize: 13, padding: "7px 10px", borderRadius: 8, outline: "none", fontFamily: "monospace" }
 const btn = (color: string, bg: string, border: string): React.CSSProperties => ({
   display: "inline-flex", alignItems: "center", gap: 5, border: `1.5px solid ${border}`,
   borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontWeight: 600,
@@ -237,23 +237,23 @@ export default function LotCurveDesigner() {
   const lastShare = last.share
   const num = (label: string, key: keyof Params, step: number, note?: string, accent?: string) => (
     <div style={{ ...card, padding: "10px 12px", ...(accent ? { borderColor: accent + "66" } : {}) }}>
-      <label style={{ fontSize: 11, color: accent || "#6B7280", display: "block", marginBottom: 4, fontWeight: 600 }}>{label}</label>
+      <label style={{ fontSize: 11, color: accent || "var(--fg-3)", display: "block", marginBottom: 4, fontWeight: 600 }}>{label}</label>
       <input type="number" step={step} value={p[key]} onChange={set(key)} style={inputStyle} />
-      {note && <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 3 }}>{note}</div>}
+      {note && <div style={{ fontSize: 10, color: "var(--fg-4)", marginTop: 3 }}>{note}</div>}
     </div>
   )
 
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "80vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "80vh" }}>
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px", fontFamily: "'Noto Sans Lao', -apple-system, sans-serif" }}>
 
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563EB", marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--accent)", marginBottom: 6 }}>
           ເຄື່ອງມື Forex
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--fg)", marginBottom: 6, letterSpacing: "-0.02em" }}>
           Lot Curve Designer
         </h1>
-        <p style={{ fontSize: 13, color: "#374151", marginBottom: 24 }}>
+        <p style={{ fontSize: 13, color: "var(--fg-2)", marginBottom: 24 }}>
           ອອກແບບ ແລະ ປຽບທຽບສູດການເພີ່ມ Lot ຕໍ່ Level ຂອງ Grid / Martingale EA — ເບິ່ງຄວາມສ່ຽງກ່ອນນຳໄປໃຊ້ຈິງ
         </p>
 
@@ -263,37 +263,37 @@ export default function LotCurveDesigner() {
           {Object.entries(MODES).map(([k, m]) => (
             <div key={k} onClick={() => setMode(k)}
               style={{
-                display: "flex", flexDirection: "column", gap: 2, background: mode === k ? m.color + "14" : "#fff",
+                display: "flex", flexDirection: "column", gap: 2, background: mode === k ? m.color + "14" : "var(--surface)",
                 border: `1.5px solid ${mode === k ? m.color : "#E2E6F0"}`, borderRadius: 10,
                 padding: "8px 14px", cursor: "pointer", userSelect: "none", minWidth: 118,
               }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: mode === k ? m.color : "#111827" }}>{m.name}</span>
-              <span style={{ fontSize: 10, color: "#6B7280" }}>{m.desc}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: mode === k ? m.color : "var(--fg)" }}>{m.name}</span>
+              <span style={{ fontSize: 10, color: "var(--fg-3)" }}>{m.desc}</span>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 12, color: "#2563EB", background: "#EEF3FF", border: "1.5px solid #BFCFFF", borderRadius: 8, padding: "7px 12px", marginBottom: 14, fontFamily: "monospace" }}>
+        <div style={{ fontSize: 12, color: "var(--accent)", background: "var(--accent-soft)", border: "1.5px solid var(--accent-line)", borderRadius: 8, padding: "7px 12px", marginBottom: 14, fontFamily: "monospace" }}>
           ສູດ:  {MODES[mode].formula}
         </div>
 
         {/* PRESET BAR */}
         <div style={{ ...card, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 14px", marginBottom: 8 }}>
-          <span style={{ fontSize: 11, color: "#6B7280", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>Presets</span>
+          <span style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>Presets</span>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flex: 1 }}>
             {Object.keys(presets).length === 0 ? (
-              <span style={{ fontSize: 11, color: "#9CA3AF", alignSelf: "center" }}>ຍັງບໍ່ມີ preset — ກົດບັນທຶກເພື່ອເກັບຄ່າໄວ້</span>
+              <span style={{ fontSize: 11, color: "var(--fg-4)", alignSelf: "center" }}>ຍັງບໍ່ມີ preset — ກົດບັນທຶກເພື່ອເກັບຄ່າໄວ້</span>
             ) : Object.keys(presets).map(n => (
               <span key={n} onClick={() => loadPreset(n)}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 7, padding: "4px 10px",
                   fontSize: 11, cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
-                  background: activePreset === n ? "#EEF3FF" : "#F9FAFB",
-                  border: `1.5px solid ${activePreset === n ? "#2563EB" : "#E5E7EB"}`,
-                  color: activePreset === n ? "#2563EB" : "#374151", fontWeight: 600,
+                  background: activePreset === n ? "var(--accent-soft)" : "var(--surface-2)",
+                  border: `1.5px solid ${activePreset === n ? "#2563EB" : "var(--line-2)"}`,
+                  color: activePreset === n ? "var(--accent)" : "var(--fg-2)", fontWeight: 600,
                 }}>
                 {n}
                 <button onClick={e => deletePreset(e, n)}
-                  style={{ width: 15, height: 15, borderRadius: 4, background: "#FEE2E2", color: "#DC2626", border: "none", cursor: "pointer", fontSize: 10, lineHeight: "15px", padding: 0 }}>✕</button>
+                  style={{ width: 15, height: 15, borderRadius: 4, background: "var(--danger-soft)", color: "var(--danger)", border: "none", cursor: "pointer", fontSize: 10, lineHeight: "15px", padding: 0 }}>✕</button>
               </span>
             ))}
           </div>
@@ -329,27 +329,27 @@ export default function LotCurveDesigner() {
 
         {/* STATS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, margin: "16px 0" }}>
-          <div style={card}><div style={{ fontSize: 11, color: "#6B7280", marginBottom: 4 }}>ໂໝດ</div>
+          <div style={card}><div style={{ fontSize: 11, color: "var(--fg-3)", marginBottom: 4 }}>ໂໝດ</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: clr }}>{MODES[mode].name}</div></div>
-          <div style={card}><div style={{ fontSize: 11, color: "#6B7280", marginBottom: 4 }}>Lot ລວມທັງໝົດ</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#059669", fontFamily: "monospace" }}>{last.cumLot.toFixed(2)}</div></div>
-          <div style={card}><div style={{ fontSize: 11, color: "#6B7280", marginBottom: 4 }}>Lot ສູງສຸດ Lv{p.ml}</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#D97706", fontFamily: "monospace" }}>{last.mt5.toFixed(2)}</div></div>
-          <div style={card}><div style={{ fontSize: 11, color: "#6B7280", marginBottom: 4 }}>ໄມ້ສຸດທ້າຍ % ຂອງ volume</div>
-            <div style={{ fontSize: 17, fontWeight: 700, fontFamily: "monospace", color: lastShare > 40 ? "#DC2626" : lastShare > 25 ? "#D97706" : "#059669" }}>{lastShare.toFixed(1)}%</div></div>
-          <div style={card}><div style={{ fontSize: 11, color: "#6B7280", marginBottom: 4 }}>ຂາດທຶນລວມ (ຖືກລາກຄົບ)</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#DC2626", fontFamily: "monospace" }}>${last.cumLoss.toLocaleString()}</div></div>
+          <div style={card}><div style={{ fontSize: 11, color: "var(--fg-3)", marginBottom: 4 }}>Lot ລວມທັງໝົດ</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--success)", fontFamily: "monospace" }}>{last.cumLot.toFixed(2)}</div></div>
+          <div style={card}><div style={{ fontSize: 11, color: "var(--fg-3)", marginBottom: 4 }}>Lot ສູງສຸດ Lv{p.ml}</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--warn)", fontFamily: "monospace" }}>{last.mt5.toFixed(2)}</div></div>
+          <div style={card}><div style={{ fontSize: 11, color: "var(--fg-3)", marginBottom: 4 }}>ໄມ້ສຸດທ້າຍ % ຂອງ volume</div>
+            <div style={{ fontSize: 17, fontWeight: 700, fontFamily: "monospace", color: lastShare > 40 ? "var(--danger)" : lastShare > 25 ? "var(--warn)" : "var(--success)" }}>{lastShare.toFixed(1)}%</div></div>
+          <div style={card}><div style={{ fontSize: 11, color: "var(--fg-3)", marginBottom: 4 }}>ຂາດທຶນລວມ (ຖືກລາກຄົບ)</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--danger)", fontFamily: "monospace" }}>${last.cumLoss.toLocaleString()}</div></div>
         </div>
 
         {/* CHARTS */}
         <div style={{ ...card, marginBottom: 12 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 11, color: "#6B7280", marginBottom: 6 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 11, color: "var(--fg-3)", marginBottom: 6 }}>
             <span><span style={{ width: 10, height: 10, borderRadius: 2, display: "inline-block", marginRight: 4, verticalAlign: "middle", background: clr }} />{MODES[mode].name}</span>
             {pins.map((pin, i) => (
               <span key={i}><span style={{ width: 10, height: 10, borderRadius: 2, display: "inline-block", marginRight: 4, verticalAlign: "middle", background: PIN_COLORS[i % PIN_COLORS.length] }} />📌 {pin.label}</span>
             ))}
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-2)", marginBottom: 10 }}>
             ຂະໜາດ Lot ຕໍ່ Level — 📌 Pin ເພື່ອປຽບທຽບຫຼາຍສູດພ້ອມກັນ
           </div>
           <div style={{ position: "relative", width: "100%", height: 230 }}><canvas ref={cLot} /></div>
@@ -357,56 +357,56 @@ export default function LotCurveDesigner() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 12 }}>
           <div style={card}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 10 }}>ຂາດທຶນສະສົມ ($) — ຖ້າຖືກລາກຄົບທຸກ level</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-2)", marginBottom: 10 }}>ຂາດທຶນສະສົມ ($) — ຖ້າຖືກລາກຄົບທຸກ level</div>
             <div style={{ position: "relative", width: "100%", height: 210 }}><canvas ref={cLoss} /></div>
           </div>
           <div style={card}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 10 }}>ຕົວຄູນ (ອັດຕາໄມ້ຕໍ່ໄມ້)</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-2)", marginBottom: 10 }}>ຕົວຄູນ (ອັດຕາໄມ້ຕໍ່ໄມ້)</div>
             <div style={{ position: "relative", width: "100%", height: 210 }}><canvas ref={cMult} /></div>
           </div>
         </div>
 
         {/* TABLE */}
         <div style={secTitle}>ຕາຕະລາງ Lot</div>
-        <div style={{ overflowX: "auto", border: "1.5px solid #E2E6F0", borderRadius: 12, background: "#fff" }}>
+        <div style={{ overflowX: "auto", border: "1.5px solid var(--line)", borderRadius: 12, background: "var(--surface)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-            <thead><tr style={{ background: "#F9FAFB" }}>
+            <thead><tr style={{ background: "var(--surface-2)" }}>
               {["Lv", "ຕົວຄູນ", "Lot (raw)", "MT5 Lot ★", "Lot ສະສົມ", "% ຂອງທັງໝົດ", "ຂາດທຶນ/Level", "ຂາດທຶນສະສົມ"].map((h, i) => (
-                <th key={h} style={{ padding: "8px 10px", textAlign: i === 0 ? "center" : "right", fontWeight: 600, fontSize: 11, color: i === 3 ? "#2563EB" : "#6B7280", borderBottom: "1.5px solid #E2E6F0", whiteSpace: "nowrap" }}>{h}</th>
+                <th key={h} style={{ padding: "8px 10px", textAlign: i === 0 ? "center" : "right", fontWeight: 600, fontSize: 11, color: i === 3 ? "var(--accent)" : "var(--fg-3)", borderBottom: "1.5px solid var(--line)", whiteSpace: "nowrap" }}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {rows.map(r => (
                 <tr key={r.lv}>
-                  <td style={{ padding: "6px 10px", textAlign: "center", color: "#9CA3AF", borderBottom: "1px solid #F3F4F6" }}>{r.lv}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", fontWeight: 600, borderBottom: "1px solid #F3F4F6", color: "#111827" }}>{r.ratio ? "×" + r.ratio.toFixed(2) : <span style={{ color: "#9CA3AF" }}>— (ເລີ່ມ)</span>}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", color: "#9CA3AF", fontSize: 11, borderBottom: "1px solid #F3F4F6", fontFamily: "monospace" }}>{r.rawLot.toFixed(6)}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", color: "#2563EB", fontWeight: 700, background: "#EEF3FF55", borderBottom: "1px solid #F3F4F6", fontFamily: "monospace" }}>{r.mt5.toFixed(2)}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", color: "#6B7280", borderBottom: "1px solid #F3F4F6", fontFamily: "monospace" }}>{r.cumLot.toFixed(2)}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", borderBottom: "1px solid #F3F4F6", color: "#111827" }}>
+                  <td style={{ padding: "6px 10px", textAlign: "center", color: "var(--fg-4)", borderBottom: "1px solid var(--line-2)" }}>{r.lv}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", fontWeight: 600, borderBottom: "1px solid var(--line-2)", color: "var(--fg)" }}>{r.ratio ? "×" + r.ratio.toFixed(2) : <span style={{ color: "var(--fg-4)" }}>— (ເລີ່ມ)</span>}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--fg-4)", fontSize: 11, borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.rawLot.toFixed(6)}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--accent)", fontWeight: 700, background: "#EEF3FF55", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.mt5.toFixed(2)}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--fg-3)", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.cumLot.toFixed(2)}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", borderBottom: "1px solid var(--line-2)", color: "var(--fg)" }}>
                     <span style={{ display: "inline-block", height: 8, background: "#F59E0B66", borderRadius: 2, verticalAlign: "middle", marginRight: 6, width: Math.max(2, (r.share / maxShare) * 60) }} />
                     {r.share.toFixed(1)}%
                   </td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", color: "#D97706", borderBottom: "1px solid #F3F4F6", fontFamily: "monospace" }}>${r.lvLoss.toLocaleString()}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", color: "#DC2626", borderBottom: "1px solid #F3F4F6", fontFamily: "monospace" }}>${r.cumLoss.toLocaleString()}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--warn)", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>${r.lvLoss.toLocaleString()}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--danger)", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>${r.cumLoss.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p style={{ fontSize: 11, color: "#6B7280", marginTop: 10, padding: "0 4px" }}>
+        <p style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 10, padding: "0 4px" }}>
           ★ MT5 Lot = lot ຈິງຫຼັງປັດເສດຕາມ Lot Step ຂອງໂບຣກເກີ · &quot;% ຂອງທັງໝົດ&quot; = ໄມ້ນີ້ກິນສ່ວນເທົ່າໃດຂອງ volume ທັງ grid
         </p>
-        <p style={{ fontSize: 11, color: "#9CA3AF", textAlign: "center", marginTop: 14 }}>
+        <p style={{ fontSize: 11, color: "var(--fg-4)", textAlign: "center", marginTop: 14 }}>
           ⚠ ເຄື່ອງມືສຳລັບການສຶກສາ · Grid / Martingale ມີຄວາມສ່ຽງສູງ ຄວນທົດສອບ Backtest ກ່ອນໃຊ້ເງິນຈິງ
         </p>
 
         {/* TOAST */}
         {toast && (
           <div style={{
-            position: "fixed", bottom: 24, right: 24, background: "#fff",
-            border: `1.5px solid ${toast.ok ? "#A7F3D0" : "#FECACA"}`, borderRadius: 10,
-            padding: "10px 16px", fontSize: 12, color: toast.ok ? "#059669" : "#DC2626",
+            position: "fixed", bottom: 24, right: 24, background: "var(--surface)",
+            border: `1.5px solid ${toast.ok ? "var(--success-line)" : "var(--danger-line)"}`, borderRadius: 10,
+            padding: "10px 16px", fontSize: 12, color: toast.ok ? "var(--success)" : "var(--danger)",
             zIndex: 200, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", fontWeight: 600,
           }}>{toast.msg}</div>
         )}

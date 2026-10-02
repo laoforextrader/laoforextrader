@@ -13,16 +13,16 @@ const DOUBLE = [...PAIRS, ...PAIRS]
 
 export function MarketTicker() {
   return (
-    <div className="bg-white border-b border-gray-200 py-1.5 overflow-hidden relative">
-      <div className="absolute left-0 top-0 bottom-0 w-8 z-10" style={{ background:"linear-gradient(90deg,#fff,transparent)" }} />
-      <div className="absolute right-0 top-0 bottom-0 w-8 z-10" style={{ background:"linear-gradient(-90deg,#fff,transparent)" }} />
+    <div className="bg-surface border-b border-line-2 py-1.5 overflow-hidden relative">
+      <div className="absolute left-0 top-0 bottom-0 w-8 z-10" style={{ background:"linear-gradient(90deg,var(--surface),transparent)" }} />
+      <div className="absolute right-0 top-0 bottom-0 w-8 z-10" style={{ background:"linear-gradient(-90deg,var(--surface),transparent)" }} />
       <div className="flex gap-8 w-max animate-ticker">
         {DOUBLE.map((item, i) => (
           <div key={i} className="flex items-center gap-2 font-mono text-[11px] whitespace-nowrap">
-            <span className="text-gray-400 font-medium">{item.pair}</span>
-            <span className="text-gray-800 font-medium">{item.price}</span>
+            <span className="text-fg-4 font-medium">{item.pair}</span>
+            <span className="text-fg font-medium">{item.price}</span>
             <span className={`${item.up ? "text-green-600" : "text-red-500"} text-[10px]`}>{item.pct}</span>
-            {i < DOUBLE.length - 1 && <span className="w-px h-2.5 bg-gray-200" />}
+            {i < DOUBLE.length - 1 && <span className="w-px h-2.5 bg-line-2" />}
           </div>
         ))}
       </div>

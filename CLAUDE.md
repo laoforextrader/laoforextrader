@@ -102,6 +102,52 @@ Separate from ingestion: the public-facing EA marketing layer. All of it degrade
 
 **Adding a new EA touches ~6 places** (keep them in sync): create the `eaStats` Studio doc · add an `EAShowcaseSection` to `/ea-system` · the `ea-*` union in `types/index.ts` · the option list in `sanity/schemas/article.ts` · a branch in `CTASelector.tsx` (+ theme in `EaCTA.tsx`) · a `mql/EAStatsReporter_<EA>.set` preset whose `EAID` matches the doc's `eaId`.
 
+## Theming (light / dark)
+
+A reader-facing switch sits in the Navbar. First visit follows the OS
+(`prefers-color-scheme`); pressing the button records an explicit choice in
+`localStorage["lft-theme"]` that then wins forever and across tabs.
+
+- **`app/globals.css` owns the palette.** `:root` holds the light values —
+  byte-for-byte the hexes that used to be hardcoded, so light mode is
+  unchanged — and `html.dark` is the only thing that moves. Use a token
+  (`var(--fg-2)`, `bg-surface`, `text-fg-3`) for every neutral; reach for a
+  literal only when the colour must stay put in both themes, such as white on
+  a brand-blue fill. The Tailwind equivalents are registered in
+  `tailwind.config.ts` (`darkMode: "class"`).
+- **`components/theme/ThemeScript.tsx` runs before paint.** It is a blocking
+  inline `<script>` in `<head>`; moving the class assignment into an effect
+  would flash white on every navigation for a dark reader. `<html>` carries
+  `suppressHydrationWarning` because that script mutates it pre-hydration.
+- **`ForceLight` pins a route to light.** `/admin`, `/tools/*` and the payment
+  flow render it (via their `layout.tsx`) and
+  `html.dark:has([data-force-light])` re-declares the light tokens, so the
+  Navbar and Footer follow and no reader meets a half-converted page. Deleting
+  that one line opts a route into dark.
+- **A role decides whether a colour may move.** A dark neutral used as `color`
+  is text and flips; the same hex used as `background` is a deliberately dark
+  block and must not. Light neutrals are the mirror image. Dark ink that sits
+  on a *fixed* bright fill (the amber CTA on `/ea-system/abs-backtest`, the #1
+  badge in `BrokerSection`) stays a literal for that reason.
+- **CSS Modules are part of the palette too** — `ChatWidget`, `MerchSection`,
+  `FounderSection` and `signal.module.css` are tokenized. They were the worst
+  miss of the original pass: their hardcoded white card backgrounds left the
+  global `h1-h6 { color: var(--fg) }` rule painting white text on white.
+
+Verify with the real browser, not greps:
+
+```bash
+npm run audit:contrast   # computed-style WCAG audit of every page, both themes
+npm run audit:theme      # toggle, persistence, no-flash, light-pin behaviour
+npm run theme:shots      # side-by-side screenshots into theme-preview/
+```
+
+`audit:contrast` resolves each text node's effective colour and its first
+opaque ancestor background, so it catches what static analysis cannot. Run it
+with `--theme light` too: the site carries a pre-existing set of low-contrast
+small grey and brand-colour-on-white failures (~820) that predate theming —
+the number is the regression baseline, not a target.
+
 ## Sanity content model
 
 Schemas in `sanity/schemas/index.ts`:

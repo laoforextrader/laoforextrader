@@ -24,21 +24,21 @@ export default async function DashboardPage() {
   const optIn = user?.email ? await getEmailOptIn(user.email) : false
 
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "80vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "80vh" }}>
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 24px" }}>
 
         {/* Profile */}
-        <div style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
           {user?.image
-            ? <Image src={user.image} alt={user.name ?? ""} width={52} height={52} style={{ borderRadius: "50%", border: "2px solid #BFCFFF" }} />
-            : <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#EEF3FF", border: "2px solid #BFCFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#2563EB", fontWeight: 700 }}>
+            ? <Image src={user.image} alt={user.name ?? ""} width={52} height={52} style={{ borderRadius: "50%", border: "2px solid var(--accent-line)" }} />
+            : <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--accent-soft)", border: "2px solid var(--accent-line)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "var(--accent)", fontWeight: 700 }}>
                 {user?.name?.[0]?.toUpperCase() ?? "?"}
               </div>
           }
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 2 }}>{user?.name}</h1>
-            <p style={{ fontSize: 12, color: "#6B7280", fontFamily: "'JetBrains Mono', monospace" }}>{user?.email}</p>
-            <span style={{ display: "inline-block", marginTop: 6, fontSize: 10, fontWeight: 700, padding: "2px 8px", background: "#EEF3FF", border: "1px solid #BFCFFF", color: "#2563EB", borderRadius: 4, letterSpacing: "0.06em" }}>
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--fg)", marginBottom: 2 }}>{user?.name}</h1>
+            <p style={{ fontSize: 12, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace" }}>{user?.email}</p>
+            <span style={{ display: "inline-block", marginTop: 6, fontSize: 10, fontWeight: 700, padding: "2px 8px", background: "var(--accent-soft)", border: "1px solid var(--accent-line)", color: "var(--accent)", borderRadius: 4, letterSpacing: "0.06em" }}>
               FREE MEMBER
             </span>
           </div>
@@ -54,18 +54,18 @@ export default async function DashboardPage() {
             { icon: Clock,    label: "ອ່ານລ່າສຸດ", value: "0" },
             { icon: MessageSquare, label: "ຄຳເຫັນ", value: "0" },
           ].map(({ icon: Icon, label, value }) => (
-            <div key={label} style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 12, padding: 16, textAlign: "center" }}>
-              <Icon size={16} color="#9CA3AF" style={{ margin: "0 auto 8px" }} />
-              <div style={{ fontSize: 24, fontWeight: 700, color: "#111827", marginBottom: 2 }}>{value}</div>
-              <div style={{ fontSize: 11, color: "#6B7280" }}>{label}</div>
+            <div key={label} style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 12, padding: 16, textAlign: "center" }}>
+              <Icon size={16} color="var(--fg-4)" style={{ margin: "0 auto 8px" }} />
+              <div style={{ fontSize: 24, fontWeight: 700, color: "var(--fg)", marginBottom: 2 }}>{value}</div>
+              <div style={{ fontSize: 11, color: "var(--fg-3)" }}>{label}</div>
             </div>
           ))}
         </div>
 
         {/* Menu */}
-        <div style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
-          <div style={{ padding: "10px 18px", borderBottom: "1px solid #F3F4F6" }}>
-            <span style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>ຄຸນສົມບັດ</span>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
+          <div style={{ padding: "10px 18px", borderBottom: "1px solid var(--line-2)" }}>
+            <span style={{ fontSize: 10, color: "var(--fg-4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>ຄຸນສົມບັດ</span>
           </div>
           {[
             { label: "ບົດຮຽນ Forex 50 ບົດ",   desc: "ຮຽນຕໍ່ຈາກທີ່ຄ້າງ",     href: "/lessons" },
@@ -73,12 +73,12 @@ export default async function DashboardPage() {
             { label: "Pip Calculator",        desc: "ຄຳນວນ Pip ແລະ Lot",      href: "/tools/pip-calculator" },
           ].map(item => (
             <Link key={item.href} href={item.href}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #F9FAFB", textDecoration: "none" }}>
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--line-2)", textDecoration: "none" }}>
               <div>
-                <p style={{ fontSize: 14, color: "#111827", fontWeight: 500, marginBottom: 2 }}>{item.label}</p>
-                <p style={{ fontSize: 11, color: "#9CA3AF" }}>{item.desc}</p>
+                <p style={{ fontSize: 14, color: "var(--fg)", fontWeight: 500, marginBottom: 2 }}>{item.label}</p>
+                <p style={{ fontSize: 11, color: "var(--fg-4)" }}>{item.desc}</p>
               </div>
-              <ChevronRight size={14} color="#D1D5DB" />
+              <ChevronRight size={14} color="var(--fg-4)" />
             </Link>
           ))}
         </div>
@@ -88,18 +88,18 @@ export default async function DashboardPage() {
             style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#111827", borderRadius: 14, padding: "14px 18px", marginBottom: 20, textDecoration: "none" }}>
             <div>
               <p style={{ fontSize: 14, color: "#fff", fontWeight: 600, marginBottom: 2 }}>ພາບລວມເວັບໄຊ (Admin)</p>
-              <p style={{ fontSize: 11, color: "#9CA3AF" }}>ຍອດເບິ່ງ · EA · Broadcast · ແຊັດ · ຄລິກສະໝັກ</p>
+              <p style={{ fontSize: 11, color: "var(--fg-4)" }}>ຍອດເບິ່ງ · EA · Broadcast · ແຊັດ · ຄລິກສະໝັກ</p>
             </div>
-            <ChevronRight size={14} color="#6B7280" />
+            <ChevronRight size={14} color="var(--fg-3)" />
           </Link>
         )}
 
         {/* CTA */}
-        <div style={{ background: "#EEF3FF", border: "1px solid #BFCFFF", borderRadius: 16, padding: 24, textAlign: "center" }}>
-          <p style={{ fontSize: 15, color: "#111827", fontWeight: 600, marginBottom: 6 }}>
-            ຍິນດີຕ້ອນຮັບ, <span style={{ color: "#2563EB" }}>{user?.name?.split(" ")[0]}</span>!
+        <div style={{ background: "var(--accent-soft)", border: "1px solid var(--accent-line)", borderRadius: 16, padding: 24, textAlign: "center" }}>
+          <p style={{ fontSize: 15, color: "var(--fg)", fontWeight: 600, marginBottom: 6 }}>
+            ຍິນດີຕ້ອນຮັບ, <span style={{ color: "var(--accent)" }}>{user?.name?.split(" ")[0]}</span>!
           </p>
-          <p style={{ fontSize: 13, color: "#374151", marginBottom: 16 }}>ຮຽນ 50 ບົດ ຟຣີ ກັບ LaoForexTrader</p>
+          <p style={{ fontSize: 13, color: "var(--fg-2)", marginBottom: 16 }}>ຮຽນ 50 ບົດ ຟຣີ ກັບ LaoForexTrader</p>
           <Link href="/lessons" className="btn-primary" style={{ display: "inline-flex" }}>ເລີ່ມຮຽນ Forex →</Link>
         </div>
       </div>

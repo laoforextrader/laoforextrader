@@ -1,5 +1,5 @@
 .founderSection {
-  background: #fff;
+  background: var(--surface);
   border-top: 1px solid #D4D8E5;
 }
 
@@ -13,7 +13,7 @@
 }
 
 .founderImgSide {
-  background: #fff;
+  background: var(--surface);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -48,13 +48,13 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #374151;
+  color: var(--fg-2);
 }
 
 .founderName {
   font-size: 42px;
   font-weight: 800;
-  color: #111827;
+  color: var(--fg);
   line-height: 1.0;
   letter-spacing: -0.04em;
   margin-bottom: 6px;
@@ -62,7 +62,7 @@
 
 .founderRole {
   font-size: 14px;
-  color: #9CA3AF;
+  color: var(--fg-4);
   margin-bottom: 22px;
 }
 
@@ -75,7 +75,7 @@
 
 .founderQuoteMark {
   font-size: 52px;
-  color: #D1D5DB;
+  color: var(--fg-4);
   line-height: 0.8;
   font-family: Georgia, serif;
   display: block;
@@ -84,7 +84,7 @@
 
 .founderQuote {
   font-size: 18px;
-  color: #374151;
+  color: var(--fg-2);
   line-height: 1.75;
   font-style: italic;
   margin-bottom: 28px;
@@ -99,7 +99,7 @@
 .statNumber {
   font-size: 26px;
   font-weight: 800;
-  color: #111827;
+  color: var(--fg);
   letter-spacing: -0.02em;
 }
 
@@ -113,7 +113,7 @@
 .statLabel {
   font-size: 10px;
   font-weight: 600;
-  color: #9CA3AF;
+  color: var(--fg-4);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin-top: 3px;

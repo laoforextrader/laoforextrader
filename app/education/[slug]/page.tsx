@@ -31,16 +31,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const ptComponents = {
   block: {
     normal: ({ children }: any) => (
-      <p style={{ color: "#374151", lineHeight: 1.85, marginBottom: "1.1rem", fontSize: 15 }}>
+      <p style={{ color: "var(--fg-2)", lineHeight: 1.85, marginBottom: "1.1rem", fontSize: 15 }}>
         {children}
       </p>
     ),
     h2: ({ children }: any) => (
       <h2 style={{
-        color: "#111827", fontWeight: 800, fontSize: "1.35rem",
+        color: "var(--fg)", fontWeight: 800, fontSize: "1.35rem",
         marginTop: "2.5rem", marginBottom: "1rem",
         paddingBottom: "0.5rem",
-        borderBottom: "2px solid #E5E7EB",
+        borderBottom: "2px solid var(--line-2)",
         letterSpacing: "-0.02em"
       }}>
         {children}
@@ -48,7 +48,7 @@ const ptComponents = {
     ),
     h3: ({ children }: any) => (
       <h3 style={{
-        color: "#1E3A8A", fontWeight: 700, fontSize: "1.1rem",
+        color: "var(--accent-ink)", fontWeight: 700, fontSize: "1.1rem",
         marginTop: "1.8rem", marginBottom: "0.6rem",
         display: "flex", alignItems: "center", gap: 8
       }}>
@@ -61,12 +61,12 @@ const ptComponents = {
     ),
     blockquote: ({ children }: any) => (
       <blockquote style={{
-        background: "#F8FAFF",
+        background: "var(--surface-2)",
         borderLeft: "4px solid #2563EB",
         padding: "14px 18px",
         borderRadius: "0 10px 10px 0",
         margin: "1.5rem 0",
-        color: "#374151",
+        color: "var(--fg-2)",
         fontStyle: "italic",
         fontSize: 14,
         lineHeight: 1.75
@@ -98,7 +98,7 @@ const ptComponents = {
     bullet: ({ children }: any) => (
       <li style={{
         display: "flex", alignItems: "flex-start", gap: 10,
-        color: "#374151", fontSize: 14, lineHeight: 1.7, listStyle: "none"
+        color: "var(--fg-2)", fontSize: 14, lineHeight: 1.7, listStyle: "none"
       }}>
         <span style={{
           width: 6, height: 6, borderRadius: "50%",
@@ -110,7 +110,7 @@ const ptComponents = {
     number: ({ children }: any) => (
       <li style={{
         display: "flex", alignItems: "flex-start", gap: 10,
-        color: "#374151", fontSize: 14, lineHeight: 1.7,
+        color: "var(--fg-2)", fontSize: 14, lineHeight: 1.7,
         listStyle: "none", counterIncrement: "item"
       }}>
         <span style={{
@@ -129,8 +129,8 @@ const ptComponents = {
   marks: {
     strong: ({ children }: any) => (
       <strong style={{
-        color: "#111827", fontWeight: 700,
-        background: "linear-gradient(120deg, #DBEAFE 0%, #DBEAFE 100%)",
+        color: "var(--fg)", fontWeight: 700,
+        background: "linear-gradient(120deg, var(--accent-soft-2) 0%, var(--accent-soft-2) 100%)",
         backgroundRepeat: "no-repeat",
         backgroundSize: "100% 40%",
         backgroundPosition: "0 85%",
@@ -141,13 +141,13 @@ const ptComponents = {
     ),
     link: ({ value, children }: any) => (
       <a href={value?.href} target="_blank" rel="noopener noreferrer"
-        style={{ color: "#2563EB", textDecoration: "underline", fontWeight: 500 }}>
+        style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 500 }}>
         {children}
       </a>
     ),
     code: ({ children }: any) => (
       <code style={{
-        background: "#F3F4F6", color: "#1E3A8A",
+        background: "var(--surface-3)", color: "var(--accent-ink)",
         padding: "2px 6px", borderRadius: 4, fontSize: 13, fontFamily: "monospace"
       }}>
         {children}
@@ -158,9 +158,9 @@ const ptComponents = {
     image: ({ value }: any) => value?.asset?.url ? (
       <div style={{ margin: "24px 0" }}>
         <img src={value.asset.url} alt={value.alt || ""}
-          style={{ width: "100%", borderRadius: 12, border: "1px solid #E2E6F0" }} />
+          style={{ width: "100%", borderRadius: 12, border: "1px solid var(--line)" }} />
         {value.caption && (
-          <p style={{ textAlign: "center", fontSize: 12, color: "#9CA3AF", marginTop: 8 }}>
+          <p style={{ textAlign: "center", fontSize: 12, color: "var(--fg-4)", marginTop: 8 }}>
             {value.caption}
           </p>
         )}
@@ -179,7 +179,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
   const path = `/education/${article.slug?.current ?? ""}`
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <ReadingProgress />
       <ViewTracker slug={article.slug?.current ?? ""} />
       <JsonLd
@@ -200,22 +200,22 @@ export default async function ArticleDetailPage({ params }: Props) {
         <div className="min-w-0">
 
         <Link href="/education"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#6B7280", fontSize: 13, textDecoration: "none", marginBottom: 20, fontWeight: 500 }}>
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--fg-3)", fontSize: 13, textDecoration: "none", marginBottom: 20, fontWeight: 500 }}>
           <ArrowLeft size={13} /> ກັບໄປໜ້າ ການສຶກສາ
         </Link>
 
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", marginBottom: 14, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--fg)", marginBottom: 14, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
           {article.title}
         </h1>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 12, color: "#9CA3AF", marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid #E5E7EB", flexWrap: "wrap" }}>
-          {article.author && <span style={{ color: "#374151", fontWeight: 500 }}>{article.author.name}</span>}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 12, color: "var(--fg-4)", marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid var(--line-2)", flexWrap: "wrap" }}>
+          {article.author && <span style={{ color: "var(--fg-2)", fontWeight: 500 }}>{article.author.name}</span>}
           <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Calendar size={11} />{formatDate(article.publishedAt)}</span>
           {article.readTime && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock size={11} />{article.readTime} ນາທີ</span>}
         </div>
 
         {article.excerpt && (
-          <div style={{ background: "#F9FAFB", borderLeft: "3px solid #BFCFFF", padding: "12px 16px", borderRadius: "0 8px 8px 0", marginBottom: 24, color: "#374151", fontSize: 14, lineHeight: 1.7 }}>
+          <div style={{ background: "var(--surface-2)", borderLeft: "3px solid var(--accent-line)", padding: "12px 16px", borderRadius: "0 8px 8px 0", marginBottom: 24, color: "var(--fg-2)", fontSize: 14, lineHeight: 1.7 }}>
             {article.excerpt}
           </div>
         )}
@@ -254,8 +254,8 @@ export default async function ArticleDetailPage({ params }: Props) {
           postUrl={`https://www.laoforextrader.com/education/${article.slug?.current ?? ""}`}
         />
 
-        <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid #E5E7EB" }}>
-          <Link href="/education" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#2563EB", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
+        <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid var(--line-2)" }}>
+          <Link href="/education" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--accent)", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
             <ArrowLeft size={13} /> ກັບໄປໜ້າ ການສຶກສາ
           </Link>
         </div>

@@ -68,7 +68,7 @@ export function ApprovalRing({ state, size = 104 }: { state: RingState; size?: n
         <defs>
           <linearGradient id="approvalRingGrad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#60A5FA" />
-            <stop offset="100%" stopColor="#4F46E5" />
+            <stop offset="100%" stopColor="var(--accent-2)" />
           </linearGradient>
         </defs>
         {/* track */}

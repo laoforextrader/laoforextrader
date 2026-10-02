@@ -34,8 +34,8 @@ export function LoginButton() {
         style={{
           display: "flex", alignItems: "flex-start", gap: 10, textAlign: "left",
           padding: "12px 14px", borderRadius: 12, cursor: "pointer",
-          background: optIn ? "#EEF3FF" : "#F9FAFB",
-          border: `1px solid ${optIn ? "#BFCFFF" : "#E5E7EB"}`,
+          background: optIn ? "var(--accent-soft)" : "var(--surface-2)",
+          border: `1px solid ${optIn ? "var(--accent-line)" : "var(--line-2)"}`,
           transition: "all .15s",
         }}
       >
@@ -43,16 +43,16 @@ export function LoginButton() {
           type="checkbox"
           checked={optIn}
           onChange={(e) => setOptIn(e.target.checked)}
-          style={{ width: 16, height: 16, marginTop: 2, accentColor: "#2563EB", cursor: "pointer", flexShrink: 0 }}
+          style={{ width: 16, height: 16, marginTop: 2, accentColor: "var(--accent)", cursor: "pointer", flexShrink: 0 }}
         />
         <span>
           <span
             className="font-lao"
-            style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "#374151", lineHeight: 1.6 }}
+            style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--fg-2)", lineHeight: 1.6 }}
           >
             ຮັບ EA ຟຣີ ແລະ ຂ່າວສານ Forex ທາງອີເມວ
           </span>
-          <span className="font-lao" style={{ display: "block", fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>
+          <span className="font-lao" style={{ display: "block", fontSize: 11, color: "var(--fg-4)", marginTop: 2 }}>
             ບໍ່ມີສະແປມ · ຍົກເລີກໄດ້ທຸກເວລາ
           </span>
         </span>
@@ -62,12 +62,12 @@ export function LoginButton() {
         onClick={handleSignIn}
         style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-          padding: "12px 20px", background: "#fff", border: "1.5px solid #D1D5DB",
-          borderRadius: 10, fontSize: 14, fontWeight: 600, color: "#374151",
+          padding: "12px 20px", background: "var(--surface)", border: "1.5px solid var(--line-2)",
+          borderRadius: 10, fontSize: 14, fontWeight: 600, color: "var(--fg-2)",
           cursor: "pointer", transition: "all 0.2s", fontFamily: "'Noto Sans Lao', sans-serif",
         }}
-        onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = "#2563EB"; (e.currentTarget as HTMLElement).style.background = "#EEF3FF" }}
-        onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = "#D1D5DB"; (e.currentTarget as HTMLElement).style.background = "#fff" }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = "#2563EB"; (e.currentTarget as HTMLElement).style.background = "var(--accent-soft)" }}
+        onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--line-2)"; (e.currentTarget as HTMLElement).style.background = "var(--surface)" }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

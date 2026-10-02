@@ -47,31 +47,31 @@ export default async function UnsubscribePage({
   const failed = s === "badtoken" || s === "error"
 
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "80vh", display: "flex", alignItems: "center" }}>
+    <div style={{ background: "var(--bg)", minHeight: "80vh", display: "flex", alignItems: "center" }}>
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "32px 24px", width: "100%" }}>
-        <div style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: "32px 28px", textAlign: "center" }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: "32px 28px", textAlign: "center" }}>
           <div
             style={{
               width: 48, height: 48, borderRadius: "50%", margin: "0 auto 16px",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 22, fontWeight: 700,
-              background: failed ? "#FEF3C7" : "#DCFCE7",
-              color: failed ? "#B45309" : "#15803D",
+              background: failed ? "var(--warn-soft)" : "var(--success-soft)",
+              color: failed ? "var(--warn-ink)" : "var(--success-ink)",
             }}
           >
             {state.icon}
           </div>
-          <h1 className="font-lao" style={{ fontSize: 19, fontWeight: 700, color: "#111827", marginBottom: 10 }}>
+          <h1 className="font-lao" style={{ fontSize: 19, fontWeight: 700, color: "var(--fg)", marginBottom: 10 }}>
             {state.title}
           </h1>
-          <p className="font-lao" style={{ fontSize: 13, lineHeight: 1.8, color: "#6B7280", marginBottom: 24 }}>
+          <p className="font-lao" style={{ fontSize: 13, lineHeight: 1.8, color: "var(--fg-3)", marginBottom: 24 }}>
             {state.body}
           </p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/" className="font-lao" style={{ fontSize: 12, fontWeight: 600, color: "#fff", background: "#2563EB", padding: "10px 18px", borderRadius: 10 }}>
               ກັບໜ້າຫຼັກ
             </Link>
-            <Link href="/contact" className="font-lao" style={{ fontSize: 12, fontWeight: 600, color: "#374151", background: "#F3F4F6", padding: "10px 18px", borderRadius: 10 }}>
+            <Link href="/contact" className="font-lao" style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-2)", background: "var(--surface-3)", padding: "10px 18px", borderRadius: 10 }}>
               ຕິດຕໍ່ພວກເຮົາ
             </Link>
           </div>

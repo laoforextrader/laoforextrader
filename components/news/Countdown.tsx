@@ -37,7 +37,7 @@ export function Countdown({ target, passedLabel = "ປະກາດແລ້ວ" 
   if (ms === null) return null
   if (ms <= 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-fg-4">
         <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
         {passedLabel}
       </span>
@@ -49,7 +49,7 @@ export function Countdown({ target, passedLabel = "ປະກາດແລ້ວ" 
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 font-mono ${close ? "text-red-600" : "text-blue-600"}`}
+      className={`inline-flex items-center gap-1.5 font-mono ${close ? "text-bad" : "text-accent"}`}
       style={{ fontVariantNumeric: "tabular-nums" }}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${close ? "bg-red-500 animate-pulse" : "bg-blue-500 animate-pulse-dot"}`} />

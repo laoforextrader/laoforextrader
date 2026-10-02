@@ -1,8 +1,8 @@
 export function HighlightBox({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #EEF3FF, #F5F3FF)',
-      border: '1.5px solid #BFCFFF',
+      background: 'linear-gradient(135deg, var(--accent-soft), var(--violet-soft))',
+      border: '1.5px solid var(--accent-line)',
       borderRadius: 12,
       padding: '16px 20px',
       margin: '20px 0',
@@ -15,13 +15,13 @@ export function HighlightBox({ children }: { children: React.ReactNode }) {
         borderRadius: '12px 0 0 12px'
       }} />
       <div style={{
-        fontSize: 11, fontWeight: 700, color: '#2563EB',
+        fontSize: 11, fontWeight: 700, color: 'var(--accent)',
         letterSpacing: '0.1em', textTransform: 'uppercase',
         marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6
       }}>
         <span>💡</span> ສຳ ຄັນ
       </div>
-      <div style={{ color: '#1E3A8A', fontSize: 14, lineHeight: 1.75 }}>
+      <div style={{ color: 'var(--accent-ink)', fontSize: 14, lineHeight: 1.75 }}>
         {children}
       </div>
     </div>
@@ -31,8 +31,8 @@ export function HighlightBox({ children }: { children: React.ReactNode }) {
 export function WarningBox({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      background: '#FFFBEB',
-      border: '1.5px solid #FDE68A',
+      background: 'var(--warn-soft)',
+      border: '1.5px solid var(--warn-line)',
       borderRadius: 12,
       padding: '16px 20px',
       margin: '20px 0',
@@ -45,13 +45,13 @@ export function WarningBox({ children }: { children: React.ReactNode }) {
         borderRadius: '12px 0 0 12px'
       }} />
       <div style={{
-        fontSize: 11, fontWeight: 700, color: '#D97706',
+        fontSize: 11, fontWeight: 700, color: 'var(--warn)',
         letterSpacing: '0.1em', textTransform: 'uppercase',
         marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6
       }}>
         <span>⚠️</span> ລະ ວັງ
       </div>
-      <div style={{ color: '#92400E', fontSize: 14, lineHeight: 1.75 }}>
+      <div style={{ color: 'var(--warn-ink)', fontSize: 14, lineHeight: 1.75 }}>
         {children}
       </div>
     </div>
@@ -61,8 +61,8 @@ export function WarningBox({ children }: { children: React.ReactNode }) {
 export function TipBox({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      background: '#ECFDF5',
-      border: '1.5px solid #A7F3D0',
+      background: 'var(--success-soft)',
+      border: '1.5px solid var(--success-line)',
       borderRadius: 12,
       padding: '16px 20px',
       margin: '20px 0',
@@ -75,13 +75,13 @@ export function TipBox({ children }: { children: React.ReactNode }) {
         borderRadius: '12px 0 0 12px'
       }} />
       <div style={{
-        fontSize: 11, fontWeight: 700, color: '#059669',
+        fontSize: 11, fontWeight: 700, color: 'var(--success)',
         letterSpacing: '0.1em', textTransform: 'uppercase',
         marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6
       }}>
         <span>✅</span> Tips
       </div>
-      <div style={{ color: '#065F46', fontSize: 14, lineHeight: 1.75 }}>
+      <div style={{ color: 'var(--success-ink)', fontSize: 14, lineHeight: 1.75 }}>
         {children}
       </div>
     </div>

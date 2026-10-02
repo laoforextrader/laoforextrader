@@ -48,14 +48,14 @@ export default function TableOfContents() {
 
   return (
     <div style={{
-      background: '#F0F6FF',
-      border: '1.5px solid #BFCFFF',
+      background: 'var(--surface-2)',
+      border: '1.5px solid var(--accent-line)',
       borderRadius: 12,
       padding: '16px 20px',
       marginBottom: 28,
     }}>
       <div style={{
-        fontSize: 11, fontWeight: 700, color: '#2563EB',
+        fontSize: 11, fontWeight: 700, color: 'var(--accent)',
         letterSpacing: '0.1em', textTransform: 'uppercase',
         marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6
       }}>
@@ -75,19 +75,19 @@ export default function TableOfContents() {
               display: 'block',
               fontSize: h.level === 3 ? 12 : 13,
               fontWeight: active === h.id ? 700 : 500,
-              color: active === h.id ? '#2563EB' : '#374151',
+              color: active === h.id ? 'var(--accent)' : 'var(--fg-2)',
               textDecoration: 'none',
               padding: '5px 10px',
               paddingLeft: h.level === 3 ? 28 : 10,
               borderRadius: 6,
-              background: active === h.id ? '#EEF3FF' : 'transparent',
+              background: active === h.id ? 'var(--accent-soft)' : 'transparent',
               borderLeft: active === h.id ? '3px solid #2563EB' : '3px solid transparent',
               transition: 'all 0.15s',
               lineHeight: 1.4,
             }}
           >
             {h.level === 3 && (
-              <span style={{ color: '#9CA3AF', marginRight: 4 }}>—</span>
+              <span style={{ color: 'var(--fg-4)', marginRight: 4 }}>—</span>
             )}
             {h.text}
           </a>

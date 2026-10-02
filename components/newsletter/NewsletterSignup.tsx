@@ -28,19 +28,19 @@ export function NewsletterSignup() {
 
   if (state === "done") {
     return (
-      <div className="border border-gray-100 rounded-2xl px-5 py-4 bg-gray-50/60">
-        <p className="font-lao text-[12px] text-green-700 font-semibold">✓ ສະໝັກສຳເລັດແລ້ວ</p>
-        <p className="font-lao text-[11px] text-gray-500 mt-1">ພວກເຮົາຈະສົ່ງ EA ຟຣີ ແລະ ຂ່າວສານໄປໃຫ້ທ່ານ. ຍົກເລີກໄດ້ທຸກເວລາ.</p>
+      <div className="border border-line-2 rounded-2xl px-5 py-4 bg-surface-2">
+        <p className="font-lao text-[12px] text-ok-ink font-semibold">✓ ສະໝັກສຳເລັດແລ້ວ</p>
+        <p className="font-lao text-[11px] text-fg-3 mt-1">ພວກເຮົາຈະສົ່ງ EA ຟຣີ ແລະ ຂ່າວສານໄປໃຫ້ທ່ານ. ຍົກເລີກໄດ້ທຸກເວລາ.</p>
       </div>
     )
   }
 
   return (
-    <div className="border border-gray-100 rounded-2xl px-5 py-4 bg-gray-50/60">
+    <div className="border border-line-2 rounded-2xl px-5 py-4 bg-surface-2">
       <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
         <div className="md:flex-1">
-          <p className="font-lao text-[12px] font-bold text-gray-700">ຮັບ EA ຟຣີ ແລະ ຂ່າວສານ Forex ທາງອີເມວ</p>
-          <p className="font-lao text-[10px] text-gray-400 mt-0.5">ບໍ່ມີສະແປມ · ຍົກເລີກໄດ້ທຸກເວລາ</p>
+          <p className="font-lao text-[12px] font-bold text-fg-2">ຮັບ EA ຟຣີ ແລະ ຂ່າວສານ Forex ທາງອີເມວ</p>
+          <p className="font-lao text-[10px] text-fg-4 mt-0.5">ບໍ່ມີສະແປມ · ຍົກເລີກໄດ້ທຸກເວລາ</p>
         </div>
         <form onSubmit={submit} className="flex gap-2 md:w-[340px]">
           <input
@@ -49,7 +49,7 @@ export function NewsletterSignup() {
             value={email}
             onChange={(e) => { setEmail(e.target.value); if (state === "error") setState("idle") }}
             placeholder="you@gmail.com"
-            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-blue-400"
+            className="flex-1 min-w-0 rounded-lg border border-line-2 bg-surface px-3 py-2 text-[12px] outline-none focus:border-blue-400"
           />
           <button
             type="submit"
@@ -61,7 +61,7 @@ export function NewsletterSignup() {
         </form>
       </div>
       {state === "error" && (
-        <p className="font-lao text-[10px] text-red-600 mt-2">ສະໝັກບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່</p>
+        <p className="font-lao text-[10px] text-bad mt-2">ສະໝັກບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່</p>
       )}
     </div>
   )

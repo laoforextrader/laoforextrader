@@ -7,7 +7,7 @@ export default function LoginButton() {
 
   if (status === 'loading') {
     return (
-      <div style={{ width: 100, height: 32, borderRadius: 8, background: '#F3F4F6' }} />
+      <div style={{ width: 100, height: 32, borderRadius: 8, background: 'var(--surface-3)' }} />
     )
   }
 
@@ -24,7 +24,7 @@ export default function LoginButton() {
         <span
           style={{
             fontSize: 13,
-            color: '#374151',
+            color: 'var(--fg-2)',
             fontWeight: 600,
             maxWidth: 120,
             overflow: 'hidden',
@@ -40,23 +40,23 @@ export default function LoginButton() {
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: '#6B7280',
+            color: 'var(--fg-3)',
             background: 'none',
-            border: '1px solid #D1D5DB',
+            border: '1px solid var(--line-2)',
             borderRadius: 6,
             padding: '4px 10px',
             cursor: 'pointer',
             fontFamily: "'Noto Sans Lao', sans-serif",
           }}
           onMouseOver={e => {
-            (e.currentTarget as HTMLElement).style.background = '#FEF2F2'
+            (e.currentTarget as HTMLElement).style.background = 'var(--danger-soft)'
             ;(e.currentTarget as HTMLElement).style.borderColor = '#FCA5A5'
-            ;(e.currentTarget as HTMLElement).style.color = '#EF4444'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--danger)'
           }}
           onMouseOut={e => {
             (e.currentTarget as HTMLElement).style.background = 'none'
-            ;(e.currentTarget as HTMLElement).style.borderColor = '#D1D5DB'
-            ;(e.currentTarget as HTMLElement).style.color = '#6B7280'
+            ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--line-2)'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--fg-3)'
           }}
         >
           ອອກຈາກລະບົບ

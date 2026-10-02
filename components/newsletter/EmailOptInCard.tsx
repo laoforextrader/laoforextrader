@@ -30,16 +30,16 @@ export function EmailOptInCard({ initialOptIn }: { initialOptIn: boolean }) {
   }
 
   return (
-    <div style={{ background: "#fff", border: "1px solid #E2E6F0", borderRadius: 16, padding: 20, marginBottom: 20 }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 20, marginBottom: 20 }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
-        <div style={{ width: 34, height: 34, borderRadius: 10, background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
           ✉
         </div>
         <div>
-          <p className="font-lao" style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 4 }}>
+          <p className="font-lao" style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)", marginBottom: 4 }}>
             ຮັບ EA ຟຣີ ແລະ ຂ່າວສານທາງອີເມວ
           </p>
-          <p className="font-lao" style={{ fontSize: 12, lineHeight: 1.75, color: "#6B7280" }}>
+          <p className="font-lao" style={{ fontSize: 12, lineHeight: 1.75, color: "var(--fg-3)" }}>
             {optIn
               ? "ທ່ານຈະໄດ້ຮັບ EA ຟຣີ, ບົດວິເຄາະ ແລະ ຂ່າວສຳຄັນທາງອີເມວ. ຍົກເລີກໄດ້ທຸກເວລາ."
               : "ພວກເຮົາຈະບໍ່ສົ່ງອີເມວຫາທ່ານຈົນກວ່າທ່ານຈະອະນຸຍາດ. ກົດຂ້າງລຸ່ມເພື່ອຮັບ EA ຟຣີ ແລະ ຂ່າວສານ — ຍົກເລີກໄດ້ທຸກເວລາ."}
@@ -53,9 +53,9 @@ export function EmailOptInCard({ initialOptIn }: { initialOptIn: boolean }) {
         className="font-lao"
         style={{
           fontSize: 12, fontWeight: 600, padding: "9px 16px", borderRadius: 10,
-          border: optIn ? "1px solid #E2E6F0" : "none",
-          background: optIn ? "#F9FAFB" : "#2563EB",
-          color: optIn ? "#6B7280" : "#fff",
+          border: optIn ? "1px solid var(--line)" : "none",
+          background: optIn ? "var(--surface-2)" : "#2563EB",
+          color: optIn ? "var(--fg-3)" : "#fff",
           cursor: busy ? "wait" : "pointer",
           opacity: busy ? 0.6 : 1,
         }}
@@ -64,10 +64,10 @@ export function EmailOptInCard({ initialOptIn }: { initialOptIn: boolean }) {
       </button>
 
       {optIn && !busy && (
-        <span className="font-lao" style={{ fontSize: 11, color: "#15803D", marginLeft: 10 }}>✓ ອະນຸຍາດແລ້ວ</span>
+        <span className="font-lao" style={{ fontSize: 11, color: "var(--success-ink)", marginLeft: 10 }}>✓ ອະນຸຍາດແລ້ວ</span>
       )}
       {error && (
-        <span className="font-lao" style={{ fontSize: 11, color: "#B91C1C", marginLeft: 10 }}>ບັນທຶກບໍ່ສຳເລັດ ລອງໃໝ່</span>
+        <span className="font-lao" style={{ fontSize: 11, color: "var(--danger)", marginLeft: 10 }}>ບັນທຶກບໍ່ສຳເລັດ ລອງໃໝ່</span>
       )}
     </div>
   )

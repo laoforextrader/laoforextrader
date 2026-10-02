@@ -109,12 +109,12 @@ export default function BrokerCTA({ name, slug, badge, sub, registerUrl, logoIni
 
         <div style={{
           width:44, height:44, borderRadius:10, flexShrink:0,
-          background: logoSrc ? '#fff' : t.logo,
+          background: logoSrc ? 'var(--surface)' : t.logo,
           display:'flex', alignItems:'center', justifyContent:'center',
           fontWeight:700, fontSize:12, color: t.text,
           position:'relative', zIndex:2, overflow:'hidden',
           padding: logoSrc ? 2 : 0,
-          border: logoSrc ? '1px solid #E2E6F0' : 'none',
+          border: logoSrc ? '1px solid var(--line)' : 'none',
           boxSizing:'border-box',
         }}>
           {logoSrc ? (
@@ -124,7 +124,7 @@ export default function BrokerCTA({ name, slug, badge, sub, registerUrl, logoIni
               style={{
                 width:'100%', height:'100%',
                 objectFit:'contain', display:'block',
-                borderRadius:8, background:'#fff',
+                borderRadius:8, background:'var(--surface)',
               }}
             />
           ) : logoInitials}

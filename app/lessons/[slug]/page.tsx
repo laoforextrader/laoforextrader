@@ -27,23 +27,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const ptComponents = {
   block: {
-    normal:     ({ children }: any) => <p style={{ color: "#374151", lineHeight: 1.8, marginBottom: "1rem", fontSize: 15 }}>{children}</p>,
-    h2:         ({ children }: any) => <h2 style={{ color: "#111827", fontWeight: 700, fontSize: "1.4rem", marginTop: "2rem", marginBottom: "0.8rem", paddingBottom: "0.5rem", borderBottom: "1px solid #E5E7EB" }}>{children}</h2>,
-    h3:         ({ children }: any) => <h3 style={{ color: "#111827", fontWeight: 600, fontSize: "1.15rem", marginTop: "1.5rem", marginBottom: "0.6rem" }}>{children}</h3>,
-    blockquote: ({ children }: any) => <blockquote style={{ borderLeft: "3px solid #BFCFFF", paddingLeft: "1rem", color: "#6B7280", fontStyle: "italic", margin: "1.5rem 0" }}>{children}</blockquote>,
+    normal:     ({ children }: any) => <p style={{ color: "var(--fg-2)", lineHeight: 1.8, marginBottom: "1rem", fontSize: 15 }}>{children}</p>,
+    h2:         ({ children }: any) => <h2 style={{ color: "var(--fg)", fontWeight: 700, fontSize: "1.4rem", marginTop: "2rem", marginBottom: "0.8rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--line-2)" }}>{children}</h2>,
+    h3:         ({ children }: any) => <h3 style={{ color: "var(--fg)", fontWeight: 600, fontSize: "1.15rem", marginTop: "1.5rem", marginBottom: "0.6rem" }}>{children}</h3>,
+    blockquote: ({ children }: any) => <blockquote style={{ borderLeft: "3px solid var(--accent-line)", paddingLeft: "1rem", color: "var(--fg-3)", fontStyle: "italic", margin: "1.5rem 0" }}>{children}</blockquote>,
   },
   list: {
     bullet: ({ children }: any) => <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem", display: "flex", flexDirection: "column" as const, gap: 6 }}>{children}</ul>,
     number: ({ children }: any) => <ol style={{ paddingLeft: "1.5rem", marginBottom: "1rem", display: "flex", flexDirection: "column" as const, gap: 6, listStyleType: "decimal" }}>{children}</ol>,
   },
   listItem: {
-    bullet: ({ children }: any) => <li style={{ color: "#374151", fontSize: 14 }}>{children}</li>,
-    number: ({ children }: any) => <li style={{ color: "#374151", fontSize: 14 }}>{children}</li>,
+    bullet: ({ children }: any) => <li style={{ color: "var(--fg-2)", fontSize: 14 }}>{children}</li>,
+    number: ({ children }: any) => <li style={{ color: "var(--fg-2)", fontSize: 14 }}>{children}</li>,
   },
   marks: {
-    strong: ({ children }: any) => <strong style={{ color: "#111827", fontWeight: 600 }}>{children}</strong>,
-    em:     ({ children }: any) => <em style={{ color: "#374151" }}>{children}</em>,
-    link:   ({ value, children }: any) => <a href={value?.href} target="_blank" rel="noopener noreferrer" style={{ color: "#2563EB", textDecoration: "underline" }}>{children}</a>,
+    strong: ({ children }: any) => <strong style={{ color: "var(--fg)", fontWeight: 600 }}>{children}</strong>,
+    em:     ({ children }: any) => <em style={{ color: "var(--fg-2)" }}>{children}</em>,
+    link:   ({ value, children }: any) => <a href={value?.href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", textDecoration: "underline" }}>{children}</a>,
   },
 }
 
@@ -70,7 +70,7 @@ export default async function LessonDetailPage({ params }: Props) {
 
   const path = `/lessons/${article.slug?.current ?? ""}`
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <ViewTracker slug={article.slug?.current ?? ""} />
       <JsonLd
         data={[
@@ -90,31 +90,31 @@ export default async function LessonDetailPage({ params }: Props) {
         <div className="min-w-0">
 
         {/* Breadcrumb */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>
-          <Link href="/lessons" style={{ color: "#2563EB", display: "flex", alignItems: "center", gap: 4, textDecoration: "none", fontWeight: 500 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--fg-4)", marginBottom: 20 }}>
+          <Link href="/lessons" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 4, textDecoration: "none", fontWeight: 500 }}>
             <BookOpen size={12} /> ບົດຮຽນທັງໝົດ
           </Link>
           <span>→</span>
-          <span style={{ color: "#374151" }}>ບົດທີ {lessonNum}</span>
+          <span style={{ color: "var(--fg-2)" }}>ບົດທີ {lessonNum}</span>
         </div>
 
         {/* Big Progress Card */}
         <div style={{
-          background: "linear-gradient(135deg,#EEF3FF,#F5F3FF)",
-          border: "1px solid #BFCFFF",
+          background: "linear-gradient(135deg,var(--accent-soft),var(--violet-soft))",
+          border: "1px solid var(--accent-line)",
           borderRadius: 14,
           padding: "16px 20px",
           marginBottom: 20,
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#2563EB", letterSpacing: "0.07em", textTransform: "uppercase" as const }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: "0.07em", textTransform: "uppercase" as const }}>
               ບົດທີ {lessonNum} / {totalLessons}
             </div>
-            <div style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>
-              ຄວາມຄືບໜ້າ <span style={{ color: "#2563EB", fontFamily: "'JetBrains Mono', monospace" }}>{progressPct}%</span>
+            <div style={{ fontSize: 12, color: "var(--fg-2)", fontWeight: 600 }}>
+              ຄວາມຄືບໜ້າ <span style={{ color: "var(--accent)", fontFamily: "'JetBrains Mono', monospace" }}>{progressPct}%</span>
             </div>
           </div>
-          <div style={{ height: 8, background: "#fff", borderRadius: 99, overflow: "hidden", border: "1px solid #DBEAFE" }}>
+          <div style={{ height: 8, background: "var(--surface)", borderRadius: 99, overflow: "hidden", border: "1px solid var(--accent-line)" }}>
             <div style={{
               height: "100%",
               width: `${progressPct}%`,
@@ -126,12 +126,12 @@ export default async function LessonDetailPage({ params }: Props) {
         </div>
 
         {/* Title */}
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", marginBottom: 16, lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--fg)", marginBottom: 16, lineHeight: 1.2, letterSpacing: "-0.02em" }}>
           {article.title}
         </h1>
 
         {/* Meta */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "#9CA3AF", marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid #E5E7EB", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "var(--fg-4)", marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid var(--line-2)", flexWrap: "wrap" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Clock size={11} /> {article.readTime ?? 5} ນາທີ
           </span>
@@ -140,7 +140,7 @@ export default async function LessonDetailPage({ params }: Props) {
 
         {/* Excerpt */}
         {article.excerpt && (
-          <div style={{ background: "#F9FAFB", borderLeft: "3px solid #BFCFFF", padding: "12px 16px", borderRadius: "0 8px 8px 0", marginBottom: 24, color: "#374151", fontSize: 14, lineHeight: 1.7 }}>
+          <div style={{ background: "var(--surface-2)", borderLeft: "3px solid var(--accent-line)", padding: "12px 16px", borderRadius: "0 8px 8px 0", marginBottom: 24, color: "var(--fg-2)", fontSize: 14, lineHeight: 1.7 }}>
             {article.excerpt}
           </div>
         )}
@@ -183,18 +183,18 @@ export default async function LessonDetailPage({ params }: Props) {
         />
 
         {/* Prev / Next — big buttons */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 24, marginTop: 8, borderTop: "1px solid #E5E7EB" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 24, marginTop: 8, borderTop: "1px solid var(--line-2)" }}>
           {prev ? (
             <Link href={`/lessons/${prev.slug?.current ?? ""}`}
               style={{
                 display: "flex", flexDirection: "column", gap: 6, padding: "16px 18px",
-                background: "#fff", border: "1.5px solid #E5E7EB", borderRadius: 14,
+                background: "var(--surface)", border: "1.5px solid var(--line-2)", borderRadius: 14,
                 textDecoration: "none", transition: "all .2s",
               }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#6B7280", fontWeight: 600 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--fg-3)", fontWeight: 600 }}>
                 <ArrowLeft size={13} /> ບົດກ່ອນໜ້າ
               </div>
-              <p style={{ fontSize: 13, color: "#111827", fontWeight: 600, lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
+              <p style={{ fontSize: 13, color: "var(--fg)", fontWeight: 600, lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
                 {prev.title}
               </p>
             </Link>
@@ -216,9 +216,9 @@ export default async function LessonDetailPage({ params }: Props) {
               </p>
             </Link>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "16px 18px", background: "#EEF3FF", border: "1.5px solid #BFCFFF", borderRadius: 14, textAlign: "right" as const }}>
-              <div style={{ fontSize: 11, color: "#2563EB", fontWeight: 600 }}>ຮຽນຄົບແລ້ວ! 🎉</div>
-              <p style={{ fontSize: 13, color: "#2563EB", fontWeight: 700, margin: 0 }}>ຄົບທຸກບົດແລ້ວ</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "16px 18px", background: "var(--accent-soft)", border: "1.5px solid var(--accent-line)", borderRadius: 14, textAlign: "right" as const }}>
+              <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600 }}>ຮຽນຄົບແລ້ວ! 🎉</div>
+              <p style={{ fontSize: 13, color: "var(--accent)", fontWeight: 700, margin: 0 }}>ຄົບທຸກບົດແລ້ວ</p>
             </div>
           )}
         </div>
@@ -227,10 +227,10 @@ export default async function LessonDetailPage({ params }: Props) {
         {upcoming.length > 0 && (
           <div style={{ marginTop: 32 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 800, color: "#111827", margin: 0, letterSpacing: "-0.01em" }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: "var(--fg)", margin: 0, letterSpacing: "-0.01em" }}>
                 📚 ບົດຮຽນຖັດໄປ
               </h2>
-              <Link href="/lessons" style={{ fontSize: 12, color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>
+              <Link href="/lessons" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
                 ເບິ່ງທັງໝົດ →
               </Link>
             </div>
@@ -241,28 +241,28 @@ export default async function LessonDetailPage({ params }: Props) {
                   <Link key={lesson._id} href={`/lessons/${lesson.slug?.current ?? ""}`}
                     style={{
                       display: "flex", alignItems: "center", gap: 14,
-                      padding: "14px 16px", background: "#fff",
-                      border: "1px solid #E5E7EB", borderRadius: 12,
+                      padding: "14px 16px", background: "var(--surface)",
+                      border: "1px solid var(--line-2)", borderRadius: 12,
                       textDecoration: "none", transition: "all .2s",
                     }}>
                     <div style={{
                       width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                      background: "linear-gradient(135deg,#EEF3FF,#F5F3FF)",
-                      border: "1px solid #BFCFFF",
+                      background: "linear-gradient(135deg,var(--accent-soft),var(--violet-soft))",
+                      border: "1px solid var(--accent-line)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontWeight: 800, fontSize: 13, color: "#2563EB",
+                      fontWeight: 800, fontSize: 13, color: "var(--accent)",
                     }}>
                       {num}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, color: "#111827", fontWeight: 600, margin: "0 0 3px", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
+                      <p style={{ fontSize: 13, color: "var(--fg)", fontWeight: 600, margin: "0 0 3px", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
                         {lesson.title}
                       </p>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#9CA3AF" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--fg-4)" }}>
                         <Clock size={10} /> {lesson.readTime ?? 5} ນາທີ
                       </div>
                     </div>
-                    <ArrowRight size={14} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                    <ArrowRight size={14} color="var(--fg-4)" style={{ flexShrink: 0 }} />
                   </Link>
                 )
               })}
@@ -271,7 +271,7 @@ export default async function LessonDetailPage({ params }: Props) {
         )}
 
         <div style={{ marginTop: 24, textAlign: "center" }}>
-          <Link href="/lessons" style={{ fontSize: 12, color: "#6B7280", textDecoration: "none" }}>
+          <Link href="/lessons" style={{ fontSize: 12, color: "var(--fg-3)", textDecoration: "none" }}>
             ← ກັບໄປ ບົດຮຽນທັງໝົດ
           </Link>
         </div>

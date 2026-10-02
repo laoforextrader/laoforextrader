@@ -17,20 +17,20 @@ export function SearchPageInput({ initial }: { initial: string }) {
 
   return (
     <form onSubmit={submit} className="relative max-w-[600px]">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-4 pointer-events-none" size={18} />
       <input
         autoFocus
         type="text"
         value={q}
         onChange={e => setQ(e.target.value)}
         placeholder="ຄົ້ນຫາບົດຄວາມ, Broker, Quiz…"
-        className="w-full pl-11 pr-12 py-3.5 bg-white border-2 border-gray-200 rounded-xl text-[15px] font-lao text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+        className="w-full pl-11 pr-12 py-3.5 bg-surface border-2 border-line-2 rounded-xl text-[15px] font-lao text-fg placeholder:text-fg-4 focus:outline-none focus:border-blue-500 transition-colors"
       />
       {q && (
         <button
           type="button"
           onClick={() => setQ("")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-fg-4 hover:text-fg-3"
           aria-label="Clear"
         >
           <X size={16} />

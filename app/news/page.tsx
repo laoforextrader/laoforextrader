@@ -45,16 +45,16 @@ export default async function NewsPage() {
   ])
 
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <div style={{ maxWidth: 1060, margin: "0 auto", padding: "32px 24px" }}>
         {/* ── Hero (centered, simple per wireframe) ── */}
         <div className="text-center mb-8">
-          <h1 className="font-sans font-extrabold text-[32px] md:text-[36px] tracking-tight text-gray-900 mb-2">
-            ຂ່າວ <span className="text-gray-300 font-light">/</span>{" "}
+          <h1 className="font-sans font-extrabold text-[32px] md:text-[36px] tracking-tight text-fg mb-2">
+            ຂ່າວ <span className="text-fg-4 font-light">/</span>{" "}
             <span style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Economic Calendar</span>
           </h1>
           {daily?.date && (
-            <p className="font-mono text-[12px] text-gray-400 mb-3">
+            <p className="font-mono text-[12px] text-fg-4 mb-3">
               ອັບເດດເມື່ອ {formatDateDDMMYYYY(daily.date)}
             </p>
           )}
@@ -65,9 +65,9 @@ export default async function NewsPage() {
         {daily?.dailySummary && (
           <div
             className="rounded-xl p-4 mb-8 text-center"
-            style={{ background: "linear-gradient(135deg,#EEF3FF,#F5F3FF)", border: "1px solid #DDE3F2" }}
+            style={{ background: "linear-gradient(135deg,var(--accent-soft),var(--violet-soft))", border: "1px solid var(--line)" }}
           >
-            <p className="font-lao text-[13px] leading-relaxed text-gray-700 max-w-3xl mx-auto">
+            <p className="font-lao text-[13px] leading-relaxed text-fg-2 max-w-3xl mx-auto">
               {daily.dailySummary}
             </p>
           </div>
@@ -97,14 +97,14 @@ export default async function NewsPage() {
         {articles.length > 0 && (
           <section className="mb-12">
             <div className="mb-4">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-fg-3 mb-1">
                 📚 ບົດຄວາມ
               </div>
-              <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
+              <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-fg">
                 ຂ່າວທົ່ວໄປຈາກ LFT
               </h2>
             </div>
-            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E2E6F0", overflow: "hidden" }}>
+            <div style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--line)", overflow: "hidden" }}>
               {articles.map(a => <ArticleCard key={a._id} article={a} />)}
             </div>
           </section>
@@ -121,7 +121,7 @@ export default async function NewsPage() {
           <div className="flex justify-center gap-3 flex-wrap">
             <Link
               href="/broker"
-              className="inline-block bg-white text-blue-700 font-sans font-bold text-[13px] px-7 py-3 rounded-xl hover:scale-105 transition-transform shadow-lg"
+              className="inline-block bg-surface text-accent-strong font-sans font-bold text-[13px] px-7 py-3 rounded-xl hover:scale-105 transition-transform shadow-lg"
             >
               ເບິ່ງລີວິວ Broker →
             </Link>
@@ -136,7 +136,7 @@ export default async function NewsPage() {
 
         {/* Empty state */}
         {!daily && articles.length === 0 && (
-          <div style={{ padding: 48, textAlign: "center", color: "#9CA3AF", fontSize: 14 }}>
+          <div style={{ padding: 48, textAlign: "center", color: "var(--fg-4)", fontSize: 14 }}>
             ກຳລັງໂຫຼດ...
           </div>
         )}

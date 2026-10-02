@@ -16,16 +16,16 @@ export default async function Page() {
     { next: { revalidate: 60 } }
   )
   return (
-    <div style={{ background: "#EDEEF2", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--fg)", marginBottom: 6, letterSpacing: "-0.02em" }}>
           ການສຶກສາ
         </h1>
-        <p style={{ color: "#374151", fontSize: 14, marginBottom: 24 }}>ຄວາມຮູ້ Forex ທຸກລະດັບ</p>
-        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E2E6F0", overflow: "hidden" }}>
+        <p style={{ color: "var(--fg-2)", fontSize: 14, marginBottom: 24 }}>ຄວາມຮູ້ Forex ທຸກລະດັບ</p>
+        <div style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--line)", overflow: "hidden" }}>
           {articles.map(a => <ArticleCard key={a._id} article={a} />)}
           {articles.length === 0 && (
-            <div style={{ padding: 48, textAlign: "center", color: "#9CA3AF", fontSize: 14 }}>
+            <div style={{ padding: 48, textAlign: "center", color: "var(--fg-4)", fontSize: 14 }}>
               ກຳລັງໂຫຼດ...
             </div>
           )}

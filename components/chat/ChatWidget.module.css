@@ -50,7 +50,7 @@
   letter-spacing: 0.05em;
   padding: 3px 7px;
   border-radius: 100px;
-  border: 2px solid #fff;
+  border: 2px solid var(--line-2);
 }
 
 /* ── Welcome bubble (auto-popup) ─────────────────────────────────── */
@@ -69,14 +69,14 @@
 }
 
 .welcomeBubble {
-  background: #fff;
+  background: var(--surface);
   border-radius: 14px 14px 4px 14px;
   padding: 12px 36px 12px 14px;
   font-size: 13px;
   line-height: 1.55;
-  color: #1F2937;
+  color: var(--fg);
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-  border: 1px solid #E2E6F0;
+  border: 1px solid var(--line);
   font-family: 'Noto Sans Lao', sans-serif;
   position: relative;
 }
@@ -90,13 +90,13 @@
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: #9CA3AF;
+  color: var(--fg-4);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.welcomeClose:hover { background: #F3F4F6; color: #374151; }
+.welcomeClose:hover { background: var(--surface-3); color: var(--fg-2); }
 
 /* ── Open panel ──────────────────────────────────────────────────── */
 .panelBackdrop {
@@ -118,7 +118,7 @@
   bottom: 20px;
   width: 380px;
   height: min(620px, calc(100dvh - 40px));
-  background: #fff;
+  background: var(--surface);
   border-radius: 20px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.30),
               0 8px 20px rgba(15, 23, 42, 0.15);
@@ -253,7 +253,7 @@
   flex: 1;
   overflow-y: auto;
   background:
-    linear-gradient(180deg, #F8FAFF 0%, #EEF3FF 100%);
+    linear-gradient(180deg, #F8FAFF 0%, var(--accent-soft) 100%);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -295,9 +295,9 @@
   word-wrap: break-word;
 }
 .bubble.assistant {
-  background: #fff;
-  color: #1F2937;
-  border: 1px solid #E2E6F0;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
   border-top-left-radius: 4px;
 }
 .bubble.user {
@@ -313,9 +313,9 @@
 .bubble.assistant ul,
 .bubble.assistant ol { margin: 4px 0 4px 18px; padding: 0; }
 .bubble.assistant li { margin: 2px 0; }
-.bubble.assistant strong { font-weight: 700; color: #111827; }
+.bubble.assistant strong { font-weight: 700; color: var(--fg); }
 .bubble.assistant code {
-  background: #F3F4F6;
+  background: var(--surface-3);
   padding: 1px 5px;
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
@@ -373,7 +373,7 @@
 /* ── Welcome state / quick suggestions ───────────────────────────── */
 .welcomeIntro {
   background: rgba(255,255,255,0.6);
-  border: 1px solid #E2E6F0;
+  border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px 16px;
   margin-bottom: 4px;
@@ -381,19 +381,19 @@
 .welcomeIntroTitle {
   font-weight: 700;
   font-size: 14px;
-  color: #111827;
+  color: var(--fg);
   margin-bottom: 4px;
 }
 .welcomeIntroDesc {
   font-size: 12.5px;
-  color: #6B7280;
+  color: var(--fg-3);
   line-height: 1.6;
 }
 
 .suggestLabel {
   font-size: 11.5px;
   font-weight: 700;
-  color: #6B7280;
+  color: var(--fg-3);
   letter-spacing: 0.03em;
   margin: 8px 4px 6px;
 }
@@ -402,9 +402,9 @@
   display: block;
   width: 100%;
   text-align: left;
-  background: #fff;
-  border: 1px solid #DBEAFE;
-  color: #1F2937;
+  background: var(--surface);
+  border: 1px solid var(--accent-line);
+  color: var(--fg);
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 13px;
@@ -415,14 +415,14 @@
 }
 .chip:hover {
   border-color: #2563EB;
-  background: #EEF3FF;
+  background: var(--accent-soft);
   transform: translateX(2px);
 }
 
 /* ── Error / quota banner ────────────────────────────────────────── */
 .banner {
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-line);
   color: #7F1D1D;
   border-radius: 10px;
   padding: 10px 12px;
@@ -430,16 +430,16 @@
   line-height: 1.55;
 }
 .banner.warn {
-  background: #FFFBEB;
-  border-color: #FDE68A;
+  background: var(--warn-soft);
+  border-color: var(--warn-line);
   color: #78350F;
 }
 
 /* ── Input ───────────────────────────────────────────────────────── */
 .inputRow {
-  border-top: 1px solid #E2E6F0;
+  border-top: 1px solid var(--line);
   padding: 10px 12px;
-  background: #fff;
+  background: var(--surface);
   display: flex;
   align-items: end;
   gap: 8px;
@@ -447,20 +447,20 @@
 .input {
   flex: 1;
   resize: none;
-  border: 1px solid #E2E6F0;
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
   font-family: 'Noto Sans Lao', sans-serif;
   font-size: 13.5px;
   line-height: 1.5;
   outline: none;
-  background: #F9FAFB;
+  background: var(--surface-2);
   transition: border-color 0.15s ease, background 0.15s ease;
   max-height: 120px;
   min-height: 40px;
-  color: #1F2937;
+  color: var(--fg);
 }
-.input:focus { border-color: #2563EB; background: #fff; }
+.input:focus { border-color: #2563EB; background: var(--surface); }
 .input:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .sendBtn {
@@ -492,13 +492,13 @@
 /* ── Footer ──────────────────────────────────────────────────────── */
 .footer {
   font-size: 10.5px;
-  color: #9CA3AF;
+  color: var(--fg-4);
   text-align: center;
   padding: 6px 12px 8px;
-  background: #fff;
+  background: var(--surface);
   letter-spacing: 0.02em;
 }
-.footer strong { color: #2563EB; font-weight: 700; }
+.footer strong { color: var(--accent); font-weight: 700; }
 
 /* ── Contact admin button (empty state) ──────────────────────────── */
 .contactAdminBtn {
@@ -566,9 +566,9 @@
   gap: 8px;
   font-size: 11.5px;
   line-height: 1.5;
-  color: #475569;
-  background: #F1F5F9;
-  border: 1px solid #E2E8F0;
+  color: var(--fg-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px 11px;
   margin-top: 2px;
@@ -578,8 +578,8 @@
 .closeWarn {
   font-size: 12px;
   line-height: 1.55;
-  color: #92400E;
-  background: #FEF3C7;
+  color: var(--warn-ink);
+  background: var(--warn-soft);
   border: 1px solid #FCD34D;
   border-radius: 10px;
   padding: 9px 12px;
@@ -589,16 +589,16 @@
 .closeWarn b {
   font-size: 15px;
   font-weight: 800;
-  color: #B45309;
+  color: var(--warn-ink);
 }
 
 /* Neutral note shown after an inactivity auto-close */
 .closedNote {
   font-size: 11.5px;
   line-height: 1.5;
-  color: #475569;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  color: var(--fg-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px 11px;
   margin-bottom: 6px;
@@ -607,7 +607,7 @@
 
 /* ── Confirmation card after admin submit ────────────────────────── */
 .confirmCard {
-  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  background: linear-gradient(135deg, var(--success-soft), #D1FAE5);
   border: 1.5px solid #10B981;
   border-radius: 12px;
   padding: 14px;
@@ -625,7 +625,7 @@
 }
 .confirmDesc {
   font-size: 12.5px;
-  color: #065F46;
+  color: var(--success-ink);
   line-height: 1.6;
 }
 .confirmActions {
@@ -656,7 +656,7 @@
 .confirmBackBtn {
   background: transparent;
   border: 1px solid #10B981;
-  color: #065F46;
+  color: var(--success-ink);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;

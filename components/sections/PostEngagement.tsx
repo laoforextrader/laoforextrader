@@ -136,9 +136,9 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
   const AuthBanner = ({ msg }: { msg: string }) => (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-      background: '#FEF3C7', border: '1px solid #FCD34D',
+      background: 'var(--warn-soft)', border: '1px solid var(--warn-line)',
       borderRadius: 8, padding: '10px 14px', marginTop: 10,
-      fontSize: 13, color: '#78350F', fontFamily: 'Noto Sans Lao, sans-serif',
+      fontSize: 13, color: 'var(--warn-ink)', fontFamily: 'Noto Sans Lao, sans-serif',
     }}>
       <span>{msg}</span>
       <button
@@ -156,7 +156,7 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
   )
 
   return (
-    <div style={{ marginTop: 40, borderTop: '1px solid #E2E6F0', paddingTop: 32 }}>
+    <div style={{ marginTop: 40, borderTop: '1px solid var(--line)', paddingTop: 32 }}>
       {/* Like & Share Row */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -165,9 +165,9 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
             disabled={liking}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: liked ? '#EEF3FF' : '#F9FAFB',
-              color: liked ? '#2563EB' : '#6B7280',
-              border: liked ? '1.5px solid #BFCFFF' : '1.5px solid #E2E6F0',
+              background: liked ? 'var(--accent-soft)' : 'var(--surface-2)',
+              color: liked ? 'var(--accent)' : 'var(--fg-3)',
+              border: liked ? '1.5px solid var(--accent-line)' : '1.5px solid var(--line)',
               borderRadius: 8, padding: '8px 16px', fontSize: 13,
               fontWeight: 700, cursor: liking ? 'wait' : 'pointer',
               opacity: liking ? 0.7 : 1,
@@ -228,8 +228,8 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
         )}
         {errMsg && !authPrompt && (
           <div style={{
-            marginTop: 10, padding: '8px 12px', background: '#FEE2E2',
-            border: '1px solid #FCA5A5', borderRadius: 6, fontSize: 12, color: '#991B1B',
+            marginTop: 10, padding: '8px 12px', background: 'var(--danger-soft)',
+            border: '1px solid var(--danger-line)', borderRadius: 6, fontSize: 12, color: 'var(--danger-ink)',
             fontFamily: 'Noto Sans Lao, sans-serif',
           }}>{errMsg}</div>
         )}
@@ -237,7 +237,7 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
 
       {/* Comment Section */}
       <div style={{ marginTop: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 16 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--fg)', marginBottom: 16 }}>
           ຄຳເຫັນ ({comments.length})
         </h3>
 
@@ -251,7 +251,7 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
           ) : (
             <div style={{
               width: 36, height: 36, borderRadius: '50%',
-              background: '#E2E6F0', color: '#9CA3AF',
+              background: 'var(--line)', color: 'var(--fg-4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, flexShrink: 0,
             }}>👤</div>
@@ -264,9 +264,9 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
             maxLength={2000}
             disabled={posting}
             style={{
-              flex: 1, padding: '10px 14px', border: '1.5px solid #E2E6F0',
+              flex: 1, padding: '10px 14px', border: '1.5px solid var(--line)',
               borderRadius: 8, fontSize: 14, fontFamily: 'Noto Sans Lao, sans-serif',
-              outline: 'none', background: '#fff',
+              outline: 'none', background: 'var(--surface)',
             }}
           />
           <button
@@ -291,17 +291,17 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
 
         <div style={{ marginTop: 24 }}>
           {loading ? (
-            <p style={{ color: '#9CA3AF', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
+            <p style={{ color: 'var(--fg-4)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
               ກຳລັງໂຫຼດ...
             </p>
           ) : comments.length === 0 ? (
-            <p style={{ color: '#9CA3AF', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
+            <p style={{ color: 'var(--fg-4)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
               ຍັງບໍ່ມີຄຳເຫັນ · ເປັນຄົນທຳອິດທີ່ຄອມເມັນ
             </p>
           ) : (
             comments.map(c => (
               <div key={c._id} style={{
-                background: '#F9FAFB', border: '1px solid #E2E6F0',
+                background: 'var(--surface-2)', border: '1px solid var(--line)',
                 borderRadius: 8, padding: '12px 16px', marginBottom: 8,
                 display: 'flex', gap: 12,
               }}>
@@ -320,10 +320,10 @@ export default function PostEngagement({ postId, postTitle, postUrl }: {
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{c.userName}</span>
-                    <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0 }}>{formatDate(c.createdAt)}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg)' }}>{c.userName}</span>
+                    <span style={{ fontSize: 11, color: 'var(--fg-4)', flexShrink: 0 }}>{formatDate(c.createdAt)}</span>
                   </div>
-                  <p style={{ fontSize: 14, color: '#374151', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  <p style={{ fontSize: 14, color: 'var(--fg-2)', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                     {c.content}
                   </p>
                 </div>

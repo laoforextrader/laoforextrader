@@ -48,11 +48,11 @@ export function RobotIcon({
 
       {/* Mouth */}
       {state === "talking" ? (
-        <ellipse cx="16" cy="22.2" rx="1.7" ry="1.4" fill="#4F46E5" />
+        <ellipse cx="16" cy="22.2" rx="1.7" ry="1.4" fill="var(--accent-2)" />
       ) : (
         <path
           d="M13 21.6 Q16 24 19 21.6"
-          stroke="#4F46E5"
+          stroke="var(--accent-2)"
           strokeWidth="1.8"
           strokeLinecap="round"
           fill="none"

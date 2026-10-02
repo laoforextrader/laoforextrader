@@ -290,7 +290,7 @@ export default function ABSBacktestPage() {
                   label="Interstellar Group" group="broker"
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    background: "#fff", color: "#047857", textDecoration: "none",
+                    background: "var(--surface)", color: "var(--success)", textDecoration: "none",
                     padding: "13px 22px", borderRadius: 10, fontSize: 14, fontWeight: 700,
                     fontFamily: "Noto Sans Lao, sans-serif", boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
                   }}
@@ -338,7 +338,9 @@ export default function ABSBacktestPage() {
                   label="Copy Trade ABS" group="ea"
                   style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    background: "#FBBF24", color: "#1F2937", textDecoration: "none",
+                    // Fixed amber fill, so the ink stays a literal dark — a
+                    // theme token would turn light on it in dark mode.
+                    background: "#FBBF24", color: "#111827", textDecoration: "none",
                     padding: "13px 22px", borderRadius: 10, fontSize: 14, fontWeight: 800,
                     fontFamily: "Noto Sans Lao, sans-serif", boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
                   }}

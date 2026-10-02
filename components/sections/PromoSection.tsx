@@ -220,7 +220,7 @@ export default function PromoSection() {
           {/* Info */}
           <div className="promo-info">
             <div className="promo-info-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-              <div style={{ background: '#FEF2F2', color: '#DC2626', fontFamily: 'monospace', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 8 }}>XM</div>
+              <div style={{ background: 'var(--danger-soft)', color: 'var(--danger)', fontFamily: 'monospace', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 8 }}>XM</div>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FCD34D', background: 'rgba(252,211,77,0.1)', padding: '3px 12px', borderRadius: 99 }}>
                 🔥 NO-DEPOSIT BONUS
               </span>
@@ -243,7 +243,7 @@ export default function PromoSection() {
             >
               ຮັບ $30 ຟຣີ →
             </a>
-            <div style={{ fontSize: 10, color: '#475569', marginTop: 8, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+            <div style={{ fontSize: 10, color: 'var(--fg-3)', marginTop: 8, fontFamily: "'Noto Sans Lao', sans-serif" }}>
               * T&amp;C ໃຊ້ບັງຄັບ
             </div>
           </div>
@@ -252,7 +252,7 @@ export default function PromoSection() {
         {/* Trust bar */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 36, flexWrap: 'wrap' }}>
           {['✓ ທົດສອບຈິງໂດຍ LFT Team', '✓ ລີວິວ 100% ບໍ່ Bias', '✓ ຝາກ-ຖອນ BCEL', '✓ Support ພາສາລາວ'].map(t => (
-            <span key={t} style={{ fontSize: 11, color: '#475569', fontFamily: "'Noto Sans Lao', sans-serif" }}>{t}</span>
+            <span key={t} style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: "'Noto Sans Lao', sans-serif" }}>{t}</span>
           ))}
         </div>
 

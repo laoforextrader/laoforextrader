@@ -35,18 +35,18 @@ export function MarketTicker() {
   }, [])
 
   return (
-    <div style={{ background:"#fff", borderBottom:"1px solid #D4D8E5", height:32, overflow:"hidden", display:"flex", alignItems:"center", position:"relative" }}>
-      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:24, background:"linear-gradient(90deg,#fff,transparent)", zIndex:2 }} />
-      <div style={{ position:"absolute", right:0, top:0, bottom:0, width:24, background:"linear-gradient(-90deg,#fff,transparent)", zIndex:2 }} />
+    <div style={{ background:"var(--surface)", borderBottom:"1px solid var(--line)", height:32, overflow:"hidden", display:"flex", alignItems:"center", position:"relative" }}>
+      <div style={{ position:"absolute", left:0, top:0, bottom:0, width:24, background:"linear-gradient(90deg,var(--surface),transparent)", zIndex:2 }} />
+      <div style={{ position:"absolute", right:0, top:0, bottom:0, width:24, background:"linear-gradient(-90deg,var(--surface),transparent)", zIndex:2 }} />
       <div className="animate-ticker" style={{ display:"flex", gap:0, whiteSpace:"nowrap", width:"max-content" }}>
         {doubled.map((item, i) => (
-          <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"0 16px", borderRight:"1px solid #E5E7EB", flexShrink:0, fontFamily:"'JetBrains Mono', monospace", fontSize:11 }}>
-            <span style={{ color:"#6B7280", fontWeight:500 }}>{item.pair}</span>
-            <span style={{ color:"#111827", fontWeight:500 }}>{fmt(item.pair, item.price)}</span>
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"0 16px", borderRight:"1px solid var(--line-2)", flexShrink:0, fontFamily:"'JetBrains Mono', monospace", fontSize:11 }}>
+            <span style={{ color:"var(--fg-3)", fontWeight:500 }}>{item.pair}</span>
+            <span style={{ color:"var(--fg)", fontWeight:500 }}>{fmt(item.pair, item.price)}</span>
             <span style={{
               fontSize:10, padding:"1px 5px", borderRadius:4, fontWeight:600,
-              color: item.changePct >= 0 ? "#059669" : "#DC2626",
-              background: item.changePct >= 0 ? "#DCFCE7" : "#FEE2E2",
+              color: item.changePct >= 0 ? "var(--success)" : "var(--danger)",
+              background: item.changePct >= 0 ? "var(--success-soft)" : "var(--danger-soft)",
             }}>
               {item.changePct >= 0 ? "+" : ""}{item.changePct.toFixed(2)}%
             </span>

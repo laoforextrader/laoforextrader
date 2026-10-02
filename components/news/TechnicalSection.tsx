@@ -12,9 +12,9 @@ export interface TechItem {
 }
 
 const TREND_CONFIG: Record<string, { label: string; emoji: string; color: string; bg: string; border: string }> = {
-  bullish: { label: "Bullish",  emoji: "📈", color: "#059669", bg: "rgba(16,185,129,0.10)", border: "rgba(16,185,129,0.3)" },
-  bearish: { label: "Bearish",  emoji: "📉", color: "#DC2626", bg: "rgba(239,68,68,0.10)", border: "rgba(239,68,68,0.3)" },
-  neutral: { label: "Sideways", emoji: "➖", color: "#D97706", bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.3)" },
+  bullish: { label: "Bullish",  emoji: "📈", color: "var(--success)", bg: "rgba(16,185,129,0.10)", border: "rgba(16,185,129,0.3)" },
+  bearish: { label: "Bearish",  emoji: "📉", color: "var(--danger)", bg: "rgba(239,68,68,0.10)", border: "rgba(239,68,68,0.3)" },
+  neutral: { label: "Sideways", emoji: "➖", color: "var(--warn)", bg: "rgba(245,158,11,0.10)", border: "rgba(245,158,11,0.3)" },
 }
 
 const TV_SYMBOL: Record<string, string> = {
@@ -27,10 +27,10 @@ export default function TechnicalSection({ items }: { items: TechItem[] }) {
   return (
     <section className="mb-10">
       <div className="mb-4">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-purple-600 mb-1 flex items-center gap-1.5">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-violet mb-1 flex items-center gap-1.5">
           📊 Technical Summary
         </div>
-        <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-gray-900">
+        <h2 className="font-sans font-extrabold text-[22px] tracking-tight text-fg">
           ການວິເຄາະທາງເຕັກນິກ
         </h2>
       </div>
@@ -42,12 +42,12 @@ export default function TechnicalSection({ items }: { items: TechItem[] }) {
           return (
             <div
               key={t._key ?? t.symbol}
-              className="flex bg-white rounded-2xl overflow-hidden border border-gray-200"
+              className="flex bg-surface rounded-2xl overflow-hidden border border-line-2"
             >
               {/* Chart LEFT */}
-              <div className="flex-shrink-0 w-[160px] bg-gray-50 border-r border-gray-100 flex flex-col">
+              <div className="flex-shrink-0 w-[160px] bg-surface-2 border-r border-line-2 flex flex-col">
                 <div className="px-3 pt-3 pb-1.5 flex items-center justify-between">
-                  <div className="font-mono text-[15px] font-bold text-gray-900">{t.symbol}</div>
+                  <div className="font-mono text-[15px] font-bold text-fg">{t.symbol}</div>
                 </div>
                 <div className="flex-1 min-h-[90px]">
                   <iframe
@@ -72,28 +72,28 @@ export default function TechnicalSection({ items }: { items: TechItem[] }) {
                   </span>
                 </div>
                 {t.bias && (
-                  <p className="font-lao text-[13px] font-semibold text-gray-800 leading-snug mb-2.5 line-clamp-2">
+                  <p className="font-lao text-[13px] font-semibold text-fg leading-snug mb-2.5 line-clamp-2">
                     {t.bias}
                   </p>
                 )}
                 <div className="flex items-center gap-2 text-[10px] mb-2.5 flex-wrap">
                   {t.support && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono"
-                      style={{ background: "rgba(16,185,129,0.08)", color: "#059669", border: "1px solid rgba(16,185,129,0.2)" }}>
+                      style={{ background: "rgba(16,185,129,0.08)", color: "var(--success)", border: "1px solid rgba(16,185,129,0.2)" }}>
                       <span className="font-bold uppercase">S</span>
                       <span className="font-bold">{t.support}</span>
                     </span>
                   )}
                   {t.resistance && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono"
-                      style={{ background: "rgba(239,68,68,0.08)", color: "#DC2626", border: "1px solid rgba(239,68,68,0.2)" }}>
+                      style={{ background: "rgba(239,68,68,0.08)", color: "var(--danger)", border: "1px solid rgba(239,68,68,0.2)" }}>
                       <span className="font-bold uppercase">R</span>
                       <span className="font-bold">{t.resistance}</span>
                     </span>
                   )}
                 </div>
                 {t.analysis && (
-                  <p className="font-lao text-[11.5px] text-gray-600 leading-relaxed line-clamp-3 flex-1">
+                  <p className="font-lao text-[11.5px] text-fg-3 leading-relaxed line-clamp-3 flex-1">
                     {t.analysis}
                   </p>
                 )}
