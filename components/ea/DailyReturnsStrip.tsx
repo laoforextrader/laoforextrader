@@ -8,7 +8,8 @@ export interface DailyRow {
   money: Money | null
 }
 
-/** Tallest a winning day may draw, in px — matches .up in the stylesheet. */
+/** Tallest a winning day may draw, in px. .up is 72px: this plus the money
+ *  label that sits on the bar's head has to fit inside it. */
 const MAX_BAR_PX = 56
 /** A losing day draws this far below the axis, whatever its size. A -20% day
  *  scaled honestly would be taller than the whole chart; the colour is what
@@ -16,10 +17,11 @@ const MAX_BAR_PX = 56
 const LOSS_BAR_PX = 10
 
 /**
- * The last N trading days as a column chart: the money on top, a bar sized by
- * the day's percentage, then the percentage and the date. Presentational only
- * — the caller fetches the doc, drops weekends and does the cents/base
- * conversion, so this can't disagree with the stat card above it.
+ * The last N trading days as a column chart: a bar sized by the day's
+ * percentage with the money riding on its head, then the percentage and the
+ * date underneath. Presentational only — the caller fetches the doc, drops
+ * weekends and does the cents/base conversion, so this can't disagree with
+ * the stat card above it.
  *
  * A broker-server day runs roughly 04:00 → 04:00 ICT (see CLAUDE.md), so the
  * newest column is a day still in progress rather than a closed one.
@@ -46,12 +48,11 @@ export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
 
           return (
             <div key={r.date} className={styles.col} title={`${r.date} · ${pctText}`}>
-              <div className={styles.money} style={{ color }}>
-                {r.money ? fmtMoney(r.money.amount, r.money.currency) : pctText}
-              </div>
-
               <div className={styles.plot}>
                 <div className={styles.up}>
+                  <div className={styles.money} style={{ color }}>
+                    {r.money ? fmtMoney(r.money.amount, r.money.currency) : pctText}
+                  </div>
                   {up && <div className={styles.bar} style={{ height }} />}
                 </div>
                 <div className={styles.axis} />

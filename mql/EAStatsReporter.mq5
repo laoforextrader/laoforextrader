@@ -38,7 +38,7 @@
 //  a fresh bootstrap.
 //
 #property copyright "LaoForexTrader"
-#property version   "1.31"
+#property version   "1.32"
 #property strict
 
 input string  WebhookURL         = "https://laoforextrader.com/api/ea/stats";
@@ -62,6 +62,15 @@ double   g_cashedDeposits    = 0;
 double   g_cashedWithdrawals = 0;
 datetime g_maxDealTimeSeen   = 0;
 bool     g_bootstrapped      = false;
+
+// Diagnostics only, not persisted: what the balance moved by outside ordinary
+// BUY/SELL deals. A broker can debit an account as DEAL_TYPE_CHARGE,
+// _CORRECTION or a standalone _COMMISSION, and MegiHedge is short exactly
+// $265.11 against its own buckets — printing the type and the sum says which
+// entry did it instead of leaving us to guess.
+int      g_otherCount        = 0;
+double   g_otherSum          = 0;
+long     g_otherLastType     = -1;
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -195,6 +204,15 @@ void IngestDeal(ulong ticket, datetime dt)
                 HistoryDealGetDouble(ticket, DEAL_COMMISSION) +
                 HistoryDealGetDouble(ticket, DEAL_FEE);
 
+   if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL)
+   {
+      g_otherCount++;
+      g_otherSum      += pnl;
+      g_otherLastType  = type;
+      PrintFormat("[EAStatsReporter] non-trade deal type=%d amount=%.2f at %s",
+                  (int)type, pnl, TimeToString(dt, TIME_DATE|TIME_MINUTES));
+   }
+
    BucketAdd(g_dayKeys,   g_dayProfit,   DateStr(dt),  pnl);
    BucketAdd(g_monthKeys, g_monthProfit, MonthStr(dt), pnl);
 }
@@ -214,6 +232,9 @@ void ResetState()
    g_cashedWithdrawals = 0;
    g_maxDealTimeSeen   = 0;
    g_bootstrapped      = false;
+   g_otherCount        = 0;
+   g_otherSum          = 0;
+   g_otherLastType     = -1;
 }
 
 void SaveState()
@@ -391,8 +412,10 @@ string BuildPayload()
    // so in the log rather than let the site publish it silently.
    double bucketSum = 0;
    for(int bi = 0; bi < ArraySize(g_monthProfit); bi++) bucketSum += g_monthProfit[bi];
-   PrintFormat("[EAStatsReporter] reconcile buckets=%.2f balance-derived=%.2f delta=%.2f",
-               bucketSum, profitTot, bucketSum - profitTot);
+   PrintFormat("[EAStatsReporter] reconcile buckets=%.2f balance-derived=%.2f delta=%.2f"
+               " | non-trade deals=%d sum=%.2f lastType=%d",
+               bucketSum, profitTot, bucketSum - profitTot,
+               g_otherCount, g_otherSum, (int)g_otherLastType);
 
    datetime now = TimeCurrent();
    MqlDateTime nowDt; TimeToStruct(now, nowDt);
