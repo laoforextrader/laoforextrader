@@ -3,6 +3,7 @@ import Link from "next/link"
 import { GalaxyCanvas } from "@/components/ui/GalaxyCanvas"
 import { HyperspaceCanvas } from "@/components/ui/HyperspaceCanvas"
 import { AuroraCanvas } from "@/components/ui/AuroraCanvas"
+import { GalaxySpiralCanvas } from "@/components/ui/GalaxySpiralCanvas"
 import styles from "./EASGrideCTA.module.css"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import {
@@ -49,7 +50,7 @@ function monthsSince(monthStr: string | undefined): number | null {
 
 interface ShowcaseProps {
   eaId: string
-  variant: "galaxy" | "hyperspace" | "aurora"
+  variant: "galaxy" | "hyperspace" | "aurora" | "spiral"
   theme: "blue" | "purple" | "emerald"
   badgeLabel: string
   titleText: string
@@ -182,6 +183,7 @@ export default async function EAShowcaseSection({
   const Canvas =
     variant === "galaxy" ? <GalaxyCanvas />
     : variant === "hyperspace" ? <HyperspaceCanvas />
+    : variant === "spiral" ? <GalaxySpiralCanvas />
     : <AuroraCanvas />
 
   // ── Text / CTA block ──

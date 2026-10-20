@@ -187,7 +187,8 @@ export function GalaxyCanvas() {
         const noise     = (Math.random() - 0.5) * 0.55
         const angle     = baseAngle + spiral + noise
 
-        const speed = 0.00009 + (1 - r / maxR) * 0.00045
+        // Halved: the arms were sweeping faster than the section reads at.
+        const speed = 0.000045 + (1 - r / maxR) * 0.000225
         const size  = (0.6 + Math.pow(Math.random(), 2.4) * 5.2) * (1 + (1 - r / maxR) * 0.6)
 
         data[i * 4 + 0] = r

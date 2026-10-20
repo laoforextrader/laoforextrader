@@ -95,10 +95,10 @@ export default function EASystemPage() {
         links={{ download: "/ea-system/sgrid-download" }}
       />
 
-      {/* ── EA #2 — MegiHedge (Hyperspace · mirrored layout) ───────────── */}
+      {/* ── EA #2 — MegiHedge (spiral galaxy · mirrored layout) ────────── */}
       <EAShowcaseSection
         eaId="megihedge"
-        variant="hyperspace"
+        variant="spiral"
         theme="purple"
         mirror
         badgeLabel="TheRocket EA MegiHedge v2.0"
