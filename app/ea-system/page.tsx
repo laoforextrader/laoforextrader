@@ -95,12 +95,28 @@ export default function EASystemPage() {
         links={{ download: "/ea-system/sgrid-download" }}
       />
 
-      {/* ── EA #2 — ABS v2.0 (Aurora · mirrored layout) ────────────────── */}
+      {/* ── EA #2 — MegiHedge (Hyperspace · mirrored layout) ───────────── */}
+      <EAShowcaseSection
+        eaId="megihedge"
+        variant="hyperspace"
+        theme="purple"
+        mirror
+        badgeLabel="TheRocket EA MegiHedge v2.0"
+        titleText="MegiHedge v2.0"
+        subtitleAccent="ຍານ Hedge ກຳໄລໄວ"
+        description={"Hedging Strategy · Aggressive\nShort-term · Active Growth"}
+        strategy="Hedging"
+        risk="Higher"
+        riskColor="#F87171"
+        fallbacks={{ totalPct: "+320%", monthPct: "+22.4%", dayPct: "+3.1%", months: 5 }}
+        links={{ download: "/ea-system/megihedge-download" }}
+      />
+
+      {/* ── EA #3 — ABS v2.0 (Aurora) ──────────────────────────────────── */}
       <EAShowcaseSection
         eaId="abs"
         variant="aurora"
         theme="emerald"
-        mirror
         badgeLabel="TheRocket EA ABS v2.0"
         titleText="ABS v2.0"
         subtitleAccent="Advance Breakout System · Gold & EUR/JPY"
@@ -114,22 +130,6 @@ export default function EASystemPage() {
           download: "https://drive.google.com/drive/folders/12PeUPE8SuH064-26IFbco1g1tIOyUwTf?usp=sharing",
           backtest: "/ea-system/abs-backtest",
         }}
-      />
-
-      {/* ── EA #3 — MegiHedge (Hyperspace) ─────────────────────────────── */}
-      <EAShowcaseSection
-        eaId="megihedge"
-        variant="hyperspace"
-        theme="purple"
-        badgeLabel="TheRocket EA MegiHedge v2.0"
-        titleText="MegiHedge v2.0"
-        subtitleAccent="ຍານ Hedge ກຳໄລໄວ"
-        description={"Hedging Strategy · Aggressive\nShort-term · Active Growth"}
-        strategy="Hedging"
-        risk="Higher"
-        riskColor="#F87171"
-        fallbacks={{ totalPct: "+320%", monthPct: "+22.4%", dayPct: "+3.1%", months: 5 }}
-        comingSoon
       />
 
       {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}

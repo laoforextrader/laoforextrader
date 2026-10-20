@@ -1,0 +1,32 @@
+; ─────────────────────────────────────────────────────────────
+; EAStatsReporter — preset for EA "MegiHedge v2.0"
+; Load in MetaTrader 5: attach EAStatsReporter to a chart →
+;   Inputs tab → "Load" → select this .set file → OK
+;
+; IMPORTANT
+;  1. Replace the Secret value below with the real
+;     EA_WEBHOOK_SECRET (same value as on Vercel).
+;  2. The eaStats doc for eaId = "megihedge" already exists in
+;     Sanity (account 97055476 · Interstellar · USC cent account).
+;     Set updateMode = "daily" (hourly throttle) or "realtime"
+;     BEFORE the first push — while it is "off" the webhook
+;     answers {ok:true, skipped:"off"} and writes nothing.
+;  3. Tools → Options → Expert Advisors → Allow WebRequest, add
+;     https://www.laoforextrader.com — the www host, NOT the apex:
+;     laoforextrader.com 307-redirects to www and MT5 WebRequest
+;     follows it as GET, which this route answers with 405.
+;  4. First send runs the one-time history bootstrap (big RAM
+;     spike). State lands in MQL5/Files/EAStatsReporter_megihedge.dat
+;     — restart MT5 afterwards and RAM returns to baseline.
+;
+; BrokerName is only a display label on the site; change it if the
+; live MegiHedge account moves to another broker.
+; ─────────────────────────────────────────────────────────────
+WebhookURL=https://www.laoforextrader.com/api/ea/stats
+Secret=changeme
+EAID=megihedge
+BrokerName=Interstellar
+IntervalMin=60
+SendOnStart=true
+BootstrapChunkDays=7
+PersistState=true

@@ -89,3 +89,28 @@ export function capitalBase(stats: {
   if (!raw || raw <= 0) return null
   return toRealMoney(raw, stats.currency)
 }
+
+/**
+ * A percentage from the doc expressed as money, in the account's real
+ * currency.
+ *
+ * Every profitPct the EA sends is `periodProfit / startBalance * 100`, so
+ * the money figure is an exact multiplication of capitalBase() — it must
+ * never be back-derived from the current balance, which assumes the % was a
+ * return on the period's opening balance and overstated the LINE figures
+ * 2.5-3x on an account that had withdrawn $9,000. Same formula as
+ * periodAmountFor() in lib/broadcast/sanity.ts, which feeds the captions.
+ */
+export function pctMoney(
+  pct: number | null | undefined,
+  stats: {
+    startBalance?: number | null
+    totalDeposits?: number | null
+    currency?: string | null
+  },
+): Money | null {
+  if (typeof pct !== "number" || isNaN(pct)) return null
+  const base = capitalBase(stats)
+  if (!base) return null
+  return { amount: (base.amount * pct) / 100, currency: base.currency }
+}

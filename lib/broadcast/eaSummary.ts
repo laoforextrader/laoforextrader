@@ -63,9 +63,10 @@ const EAS: EAConfig[] = [
   },
 ]
 
-// MegiHedge v2.0 has not launched yet — show "Coming Soon" in broadcasts
-// instead of live profit numbers. Flip to false when the EA goes live.
-const MEGI_COMING_SOON = true
+// MegiHedge v2.0 went live on account 97126903 (Interstellar, USC cent
+// account) on 20 Oct 2026, so broadcasts now carry its real numbers. Flip
+// back to true only to hide the EA again.
+const MEGI_COMING_SOON = false
 
 const EMOJI: Record<EAConfig["icon"], string> = { rocket: "🚀", zap: "⚡" }
 

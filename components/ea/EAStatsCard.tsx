@@ -4,6 +4,7 @@ import {
   fmtMoney,
   fmtMoneyPlain,
   isCentAccount,
+  pctMoney,
   realCurrency,
   toRealMoney,
 } from "@/lib/eaMoney"
@@ -58,6 +59,10 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
   const mEquity  = money(stats.equity)
   const mProfit  = money(stats.profitTotal)
   const mWithdrawn = money(stats.totalWithdrawals)
+
+  // Today's percentage as money: pct x capital base, never back-derived
+  // from the balance (see lib/eaMoney.ts).
+  const mToday = pctMoney(todayPct, stats)
 
   // Every profitPct in the doc is profit / startBalance, so name the base
   // rather than let "+667%" read as account growth.
@@ -134,6 +139,11 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
           <div className="text-[20px] font-extrabold leading-none" style={{ color: pctColor(todayPct) }}>
             {fmtPct(todayPct)}
           </div>
+          {mToday && (
+            <div className="text-[11px] text-fg-4 mt-1">
+              {fmtMoney(mToday.amount, mToday.currency)}
+            </div>
+          )}
         </div>
       </div>
 

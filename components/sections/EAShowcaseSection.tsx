@@ -5,7 +5,15 @@ import { HyperspaceCanvas } from "@/components/ui/HyperspaceCanvas"
 import { AuroraCanvas } from "@/components/ui/AuroraCanvas"
 import styles from "./EASGrideCTA.module.css"
 import { sanityClient, QUERIES } from "@/lib/sanity"
+import {
+  capitalBase,
+  fmtMoney,
+  fmtMoneyPlain,
+  pctMoney,
+  toRealMoney,
+} from "@/lib/eaMoney"
 import { EAStats } from "@/types"
+import DailyReturnsStrip from "@/components/ea/DailyReturnsStrip"
 
 const LINE_URL = "https://line.me/R/ti/p/@499dvtuz"
 
@@ -96,7 +104,28 @@ export default async function EAShowcaseSection({
   const dayDisplay   = fmtPct(lastDay?.profitPct, fallbacks.dayPct)
   const dayColor     = pctColor(lastDay?.profitPct, "#4ADE80")
 
-  const firstMonth   = monthly[0]?.month
+  // Money beside every percentage. A profitPct is profit / startBalance, so
+  // the money value is an exact multiplication of that base (lib/eaMoney.ts)
+  // — the lifetime figure comes straight from profitTotal.
+  const totalMoney = stats && typeof stats.profitTotal === "number"
+    ? toRealMoney(stats.profitTotal, stats.currency)
+    : null
+  const monthMoney = pctMoney(lastMonth?.profitPct, stats ?? {})
+  const dayMoney   = pctMoney(lastDay?.profitPct, stats ?? {})
+  const base       = stats ? capitalBase(stats) : null
+
+  // Last 20 calendar days, newest last — same order the doc stores.
+  const dailyRows = daily.slice(-20).map(d => ({
+    date: d.date,
+    pct: d.profitPct,
+    money: pctMoney(d.profitPct, stats ?? {}),
+  }))
+
+  // Count from the first month that actually traded. BuildPayload() back-fills
+  // a year of monthly buckets, so monthly[0] on a two-week-old account is a
+  // zero row — reading it as the start date claimed "12 months" for MegiHedge
+  // on the day it went live.
+  const firstMonth   = (monthly.find(m => m.profitPct !== 0) ?? monthly[0])?.month
   const months       = monthsSince(firstMonth) ?? fallbacks.months
   const monthsLabel  = `Total Growth · ${months} ${months === 1 ? "month" : "months"}`
 
@@ -315,6 +344,14 @@ export default async function EAShowcaseSection({
         }}>
           {comingSoon ? "Coming Soon" : totalDisplay}
         </div>
+        {!comingSoon && totalMoney && (
+          <div style={{
+            fontSize: 18, fontWeight: 700, color: totalColor, marginTop: 2,
+            fontFamily: "JetBrains Mono, monospace", opacity: 0.9,
+          }}>
+            {fmtMoney(totalMoney.amount, totalMoney.currency)}
+          </div>
+        )}
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
           {comingSoon ? "ກຳລັງຈະເປີດໂຕ · ຕິດຕາມໄດ້ໄວໆນີ້" : monthsLabel}
         </div>
@@ -322,10 +359,18 @@ export default async function EAShowcaseSection({
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
-          { label: "ເດືອນນີ້", value: comingSoon ? "🔜" : monthDisplay, color: comingSoon ? "rgba(255,255,255,0.5)" : monthColor },
-          { label: "ມື້ນີ້",   value: comingSoon ? "🔜" : dayDisplay,   color: comingSoon ? "rgba(255,255,255,0.5)" : dayColor },
-          { label: "Strategy", value: strategy,     color: strategyColor },
-          { label: "Risk",     value: risk,         color: riskColor },
+          {
+            label: "ເດືອນນີ້", value: comingSoon ? "🔜" : monthDisplay,
+            color: comingSoon ? "rgba(255,255,255,0.5)" : monthColor,
+            sub: !comingSoon && monthMoney ? fmtMoney(monthMoney.amount, monthMoney.currency) : null,
+          },
+          {
+            label: "ມື້ນີ້", value: comingSoon ? "🔜" : dayDisplay,
+            color: comingSoon ? "rgba(255,255,255,0.5)" : dayColor,
+            sub: !comingSoon && dayMoney ? fmtMoney(dayMoney.amount, dayMoney.currency) : null,
+          },
+          { label: "Strategy", value: strategy, color: strategyColor, sub: null },
+          { label: "Risk",     value: risk,     color: riskColor,     sub: null },
         ].map((s, i) => (
           <div key={i} style={{
             background: "rgba(255,255,255,0.05)",
@@ -340,9 +385,30 @@ export default async function EAShowcaseSection({
             }}>
               {s.value}
             </div>
+            {s.sub && (
+              <div style={{
+                fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)",
+                marginTop: 2, fontFamily: "JetBrains Mono, monospace",
+              }}>
+                {s.sub}
+              </div>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Every % above is profit / lifetime deposits, not growth over the
+          period — publishing the money figures without naming that base
+          would let them read as a rate of return. */}
+      {!comingSoon && base && (
+        <div style={{
+          marginTop: 14, fontSize: 10.5, lineHeight: 1.6,
+          color: "rgba(255,255,255,0.45)",
+          fontFamily: "Noto Sans Lao, sans-serif",
+        }}>
+          ℹ️ % ແລະ ຈຳນວນເງິນ ຄິດທຽບກັບທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}
+        </div>
+      )}
     </div>
   )
 
@@ -363,6 +429,10 @@ export default async function EAShowcaseSection({
           </>
         )}
       </div>
+
+      {!comingSoon && dailyRows.length > 0 && (
+        <DailyReturnsStrip rows={dailyRows} />
+      )}
     </section>
   )
 }
