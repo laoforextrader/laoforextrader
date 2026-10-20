@@ -8,39 +8,62 @@ export interface DailyRow {
   money: Money | null
 }
 
+/** Tallest a winning day may draw, in px — matches .up in the stylesheet. */
+const MAX_BAR_PX = 56
+/** A losing day draws this far below the axis, whatever its size. A -20% day
+ *  scaled honestly would be taller than the whole chart; the colour is what
+ *  has to register, so the depth is fixed and the figure carries the size. */
+const LOSS_BAR_PX = 10
+
 /**
- * The last N trading days as one box each: the money on top, the date and
- * the percentage it came from beneath. Presentational only — the caller
- * fetches the doc and does the cents/base conversion, so this component
- * can't disagree with the stat card sitting above it.
+ * The last N trading days as a column chart: the money on top, a bar sized by
+ * the day's percentage, then the percentage and the date. Presentational only
+ * — the caller fetches the doc, drops weekends and does the cents/base
+ * conversion, so this can't disagree with the stat card above it.
  *
  * A broker-server day runs roughly 04:00 → 04:00 ICT (see CLAUDE.md), so the
- * newest box is a day still in progress rather than a closed one.
+ * newest column is a day still in progress rather than a closed one.
  */
 export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
   if (rows.length === 0) return null
+
+  const peak = Math.max(...rows.map(r => Math.abs(r.pct)), 0.01)
 
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
         <div className={styles.title}>Daily Profit</div>
-        <div className={styles.note}>ດຶງຈາກບັນຊີຈິງ · ວັນຂວາສຸດຍັງບໍ່ປິດ</div>
+        <div className={styles.note}>ສະເພາະວັນເທຣດ · ວັນຂວາສຸດຍັງບໍ່ປິດ</div>
       </div>
 
-      <div className={styles.grid}>
+      <div className={styles.row}>
         {rows.map(r => {
-          const color =
-            r.pct > 0 ? "#4ADE80" :
-            r.pct < 0 ? "#F87171" : "rgba(255,255,255,0.35)"
-          const pctText = `${r.pct > 0 ? "+" : ""}${r.pct.toFixed(2)}%`
+          const up = r.pct > 0
+          const down = r.pct < 0
+          const color = up ? "#4ADE80" : down ? "#F87171" : "rgba(255,255,255,0.35)"
+          const pctText = `${up ? "+" : ""}${r.pct.toFixed(2)}%`
+          const height = up ? Math.max(3, (Math.abs(r.pct) / peak) * MAX_BAR_PX) : 0
+
           return (
-            <div key={r.date} className={styles.box} title={`${r.date} · ${pctText}`}>
+            <div key={r.date} className={styles.col} title={`${r.date} · ${pctText}`}>
               <div className={styles.money} style={{ color }}>
                 {r.money ? fmtMoney(r.money.amount, r.money.currency) : pctText}
               </div>
-              <div className={styles.meta}>
-                {dayLabel(r.date)} · {pctText}
+
+              <div className={styles.plot}>
+                <div className={styles.up}>
+                  {up && <div className={styles.bar} style={{ height }} />}
+                </div>
+                <div className={styles.axis} />
+                <div className={styles.down}>
+                  {down && <div className={styles.barDown} style={{ height: LOSS_BAR_PX }} />}
+                </div>
               </div>
+
+              <div className={styles.pct} style={down ? { color: "#F87171" } : undefined}>
+                {pctText}
+              </div>
+              <div className={styles.date}>{dayLabel(r.date)}</div>
             </div>
           )
         })}

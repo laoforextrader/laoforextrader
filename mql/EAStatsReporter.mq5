@@ -38,7 +38,7 @@
 //  a fresh bootstrap.
 //
 #property copyright "LaoForexTrader"
-#property version   "1.30"
+#property version   "1.31"
 #property strict
 
 input string  WebhookURL         = "https://laoforextrader.com/api/ea/stats";
@@ -182,11 +182,18 @@ void IngestDeal(ulong ticket, datetime dt)
       return;
    }
 
-   if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL) return;
-
+   // Everything that is NOT a cash flow moves the balance as profit or cost,
+   // so it belongs in the buckets: trades, but also the standalone entries a
+   // broker posts for commission, swap, charges, corrections and interest.
+   // Counting only BUY/SELL left those out of the day/month buckets while
+   // profitTotal (balance - deposits) still carried them, so the two
+   // disagreed: MegiHedge's October read +50.51% of capital against a real
+   // +12.64%, a $265 gap on a $700 account. Defaulting to "bucket it" also
+   // covers whatever type a particular broker happens to use.
    double pnl = HistoryDealGetDouble(ticket, DEAL_PROFIT) +
                 HistoryDealGetDouble(ticket, DEAL_SWAP) +
-                HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+                HistoryDealGetDouble(ticket, DEAL_COMMISSION) +
+                HistoryDealGetDouble(ticket, DEAL_FEE);
 
    BucketAdd(g_dayKeys,   g_dayProfit,   DateStr(dt),  pnl);
    BucketAdd(g_monthKeys, g_monthProfit, MonthStr(dt), pnl);
@@ -376,6 +383,16 @@ string BuildPayload()
    double startBal  = totalDeposits > 0 ? totalDeposits : balance;
    double profitTot = balance + totalWithdrawals - totalDeposits;
    double profitPct = totalDeposits > 0 ? (profitTot / totalDeposits) * 100.0 : 0;
+
+   // Reconciliation: the month buckets should add up to the balance-derived
+   // lifetime profit. A non-zero delta means deals are missing from the
+   // buckets (a deal type we skip, or history older than the bootstrap floor)
+   // or counted twice — either way the published monthly % is wrong, so say
+   // so in the log rather than let the site publish it silently.
+   double bucketSum = 0;
+   for(int bi = 0; bi < ArraySize(g_monthProfit); bi++) bucketSum += g_monthProfit[bi];
+   PrintFormat("[EAStatsReporter] reconcile buckets=%.2f balance-derived=%.2f delta=%.2f",
+               bucketSum, profitTot, bucketSum - profitTot);
 
    datetime now = TimeCurrent();
    MqlDateTime nowDt; TimeToStruct(now, nowDt);

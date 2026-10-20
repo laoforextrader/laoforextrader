@@ -28,6 +28,12 @@ function pctColor(n: number | undefined, fallback: string): string {
   return n >= 0 ? "#4ADE80" : "#EF4444"
 }
 
+/** Mon-Fri in UTC — the dates are plain YYYY-MM-DD keys, not instants. */
+function isWeekday(date: string): boolean {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay()
+  return day !== 0 && day !== 6
+}
+
 // Returns months running since the EA's first monthly return entry.
 function monthsSince(monthStr: string | undefined): number | null {
   if (!monthStr) return null
@@ -114,12 +120,17 @@ export default async function EAShowcaseSection({
   const dayMoney   = pctMoney(lastDay?.profitPct, stats ?? {})
   const base       = stats ? capitalBase(stats) : null
 
-  // Last 20 calendar days, newest last — same order the doc stores.
-  const dailyRows = daily.slice(-20).map(d => ({
-    date: d.date,
-    pct: d.profitPct,
-    money: pctMoney(d.profitPct, stats ?? {}),
-  }))
+  // Last 20 TRADING days, newest last. The EA fills a row for every calendar
+  // day, so Saturday and Sunday arrive as flat 0% — keeping them would spend
+  // six of the twenty columns saying the market was shut.
+  const dailyRows = daily
+    .filter(d => isWeekday(d.date))
+    .slice(-20)
+    .map(d => ({
+      date: d.date,
+      pct: d.profitPct,
+      money: pctMoney(d.profitPct, stats ?? {}),
+    }))
 
   // Count from the first month that actually traded. BuildPayload() back-fills
   // a year of monthly buckets, so monthly[0] on a two-week-old account is a
