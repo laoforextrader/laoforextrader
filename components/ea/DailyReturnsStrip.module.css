@@ -2,11 +2,19 @@
    dark canvas in both themes, so these colours are literals on purpose —
    they must not follow the light/dark tokens. */
 
+/* Same glass card as the stat panel above it — without one the chart floats
+   straight on the section canvas and the particles run through the labels. */
 .wrap {
   position: relative;
   z-index: 1;
   max-width: 1060px;
   margin: 26px auto 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 18px 22px 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .head {
@@ -126,6 +134,7 @@
 }
 
 @media (max-width: 520px) {
+  .wrap  { padding: 14px 14px 12px; border-radius: 16px; }
   .col   { flex: 1 0 44px; }
   .money { font-size: 9px; }
 }

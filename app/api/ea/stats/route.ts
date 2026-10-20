@@ -54,12 +54,31 @@ export async function POST(req: Request) {
       _id: string
       updateMode?: string
       lastUpdate?: string
+      totalDeposits?: number
     } | null>(
-      `*[_type == "eaStats" && eaId == $eaId][0]{ _id, updateMode, lastUpdate }`,
+      `*[_type == "eaStats" && eaId == $eaId][0]{ _id, updateMode, lastUpdate, totalDeposits }`,
       { eaId: body.eaId }
     )
     if (!doc?._id) {
       return NextResponse.json({ error: "eaStats doc not found — create it in Sanity Studio first" }, { status: 404 })
+    }
+
+    // An EA never un-learns its capital base. A re-bootstrap that cannot
+    // reach the funding deal (MT5 only had recent history downloaded) reports
+    // totalDeposits = 0, and then startBal falls back to the balance: every
+    // percentage is measured against the wrong number and profitTotal becomes
+    // the whole balance. SGride published "+0.00% = $6,596.90 profit" that
+    // way. Refuse the push instead of overwriting a known base with nothing.
+    if (
+      typeof doc.totalDeposits === "number" && doc.totalDeposits > 0 &&
+      !(typeof body.totalDeposits === "number" && body.totalDeposits > 0)
+    ) {
+      return NextResponse.json({
+        ok: false,
+        error: "refused: payload has no deposits but the doc has a capital base — " +
+               "load full history in MT5, delete the state file and re-bootstrap",
+        storedDeposits: doc.totalDeposits,
+      }, { status: 409 })
     }
 
     const mode = doc.updateMode ?? "off"

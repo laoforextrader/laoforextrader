@@ -38,7 +38,7 @@
 //  a fresh bootstrap.
 //
 #property copyright "LaoForexTrader"
-#property version   "1.32"
+#property version   "1.33"
 #property strict
 
 input string  WebhookURL         = "https://laoforextrader.com/api/ea/stats";
@@ -100,6 +100,12 @@ void OnTimer()
 void SendStats()
 {
    string payload = BuildPayload();
+   // BuildPayload() returns "" when it refuses to publish (no deposit deal
+   // in history). Do not POST, and do not SaveState either — persisting a
+   // state with no capital base would skip the bootstrap on every restart
+   // and the EA would never learn the deposits.
+   if(StringLen(payload) == 0) { g_lastSend = TimeCurrent(); return; }
+
    string headers = "Content-Type: application/json\r\n";
    char data[]; StringToCharArray(payload, data, 0, StringLen(payload));
    char result[]; string resHeaders;
@@ -392,6 +398,22 @@ string BuildPayload()
 {
    if(!g_bootstrapped) Bootstrap();
    else                Incremental();
+
+   // No deposit deal anywhere in the scanned history means the capital base
+   // is unknown, and startBal below would quietly fall back to the balance:
+   // every percentage would be measured against the wrong number and
+   // profitTotal would come out as the entire balance. That is what wiped
+   // SGride's figures, so refuse to publish rather than publish a fiction.
+   // Fix on the MT5 side: History tab -> right click -> All history, so the
+   // terminal downloads the funding deal, then delete the state file and
+   // re-attach.
+   if(g_cashedDeposits <= 0)
+   {
+      Print("[EAStatsReporter] NO DEPOSIT DEAL FOUND — not sending. "
+            "Open History tab, choose All history, delete "
+            + StateFile() + " and re-attach the EA.");
+      return "";
+   }
 
    long   acct      = AccountInfoInteger(ACCOUNT_LOGIN);
    string server    = AccountInfoString(ACCOUNT_SERVER);
