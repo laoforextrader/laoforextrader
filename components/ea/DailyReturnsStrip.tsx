@@ -9,10 +9,10 @@ export interface DailyRow {
 }
 
 /**
- * The last N trading days as one box each: percentage plus the money it
- * stands for. Presentational only — the caller fetches the doc and does the
- * cents/base conversion, so this component can't disagree with the stat card
- * sitting above it.
+ * The last N trading days as one box each: the money on top, the date and
+ * the percentage it came from beneath. Presentational only — the caller
+ * fetches the doc and does the cents/base conversion, so this component
+ * can't disagree with the stat card sitting above it.
  *
  * A broker-server day runs roughly 04:00 → 04:00 ICT (see CLAUDE.md), so the
  * newest box is a day still in progress rather than a closed one.
@@ -23,7 +23,7 @@ export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
-        <div className={styles.title}>Daily Profit · {rows.length} ວັນ</div>
+        <div className={styles.title}>Daily Profit</div>
         <div className={styles.note}>ດຶງຈາກບັນຊີຈິງ · ວັນຂວາສຸດຍັງບໍ່ປິດ</div>
       </div>
 
@@ -32,17 +32,15 @@ export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
           const color =
             r.pct > 0 ? "#4ADE80" :
             r.pct < 0 ? "#F87171" : "rgba(255,255,255,0.35)"
+          const pctText = `${r.pct > 0 ? "+" : ""}${r.pct.toFixed(2)}%`
           return (
-            <div key={r.date} className={styles.box} title={r.date}>
-              <div className={styles.date}>{dayLabel(r.date)}</div>
-              <div className={styles.pct} style={{ color }}>
-                {r.pct > 0 ? "+" : ""}{r.pct.toFixed(2)}%
+            <div key={r.date} className={styles.box} title={`${r.date} · ${pctText}`}>
+              <div className={styles.money} style={{ color }}>
+                {r.money ? fmtMoney(r.money.amount, r.money.currency) : pctText}
               </div>
-              {r.money && (
-                <div className={styles.money}>
-                  {fmtMoney(r.money.amount, r.money.currency)}
-                </div>
-              )}
+              <div className={styles.meta}>
+                {dayLabel(r.date)} · {pctText}
+              </div>
             </div>
           )
         })}
