@@ -1,4 +1,5 @@
 import { fmtMoney, type Money } from "@/lib/eaMoney"
+import DailyReturnsScroller from "./DailyReturnsScroller"
 import styles from "./DailyReturnsStrip.module.css"
 
 export interface DailyRow {
@@ -25,6 +26,10 @@ const LOSS_BAR_PX = 10
  *
  * A broker-server day runs roughly 04:00 → 04:00 ICT (see CLAUDE.md), so the
  * newest column is a day still in progress rather than a closed one.
+ *
+ * Rows run oldest → newest and only ~7 of the ~20 columns fit on a phone, so
+ * the row is wrapped in DailyReturnsScroller — a client shim that parks the
+ * horizontal scroll at the right edge, on today, instead of three weeks ago.
  */
 export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
   if (rows.length === 0) return null
@@ -38,7 +43,7 @@ export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
         <div className={styles.note}>ສະເພາະວັນເທຣດ · ວັນຂວາສຸດຍັງບໍ່ປິດ</div>
       </div>
 
-      <div className={styles.row}>
+      <DailyReturnsScroller className={styles.row}>
         {rows.map(r => {
           const up = r.pct > 0
           const down = r.pct < 0
@@ -68,7 +73,7 @@ export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
             </div>
           )
         })}
-      </div>
+      </DailyReturnsScroller>
     </div>
   )
 }
