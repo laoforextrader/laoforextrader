@@ -12,6 +12,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { sanityWrite } from "@/lib/sanityWrite"
 import { encryptPII } from "@/lib/pii"
+// The Telegram sender and HTML escaper used to be defined here. They are
+// shared now, so this handoff and the news-pipeline alarms cannot drift.
+import { sendAdminTelegram, escapeHtml as esc } from "@/lib/alertAdmin"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -26,34 +29,6 @@ interface Body {
 
 function key(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
-}
-
-function esc(s: string): string {
-  return s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))
-}
-
-// Returns the sent message_id (so we can map replies back), or null.
-async function notifyAdminTelegram(text: string): Promise<number | null> {
-  const token  = process.env.TELEGRAM_BOT_TOKEN
-  const chatId = process.env.ADMIN_TELEGRAM_CHAT_ID
-  if (!token || !chatId) return null
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
-    })
-    const data = await res.json().catch(() => null)
-    const mid = data?.result?.message_id
-    return typeof mid === "number" ? mid : null
-  } catch {
-    return null
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -131,7 +106,7 @@ export async function POST(req: NextRequest) {
     `\n<i>${esc(message)}</i>\n` +
     `\n↩️ <b>ຕອບ:</b> Reply ໃສ່ຂໍ້ຄວາມນີ້ ແລ້ວພິມຄຳຕອບ — ລະບົບຈະສົ່ງກັບໃຫ້ລູກຄ້າໃນເວັບ.`
 
-  const mid = await notifyAdminTelegram(summary)
+  const mid = await sendAdminTelegram(summary)
   if (mid !== null) {
     // Keep the id so the inbound webhook can match the admin's reply.
     sanityWrite

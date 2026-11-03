@@ -3,6 +3,7 @@ import { createClient } from "@sanity/client"
 import { fetchEconomicCalendar, fetchForexNews, todayInVientiane, type CalendarEvent } from "@/lib/news/sources"
 import { summarizeDailyUpdate } from "@/lib/news/summarize"
 import { broadcastLineMessages, lineConfigured } from "@/lib/broadcast/line"
+import { sendAdminTelegram, escapeHtml } from "@/lib/alertAdmin"
 
 // Major-pair currencies + gold (XAU). Country codes that map to these.
 const MAJOR_COUNTRIES = new Set(["US", "EU", "GB", "UK", "JP", "CH", "AU", "CA", "NZ"])
@@ -204,6 +205,21 @@ async function handle(req: Request) {
       // writing it before the Claude call.
       await sanity.createIfNotExists({ _id: docId, _type: "dailyUpdate", date })
       await sanity.patch(docId).set({ lastError: msg }).commit()
+    } catch {}
+    // Report the failures this route can actually observe. A hard kill at
+    // maxDuration never reaches here — /api/cron/news-watchdog exists to
+    // catch that case from outside. Best-effort: the alarm must not be able
+    // to replace the real error with one of its own.
+    try {
+      await sendAdminTelegram(
+        `⚠️ <b>ข่าวรายวันล้ม</b>
+<b>วันที่:</b> ${escapeHtml(date)}
+
+<b>error:</b>
+<code>${escapeHtml(msg)}</code>
+
+รันซ้ำเอง: <code>/api/cron/daily-update?force=true</code>`,
+      )
     } catch {}
     return NextResponse.json({ ok: false, error: msg }, { status: 500 })
   }

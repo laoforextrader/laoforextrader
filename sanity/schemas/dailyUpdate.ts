@@ -171,6 +171,9 @@ export const dailyUpdateSchema = {
     // decide whether to re-run; a true value makes the retry a no-op.
     { name: "pipelineComplete", title: "Pipeline Complete", type: "boolean", readOnly: true },
     { name: "lineSentAt", title: "LINE Pushed At", type: "datetime", readOnly: true },
+    // Set by /api/cron/news-watchdog when it has alarmed about this date,
+    // so an hourly schedule sends one message per bad day, not twelve.
+    { name: "watchdogAlertedAt", title: "Watchdog Alerted At", type: "datetime", readOnly: true },
   ],
   orderings: [
     {
