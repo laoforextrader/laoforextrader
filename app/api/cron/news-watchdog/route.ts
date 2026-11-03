@@ -56,7 +56,12 @@ async function handle(req: Request) {
   const force = url.searchParams.get("force") === "true"   // alert even if already alerted
   const test  = url.searchParams.get("test")  === "true"   // prove the bot works
 
-  const date  = todayInVientiane()
+  // ?date=YYYY-MM-DD checks a past day instead of today. It is how you
+  // rehearse the alarm against a day that really failed, rather than
+  // hand-editing live data to fake one, and how you back-check a specific
+  // morning. Secret-gated like everything else here; read-only either way.
+  const asked = url.searchParams.get("date")
+  const date  = asked && /^\d{4}-\d{2}-\d{2}$/.test(asked) ? asked : todayInVientiane()
   const docId = `daily-${date}`
 
   if (test) {
