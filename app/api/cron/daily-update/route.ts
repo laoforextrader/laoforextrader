@@ -16,7 +16,13 @@ function filterMajorEvents(events: CalendarEvent[]): CalendarEvent[] {
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+// 300s, not 60s. Measured 2026-11-03: Sonnet 4.6 writes Lao at ~34 tok/s
+// and both prompt calls stop at max_tokens every run, so callB (2400 tok)
+// alone needs ~69s. The old 60s wall hard-killed the invocation mid-Claude,
+// which is why no daily summary — and therefore no LINE news push — shipped
+// after the Anthropic credit outage was fixed. Vercel clamps this to the
+// plan maximum, so it is safe to ask for more than the plan allows.
+export const maxDuration = 300
 
 function authorized(req: Request): boolean {
   const expected = process.env.CRON_SECRET || process.env.BROADCAST_SECRET

@@ -161,7 +161,10 @@ async function callClaude(client: Anthropic, prompt: string, maxTokens: number) 
       max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     },
-    { timeout: 45_000 },
+    // 120s: callB measured 68.7s on 2026-11-03 (2400 tokens at ~34 tok/s),
+    // so the old 45s aborted a healthy call and then silently retried it,
+    // burning the whole budget. Must stay well under route maxDuration.
+    { timeout: 120_000 },
   )
   const textBlock = message.content.find(b => b.type === "text")
   if (!textBlock || textBlock.type !== "text") throw new Error("No text block")
@@ -545,7 +548,10 @@ function applyPolish(callA: CallAResult, callB: CallBResult, polished: PolishInp
 export async function summarizeDailyUpdate({ date, calendar, news }: SummarizeArgs): Promise<DailySummary> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set")
-  const client = new Anthropic({ apiKey })
+  // maxRetries 1, not the SDK default of 2: a retry of a ~69s call cannot
+  // fit the budget, and a silent double-retry is what turned one slow call
+  // into a hard FUNCTION_INVOCATION_TIMEOUT with no error doc written.
+  const client = new Anthropic({ apiKey, maxRetries: 1 })
 
   const eventBrief = pickPromptEvents(calendar, 4)
     .map(e => `${formatLaoTime(e.time)} ${e.country}: ${e.event}`)
