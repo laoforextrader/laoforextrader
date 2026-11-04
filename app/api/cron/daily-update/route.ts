@@ -4,6 +4,7 @@ import { fetchEconomicCalendar, fetchForexNews, todayInVientiane, type CalendarE
 import { summarizeDailyUpdate } from "@/lib/news/summarize"
 import { broadcastLineMessages, lineConfigured } from "@/lib/broadcast/line"
 import { sendAdminTelegram, escapeHtml } from "@/lib/alertAdmin"
+import { cronAuthorized } from "@/lib/cronAuth"
 
 // Major-pair currencies + gold (XAU). Country codes that map to these.
 const MAJOR_COUNTRIES = new Set(["US", "EU", "GB", "UK", "JP", "CH", "AU", "CA", "NZ"])
@@ -25,15 +26,6 @@ export const dynamic = "force-dynamic"
 // plan maximum, so it is safe to ask for more than the plan allows.
 export const maxDuration = 300
 
-function authorized(req: Request): boolean {
-  const expected = process.env.CRON_SECRET || process.env.BROADCAST_SECRET
-  if (!expected) return true
-  const got = req.headers.get("authorization")
-  if (got === `Bearer ${expected}`) return true
-  const url = new URL(req.url)
-  return url.searchParams.get("secret") === expected
-}
-
 const sanity = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "f8cr9afb",
   dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET   || "production",
@@ -43,7 +35,7 @@ const sanity = createClient({
 })
 
 async function handle(req: Request) {
-  if (!authorized(req)) {
+  if (!cronAuthorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
   const url = new URL(req.url)

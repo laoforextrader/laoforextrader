@@ -17,17 +17,11 @@ import { NextResponse } from "next/server"
 import { createClient } from "@sanity/client"
 import { todayInVientiane } from "@/lib/news/sources"
 import { sendAdminTelegram, escapeHtml } from "@/lib/alertAdmin"
+import { cronAuthorized } from "@/lib/cronAuth"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 30
-
-function authorized(req: Request): boolean {
-  const expected = process.env.CRON_SECRET || process.env.BROADCAST_SECRET
-  if (!expected) return true
-  if (req.headers.get("authorization") === `Bearer ${expected}`) return true
-  return new URL(req.url).searchParams.get("secret") === expected
-}
 
 // Tokened + useCdn:false so this is a strongly consistent read; the CDN
 // client can serve a cached miss and invent an outage that isn't there.
@@ -49,7 +43,7 @@ type Doc = {
 }
 
 async function handle(req: Request) {
-  if (!authorized(req)) {
+  if (!cronAuthorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
   const url   = new URL(req.url)

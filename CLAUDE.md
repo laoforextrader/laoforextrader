@@ -201,13 +201,20 @@ If `npm run build` fails on chromium download, it's the prerender step — inves
 | `SANITY_API_TOKEN` | Any write path (EA webhook, broadcast asset upload, daily-update) |
 | `EA_WEBHOOK_SECRET` | `/api/ea/stats` shared secret with MT5 EA |
 | `CRON_SECRET` | `/api/cron/*` bearer auth (Vercel sends it automatically; manual hits must include it) |
-| `BROADCAST_SECRET` | Accepted as alias of `CRON_SECRET` on the daily-update route |
+| `BROADCAST_SECRET` | The only key for `/api/broadcast/run/*`; also accepted by `lib/cronAuth.ts` |
 | `ANTHROPIC_API_KEY` | News summarization |
 | `LINE_CHANNEL_ACCESS_TOKEN` | LINE OA push |
 | `GOOGLE_CLIENT_ID/_SECRET`, `FACEBOOK_CLIENT_ID/_SECRET`, `NEXTAUTH_SECRET` | NextAuth |
 
 ## Working in this repo
 
+- **`lib/cronAuth.ts` is the one gate for `/api/cron/*`.** It accepts *either* cron
+  secret, by `Authorization: Bearer` or `?secret=`. Don't re-inline a per-route check:
+  the copies it replaced read `CRON_SECRET || BROADCAST_SECRET`, which means "fall back
+  when CRON_SECRET is unset" — and it never is, so every cron-job.org job built with
+  BROADCAST_SECRET 401'd silently for months. A scheduler cannot tell 401 from healthy.
+  `/api/cron/broadcast` is the deliberate exception and keeps a narrower header-only gate,
+  because dispatching spends the 500-msg LINE quota.
 - **Don't add Vercel crons.** Slot is taken; use cron-job.org and add a `broadcastSchedule` doc instead. The dispatcher generalizes — a new schedule + new template function is enough for a new recurring LINE flow.
 - **One Telegram sender.** `lib/alertAdmin.ts` (`sendAdminTelegram` + `escapeHtml`) is the only path to the admin chat — the live-chat handoff and the pipeline alarms both import it. It used to be inline in `app/api/chat/contact-admin/route.ts`; don't re-inline a second copy. It returns the sent `message_id`, which the live-chat reply routing depends on, and never throws.
 - **Time zones lie quietly.** When a "schedule fired at the wrong time" comes up, check three places: cron-job.org TZ setting, the Bangkok-formatted matcher in `dispatcher.ts`, and (for EA data) the broker server clock — they often disagree.

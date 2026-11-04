@@ -11,6 +11,9 @@ export const maxDuration = 60
 // We also accept a manual hit with the same CRON_SECRET for debugging:
 //   curl -H "Authorization: Bearer $CRON_SECRET" https://.../api/cron/broadcast
 
+// This one keeps its own narrower gate instead of lib/cronAuth: dispatching here
+// pushes to LINE against a 500-msg monthly quota, so it stays header-only and
+// refuses BROADCAST_SECRET and ?secret= query strings.
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET
   if (!secret) return true // no secret configured — allow (Vercel still cron-only on prod)
