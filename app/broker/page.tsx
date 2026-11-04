@@ -71,8 +71,11 @@ export default async function Page() {
           {laoCount > 0 && <MetaPill>{laoCount} ໂບຣກຝາກເງິນກີບໄດ້</MetaPill>}
         </div>
 
+        {/* The score card is a screenful on a phone, and the broker it
+            describes is already the first row of the list, marked. Desktop
+            has the room to lead with it; a phone goes straight to the list. */}
         {top && (
-          <div className="mt-8 sm:mt-9">
+          <div className="mt-8 hidden md:block">
             <BrokerScoreCard
               broker={top}
               rankNote={`ອັນດັບ 1 ຈາກ ${ranked.length} ໂບຣກເກີ`}
@@ -80,7 +83,7 @@ export default async function Page() {
           </div>
         )}
 
-        <div className="mt-10 sm:mt-12">
+        <div className="mt-7 sm:mt-10">
           <BrokerDirectory brokers={ranked} />
         </div>
 

@@ -1,12 +1,17 @@
 "use client"
 
-// The /broker list: filter, sort, and pick two or three brokers to compare.
+// The /broker list: filter, sort, and optionally pick brokers to compare.
 //
-// Mobile shape first. The obvious build for "compare brokers" is a wide
-// table, but a table on a 360px phone either scrolls sideways (readers miss
-// columns and never know it) or shrinks type past legibility. So every broker
-// is a card that reflows into a row at lg; the comparison that a table would
-// have given is the job of the compare page, where two brokers get the width.
+// One row per broker, ~92px tall on a phone. The first build stacked the
+// desktop card — stats block, two full-width buttons, a checkbox — and came
+// out near 800px per broker, so six brokers took eight screens to scroll
+// past. Everything a reader scans by now sits on three lines, and the row
+// itself is the link; the buttons live on the review page, which is where
+// someone decides anyway.
+//
+// Comparing is a mode, not a permanent column: checkboxes appear only after
+// the reader asks for them, so the default list carries no controls it has
+// not been asked for.
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
@@ -20,34 +25,31 @@ import {
   minDepositLabel,
   spreadLabel,
   laoDepositState,
-  LAO_DEPOSIT_LABEL,
+  LAO_DEPOSIT_SHORT,
   registerHref,
   sortBrokers,
+  gradeColor,
 } from "@/lib/broker"
-import { LicenseChips, Stars, btnSolid, ArrowIcon } from "./BrokerBits"
+import { Flag, btnSolid, ArrowIcon } from "./BrokerBits"
 
 type SortKey = "rank" | "rating" | "minDep"
 
 const FILTERS: { id: string; label: string; test: (b: Broker) => boolean }[] = [
-  {
-    id: "lao",
-    label: "ຝາກຜ່ານທະນາຄານລາວ",
-    test: (b) => laoDepositState(b) === "full",
-  },
+  { id: "lao", label: "ຝາກຜ່ານທະນາຄານລາວ", test: (b) => laoDepositState(b) === "full" },
   {
     id: "small",
-    label: "ທຶນເລີ່ມຕົ້ນ ≤ $20",
-    // A broker with no recorded minimum fails this filter instead of passing
-    // it: "we don't know" must never read as "cheap".
+    label: "ທຶນ ≤ $20",
+    // Unknown fails the filter rather than passing it: "we have not recorded
+    // this" must never be read as "cheap".
     test: (b) => {
       const n = minDepositUsd(b)
       return n !== null && n <= 20
     },
   },
-  { id: "swap", label: "ມີບັນຊີ Swap-free", test: (b) => Boolean(b.swapFree) },
+  { id: "swap", label: "Swap-free", test: (b) => Boolean(b.swapFree) },
   {
     id: "lic",
-    label: "ມີເລກໃບອະນຸຍາດບັນທຶກໄວ້",
+    label: "ມີເລກໃບອະນຸຍາດ",
     test: (b) => licensesOf(b).some((l) => l.licenseNo && !l.isRepresentative),
   },
 ]
@@ -57,6 +59,7 @@ const MAX_COMPARE = 3
 export default function BrokerDirectory({ brokers }: { brokers: Broker[] }) {
   const [active, setActive] = useState<string[]>([])
   const [sort, setSort] = useState<SortKey>("rank")
+  const [compareMode, setCompareMode] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
 
   const rows = useMemo(() => {
@@ -67,10 +70,6 @@ export default function BrokerDirectory({ brokers }: { brokers: Broker[] }) {
   }, [brokers, active, sort])
 
   const pickedBrokers = brokers.filter((b) => picked.includes(b.slug?.current ?? ""))
-
-  function toggleFilter(id: string) {
-    setActive((xs) => (xs.includes(id) ? xs.filter((x) => x !== id) : [...xs, id]))
-  }
 
   function togglePick(slug: string) {
     setPicked((xs) =>
@@ -85,60 +84,80 @@ export default function BrokerDirectory({ brokers }: { brokers: Broker[] }) {
 
   return (
     <div>
-      {/* ── controls ────────────────────────────────────────────────────── */}
-      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="m-0 text-[26px] font-bold leading-tight tracking-[-0.025em] text-bk-ink sm:text-[30px]">
-            ໂບຣກເກີທັງໝົດ
-          </h2>
-          <p className="mt-1.5 text-sm text-bk-muted">ເລືອກ 2–3 ໂບຣກເກີເພື່ອທຽບແບບລະອຽດ</p>
+      {/* ── filters: one row that scrolls sideways, so they cost no height ── */}
+      <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap">
+          {FILTERS.map((f) => {
+            const on = active.includes(f.id)
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() =>
+                  setActive((xs) => (xs.includes(f.id) ? xs.filter((x) => x !== f.id) : [...xs, f.id]))
+                }
+                aria-pressed={on}
+                className={`min-h-[40px] whitespace-nowrap rounded-bk border px-4 py-2 text-sm font-medium transition-[transform,background-color,border-color] duration-150 hover:scale-[1.03] active:scale-[0.97] motion-reduce:transform-none motion-reduce:transition-none ${
+                  on
+                    ? "border-bk-ink bg-bk-ink text-bk-page"
+                    : "border-bk-line bg-bk-surface text-bk-ink hover:border-bk-ink"
+                }`}
+              >
+                {f.label}
+              </button>
+            )
+          })}
         </div>
-        <label className="flex items-center gap-2.5 text-[15px] text-bk-ink">
-          <span className="shrink-0">ຮຽງຕາມ</span>
+      </div>
+
+      {/* ── sort + compare ────────────────────────────────────────────── */}
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-sm text-bk-ink">
+          <span className="shrink-0 text-bk-muted">ຮຽງ:</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="min-h-[48px] w-full rounded-bk border border-bk-line bg-bk-surface px-3 py-3 text-[15px] font-medium text-bk-ink sm:w-auto"
+            className="min-h-[40px] rounded-bk border border-bk-line bg-bk-surface px-3 py-2 text-sm font-semibold text-bk-ink"
           >
             <option value="rank">ອັນດັບແນະນຳ</option>
             <option value="rating">ຄະແນນສູງສຸດ</option>
             <option value="minDep">ຝາກຂັ້ນຕ່ຳນ້ອຍສຸດ</option>
           </select>
         </label>
+
+        <button
+          type="button"
+          onClick={() => {
+            setCompareMode((v) => !v)
+            if (compareMode) setPicked([])
+          }}
+          aria-pressed={compareMode}
+          className={`inline-flex min-h-[40px] items-center gap-2 rounded-bk border px-4 py-2 text-sm font-semibold transition-[transform,background-color,border-color] duration-150 hover:scale-[1.03] active:scale-[0.97] motion-reduce:transform-none ${
+            compareMode
+              ? "border-bk-ink bg-bk-ink text-bk-page"
+              : "border-bk-line bg-bk-surface text-bk-ink hover:border-bk-ink"
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 7h7M4 17h7M17 4v7M17 13v7" />
+            <path d="m14 7 3-3 3 3M8 17l3 3 3-3" />
+          </svg>
+          ທຽບ
+        </button>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {FILTERS.map((f) => {
-          const on = active.includes(f.id)
-          return (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => toggleFilter(f.id)}
-              aria-pressed={on}
-              className={`min-h-[44px] rounded-bk border px-4 py-2.5 text-sm font-medium transition-[transform,background-color,border-color] duration-150 hover:scale-[1.03] active:scale-[0.97] motion-reduce:transform-none motion-reduce:transition-none ${
-                on
-                  ? "border-bk-ink bg-bk-ink text-bk-page"
-                  : "border-bk-line bg-bk-surface text-bk-ink hover:border-bk-ink"
-              }`}
-            >
-              {f.label}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* ── list ────────────────────────────────────────────────────────── */}
+      {/* ── list ──────────────────────────────────────────────────────── */}
       {rows.length === 0 ? (
-        <div className="rounded-bk border border-bk-line px-6 py-14 text-center text-base text-bk-muted">
+        <div className="mt-4 rounded-bk border border-bk-line px-6 py-14 text-center text-base text-bk-muted">
           ບໍ່ມີໂບຣກເກີທີ່ກົງກັບເງື່ອນໄຂ — ລອງປິດຕົວກັ່ນຕອງບາງອັນ
         </div>
       ) : (
-        <ul className="m-0 list-none divide-y divide-bk-line rounded-bk border border-bk-line p-0">
+        <ul className="m-0 mt-4 list-none divide-y divide-bk-line overflow-hidden rounded-bk border border-bk-line p-0">
           {rows.map((b) => (
             <BrokerRow
               key={b._id}
               broker={b}
+              compareMode={compareMode}
               picked={picked.includes(b.slug?.current ?? "")}
               onToggle={() => togglePick(b.slug?.current ?? "")}
               disabled={picked.length >= MAX_COMPARE && !picked.includes(b.slug?.current ?? "")}
@@ -148,11 +167,11 @@ export default function BrokerDirectory({ brokers }: { brokers: Broker[] }) {
       )}
 
       <p className="mt-4 text-sm leading-relaxed text-bk-muted">
-        Spread ທີ່ສະແດງ “ຍັງບໍ່ມີຂໍ້ມູນ” ແມ່ນຍັງບໍ່ທັນໄດ້ບັນທຶກໄວ້ໃນລະບົບ — ພວກເຮົາບໍ່ເຕີມຕົວເລກທີ່ຍັງບໍ່ໄດ້ທົດສອບ
+        ຊ່ອງທີ່ຂຽນວ່າ “ຍັງບໍ່ມີຂໍ້ມູນ” ແມ່ນພວກເຮົາຍັງບໍ່ທັນໄດ້ທົດສອບ — ບໍ່ໄດ້ເຕີມຕົວເລກທີ່ບໍ່ແນ່ໃຈ
       </p>
 
-      {/* ── compare bar ─────────────────────────────────────────────────── */}
-      {picked.length > 0 && (
+      {/* ── compare bar ───────────────────────────────────────────────── */}
+      {compareMode && picked.length > 0 && (
         <div className="sticky bottom-3 z-10 mt-6 sm:bottom-5">
           <div className="flex flex-col gap-3 rounded-bk bg-bk-ink p-4 text-bk-page sm:flex-row sm:items-center sm:gap-4">
             <span className="text-[15px] font-semibold">
@@ -201,132 +220,163 @@ export default function BrokerDirectory({ brokers }: { brokers: Broker[] }) {
 
 function BrokerRow({
   broker,
+  compareMode,
   picked,
   onToggle,
   disabled,
 }: {
   broker: Broker
+  compareMode: boolean
   picked: boolean
   onToggle: () => void
   disabled: boolean
 }) {
   const slug = broker.slug?.current ?? ""
-  const href = `/broker/${slug}`
   const licenses = licensesOf(broker)
   const lao = laoDepositState(broker)
   const register = registerHref(broker)
   const logo = broker.logo?.asset?.url as string | undefined
+  const rating = broker.rating ?? 0
+  const top = broker.rank === 1
 
-  const stats: { label: string; value: string | null }[] = [
-    { label: "ຝາກຂັ້ນຕ່ຳ", value: minDepositLabel(broker) },
-    { label: "Leverage", value: broker.maxLeverage ?? null },
-    { label: "Spread", value: spreadLabel(broker) },
-  ]
+  const dep = minDepositLabel(broker)
+  const spread = spreadLabel(broker)
+  const regLabel = licenses
+    .slice(0, 3)
+    .map((l) => l.regulator)
+    .join(" · ")
+  const extra = licenses.length - Math.min(3, licenses.length)
 
   return (
-    <li className={`p-5 sm:p-6 ${picked ? "bg-bk-sunken" : ""}`}>
-      <div className="grid gap-5 lg:grid-cols-[2.2fr_1.1fr_minmax(170px,0.9fr)] lg:items-center lg:gap-6">
-        {/* identity */}
-        <div className="flex items-start gap-4">
-          <span className="w-7 shrink-0 pt-1 text-center font-mono text-lg font-bold text-bk-muted">
-            {broker.rank ?? "—"}
-          </span>
-          {logo && (
-            <Image
-              src={logo}
-              alt={broker.name}
-              width={56}
-              height={56}
-              data-no-dim
-              className="h-14 w-14 shrink-0 rounded-bk border border-bk-line object-cover"
-            />
-          )}
-          <div className="min-w-0 flex-1">
-            <Link
-              href={href}
-              className="text-lg font-bold leading-snug tracking-[-0.02em] text-bk-ink no-underline hover:underline sm:text-xl"
-            >
+    <li className={`relative ${picked ? "bg-bk-sunken" : top ? "bg-bk-sunken/60" : ""}`}>
+      {/* The whole row is the link. It sits behind the content as a stretched
+          overlay so the compare checkbox stays a real, separate control
+          instead of an interactive element nested inside an anchor. */}
+      <Link
+        href={`/broker/${slug}`}
+        aria-label={`ອ່ານລີວິວ ${broker.name}`}
+        className="absolute inset-0 z-0"
+      />
+
+      {top && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[3px] bg-bk-ink" />}
+
+      <div className="pointer-events-none relative flex items-center gap-3 py-3 pl-4 pr-3 sm:gap-3.5 sm:py-3.5 sm:pl-5 sm:pr-4 lg:gap-5 lg:py-4">
+        <span
+          className={`w-4 shrink-0 text-center font-mono text-[15px] font-bold ${
+            top ? "text-bk-ink" : "text-bk-muted"
+          }`}
+        >
+          {broker.rank ?? "—"}
+        </span>
+
+        {logo && (
+          <Image
+            src={logo}
+            alt=""
+            width={46}
+            height={46}
+            data-no-dim
+            className="shrink-0 rounded-bk border border-bk-line object-cover"
+            style={{ width: 46, height: 46 }}
+          />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-[16px] font-bold leading-snug tracking-[-0.02em] text-bk-ink">
               {broker.name}
-            </Link>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Stars rating={broker.rating ?? 0} />
-              <span className="font-mono text-[15px] font-bold text-bk-ink">
-                {(broker.rating ?? 0).toFixed(1)}
+            </span>
+            {top && (
+              <span className="shrink-0 whitespace-nowrap rounded-md border border-bk-ink px-1.5 py-px text-[10px] font-bold text-bk-ink">
+                ອັນດັບ 1
               </span>
-              {broker.verdict && (
-                <span className="text-sm text-bk-muted">· {broker.verdict}</span>
-              )}
-            </div>
-            <LicenseChips licenses={licenses} max={3} className="mt-2.5" />
+            )}
+          </div>
+
+          <div className="mt-1.5 flex items-center gap-1.5">
+            {licenses.slice(0, 3).map((l, i) => (
+              <Flag key={`${l.regulator}-${i}`} src={l.flag} alt={l.country ?? ""} w={17} h={12} />
+            ))}
+            <span className="truncate text-xs text-bk-muted">
+              {regLabel || "ຍັງບໍ່ໄດ້ບັນທຶກ"}
+              {extra > 0 ? ` +${extra}` : ""}
+            </span>
+          </div>
+
+          <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-xs text-bk-muted">
+            <span className="font-mono font-bold text-bk-ink">{dep ?? "—"}</span>
+            <span>·</span>
+            <span className="font-mono">{broker.maxLeverage ?? "—"}</span>
+            <span>·</span>
+            <span className={lao === "full" ? "font-semibold text-ok-ink dark:text-ok" : ""}>
+              {LAO_DEPOSIT_SHORT[lao]}
+            </span>
+            {/* Spread only earns a slot once there is a tested number for it */}
+            {spread && (
+              <>
+                <span className="hidden sm:inline">·</span>
+                <span className="hidden font-mono sm:inline">{spread}</span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* stats — three across on a phone, so nothing scrolls sideways */}
-        <div className="grid grid-cols-3 gap-3 border-t border-bk-line pt-4 lg:grid-cols-1 lg:gap-2 lg:border-0 lg:pt-0">
-          {stats.map((s) => (
-            <div key={s.label} className="lg:flex lg:items-baseline lg:justify-between lg:gap-3">
-              <div className="text-xs text-bk-muted lg:text-sm">{s.label}</div>
-              <div
-                className={
-                  s.value
-                    ? "mt-0.5 font-mono text-[15px] font-semibold text-bk-ink lg:mt-0"
-                    : "mt-0.5 text-xs italic text-bk-muted lg:mt-0"
-                }
-              >
-                {s.value ?? "ຍັງບໍ່ມີຂໍ້ມູນ"}
-              </div>
-            </div>
-          ))}
-          <div className="col-span-3 lg:col-span-1 lg:flex lg:items-baseline lg:justify-between lg:gap-3">
-            <div className="text-xs text-bk-muted lg:text-sm">ທະນາຄານລາວ</div>
-            <div
-              className={`mt-0.5 text-[13px] font-semibold lg:mt-0 ${
-                lao === "full" ? "text-ok-ink dark:text-ok" : "text-bk-muted"
-              }`}
-            >
-              {LAO_DEPOSIT_LABEL[lao]}
-            </div>
-          </div>
-        </div>
-
-        {/* actions */}
-        <div className="flex flex-col gap-2.5">
-          {register && (
-            <a
-              href={register}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              onClick={() => {
-                event({ action: "broker_click", category: "Broker", label: broker.name })
-                trackClick({ target: brokerTarget(slug || broker.name), label: broker.name, group: "broker" })
-              }}
-              className={`${btnSolid} w-full`}
-            >
-              ເປີດບັນຊີ
-              <ArrowIcon />
-            </a>
-          )}
-          <Link
-            href={href}
-            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-bk border border-bk-line px-4 py-2.5 text-sm font-semibold text-bk-ink no-underline hover:bg-bk-sunken"
+        {/* Desktop gets the room for a direct CTA; a phone does not, and the
+            review page is one tap away. */}
+        {register && (
+          <a
+            href={register}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            onClick={() => {
+              event({ action: "broker_click", category: "Broker", label: broker.name })
+              trackClick({ target: brokerTarget(slug || broker.name), label: broker.name, group: "broker" })
+            }}
+            className={`${btnSolid} pointer-events-auto z-10 hidden shrink-0 px-5 text-sm lg:inline-flex`}
           >
-            ອ່ານລີວິວ
-          </Link>
+            ເປີດບັນຊີ
+            <ArrowIcon size={15} />
+          </a>
+        )}
+
+        <span
+          className="inline-flex min-w-[44px] shrink-0 items-center justify-center rounded-bk px-2.5 py-1.5 font-mono text-[15px] font-bold tracking-[-0.02em] text-white"
+          style={{ background: gradeColor(rating) }}
+        >
+          {rating.toFixed(1)}
+        </span>
+
+        {compareMode ? (
           <label
-            className={`flex min-h-[44px] items-center justify-center gap-2 text-sm ${
-              disabled ? "cursor-not-allowed text-bk-muted/60" : "cursor-pointer text-bk-muted"
+            className={`pointer-events-auto z-10 inline-flex h-11 w-7 shrink-0 items-center justify-center ${
+              disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
             }`}
           >
+            <span className="sr-only">ເລືອກ {broker.name} ເພື່ອທຽບ</span>
             <input
               type="checkbox"
               checked={picked}
               disabled={disabled}
               onChange={onToggle}
-              className="h-[17px] w-[17px] accent-accent"
+              className="h-[18px] w-[18px] accent-accent"
             />
-            ເລືອກທຽບ
           </label>
-        </div>
+        ) : (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="shrink-0 text-bk-muted lg:hidden"
+          >
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        )}
       </div>
     </li>
   )

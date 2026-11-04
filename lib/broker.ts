@@ -202,6 +202,17 @@ export const LAO_DEPOSIT_LABEL: Record<LaoDepositState, string> = {
 }
 
 /**
+ * The same three states, short enough to sit on one line beside the deposit
+ * and leverage figures at 390px. The long form wrapped, which made rows
+ * different heights and broke the rhythm of the list.
+ */
+export const LAO_DEPOSIT_SHORT: Record<LaoDepositState, string> = {
+  full: "ຝາກກີບໄດ້",
+  partial: "ສະເພາະ USD",
+  none: "ບໍ່ຮອງຮັບກີບ",
+}
+
+/**
  * Where a "ສະໝັກ" button should point. `registerUrl` is the affiliate link;
  * `affiliateUrl` is the plain homepage. Falling back to `website` keeps a
  * half-filled doc clickable instead of rendering a dead button.
