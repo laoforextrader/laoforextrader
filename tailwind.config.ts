@@ -67,7 +67,13 @@ const config: Config = {
         // ใช้ Noto Sans Lao ทั้งหมด
         sans: ["Noto Sans Lao", "sans-serif"],
         lao:  ["Noto Sans Lao", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        // Noto Sans Lao sits behind the mono face on purpose. Font
+        // fallback is per glyph, so digits still take JetBrains Mono
+        // while Lao characters — which it has none of — drop through
+        // instead of landing on whatever the OS picks. Values like
+        // "ມີ" and "ຝາກກີບໄດ້" share a cell with numbers all over the
+        // broker pages, and the mismatch is visible on a phone.
+        mono: ["JetBrains Mono", "Noto Sans Lao", "monospace"],
       },
       typography: {
         DEFAULT: {
