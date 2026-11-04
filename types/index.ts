@@ -60,6 +60,59 @@ export interface Broker {
     color: string
     show: boolean
   }
+
+  // ── Review-directory fields (see sanity/schemas/broker.ts) ───────────────
+  // Everything here is optional on purpose: a broker doc filled in halfway
+  // must still render, with the gaps shown as gaps rather than guessed at.
+  minDepositUsd?: number
+  spreadFrom?: number
+  spreadNote?: string
+  commission?: string
+  withdrawalSpeed?: string
+  swapFree?: boolean
+  depositMethods?: BrokerDepositMethod[]
+  licenses?: BrokerLicense[]
+  registeredIn?: string
+  registeredCity?: string
+  founded?: number
+  phone?: string
+  email?: string
+  websiteLabel?: string
+  bestFor?: string[]
+  notFor?: string[]
+  verdict?: string
+  reviewedAt?: string
+  faq?: { q?: string; a?: string }[]
+  excerpt?: string
+  website?: string
+  platforms?: string
+  regulation?: string
+  regulators?: string[]
+  ratingBreakdown?: BrokerRatingBreakdown
+  body?: unknown[]
+}
+
+export interface BrokerLicense {
+  regulator?: string
+  country?: string
+  licenseNo?: string
+  entity?: string
+  isRepresentative?: boolean
+}
+
+export interface BrokerDepositMethod {
+  name?: string
+  currency?: string
+  time?: string
+  fee?: string
+}
+
+export interface BrokerRatingBreakdown {
+  stability?: number
+  deposit?: number
+  spread?: number
+  support?: number
+  promotion?: number
 }
 
 export interface MarketPrice {

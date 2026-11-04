@@ -47,6 +47,21 @@ const config: Config = {
         warn: { DEFAULT: "var(--warn)",    soft: "var(--warn-soft)",    line: "var(--warn-line)",    ink: "var(--warn-ink)" },
         pink: { DEFAULT: "var(--pink)" },
         violet: { DEFAULT: "var(--violet)", soft: "var(--violet-soft)", line: "var(--violet-line)" },
+
+        // Broker review surface (/broker/*) — flat, one radius, no shadow.
+        bk: {
+          page: "var(--bk-page)",
+          surface: "var(--bk-surface)",
+          sunken: "var(--bk-sunken)",
+          track: "var(--bk-track)",
+          ink: "var(--bk-ink)",
+          muted: "var(--bk-muted)",
+          line: "var(--bk-line)",
+          dash: "var(--bk-dash)",
+        },
+      },
+      borderRadius: {
+        bk: "var(--bk-radius)",   // 8px, every corner on /broker/*
       },
       fontFamily: {
         // ใช้ Noto Sans Lao ทั้งหมด

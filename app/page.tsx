@@ -64,7 +64,7 @@ export default async function HomePage() {
   try {
     const data = await Promise.all([
       sanityClient.fetch<LatestByCategory>(QUERIES.latestByCategory, {}, { next: { revalidate: 60 } }),
-      sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers, {}, { next: { revalidate: 60 } }),
+      sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers(6), {}, { next: { revalidate: 60 } }),
       sanityClient.fetch<Article[]>(`
         *[_type == "article" && category == "education"] | order(publishedAt asc) [0...10] {
           _id, title, slug, readTime

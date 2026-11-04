@@ -111,6 +111,21 @@ html.dark:has([data-force-light]) {
   --violet-soft: #F5F3FF;
   --violet-line: #DDD6FE;
 
+  /* ── Broker review surface ────────────────────────────────────────────
+     A flat, size-driven set used only by /broker/*. Deliberately NOT the
+     site's card palette: no shadow, one radius, hairline borders, and ink
+     that is near-black rather than #000, which is harsh at 48px and above.
+     Hierarchy here comes from type size, never from weight or fill. */
+  --bk-page: #FFFFFF;
+  --bk-surface: #FFFFFF;
+  --bk-sunken: #FAFAFC;
+  --bk-track: #F2F2F5;      /* the empty part of a score bar */
+  --bk-ink: #191919;
+  --bk-muted: #5C5C6B;
+  --bk-line: #DCDCE6;
+  --bk-dash: #A0A0B0;       /* "not filled in yet" dashed borders */
+  --bk-radius: 8px;
+
   --foreground: #111827;  /* legacy aliases */
   --background: #EDEEF2;
 }
@@ -167,6 +182,16 @@ html.dark {
   --warn-ink: #FCD34D;
   --violet-soft: #1F1B33;
   --violet-line: #332B57;
+
+  /* Broker review surface — see the light block for why these are separate */
+  --bk-page: #0E1117;
+  --bk-surface: #141922;
+  --bk-sunken: #1A2029;
+  --bk-track: #242B36;
+  --bk-ink: #F3F5F9;
+  --bk-muted: #9BA5B4;
+  --bk-line: #2B323E;
+  --bk-dash: #4A5362;
 
   --foreground: #F3F5F9;
   --background: #0E1117;
@@ -321,3 +346,35 @@ html.dark:has([data-force-light]) .theme-icon-dark  { display: none; }
 /* Images and charts authored on white get harsh in dark; take the edge off
    without washing out photos or logos. */
 html.dark:not(:has([data-force-light])) img:not([data-no-dim]) { filter: brightness(.92); }
+
+/* ── Broker review surface: motion ────────────────────────────────────────
+   One settling moment on load, nothing that loops. The bar's own width is a
+   custom property so the keyframe can animate to it without JavaScript. */
+@keyframes bk-grow { from { width: 0 } to { width: var(--bk-w, 0%) } }
+
+.bk-bar {
+  width: var(--bk-w, 0%);
+  animation: bk-grow .85s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes bk-pop {
+  from { opacity: 0; transform: scale(.5) }
+  to   { opacity: 1; transform: none }
+}
+
+.bk-pop { animation: bk-pop .34s cubic-bezier(.2, 1.25, .4, 1) backwards; }
+
+/* Height that animates without knowing the content height in advance;
+   max-height would need a guess, and a wrong guess clips or stutters. */
+.bk-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .28s cubic-bezier(.2, .8, .2, 1);
+}
+.bk-panel[data-open="true"] { grid-template-rows: 1fr; }
+.bk-panel > div { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-bar, .bk-pop { animation: none; }
+  .bk-panel { transition: none; }
+}

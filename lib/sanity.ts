@@ -122,18 +122,66 @@ export const QUERIES = {
         coverImage { asset->{ url } }
       }
   }`,
-  featuredBrokers: `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) [0...6] {
-    _id, name, slug, rank, rating, minDeposit, maxLeverage, laoDeposit, affiliateUrl, registerUrl,
+  // The [0...6] slice this used to carry silently hid every broker past the
+  // sixth, so adding a seventh made it vanish from the site with no error.
+  // The homepage asks for the count it wants; the directory asks for all.
+  featuredBrokers: (limit = 6) =>
+    `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) [0...${limit}] {
+    _id, name, slug, rank, rating, ratingBreakdown, verdict,
+    minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
+    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
+    depositMethods[]{ name, currency, time, fee },
+    registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
+    bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
+    faq[]{ q, a },
+    affiliateUrl, registerUrl,
+    logo { asset->{ url }, alt, hotspot, crop },
+    badge { text, color, show }
+  }`,
+  allBrokers: `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) {
+    _id, name, slug, rank, rating, ratingBreakdown, verdict,
+    minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
+    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
+    depositMethods[]{ name, currency, time, fee },
+    registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
+    bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
+    faq[]{ q, a },
+    affiliateUrl, registerUrl,
     logo { asset->{ url }, alt, hotspot, crop },
     badge { text, color, show }
   }`,
   brokerBySlug: (slug: string) => `
     *[_type == "broker" && slug.current == "${slug}"] [0] {
-      _id, name, slug, rank, rating, ratingBreakdown, minDeposit, maxLeverage,
-      laoDeposit, pros, cons, regulators, platforms, excerpt, body,
-      affiliateUrl, registerUrl,
-      logo { asset->{ url }, alt, hotspot, crop },
-      badge { text, color, show }
+    _id, name, slug, rank, rating, ratingBreakdown, verdict,
+    minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
+    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
+    depositMethods[]{ name, currency, time, fee },
+    registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
+    bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
+    faq[]{ q, a },
+    affiliateUrl, registerUrl,
+    logo { asset->{ url }, alt, hotspot, crop },
+    badge { text, color, show },
+      body
+    }
+  `,
+  // Everything the compare page needs for two brokers at once.
+  brokersBySlugs: (a: string, b: string) => `
+    *[_type == "broker" && slug.current in ["${a}", "${b}"]] {
+    _id, name, slug, rank, rating, ratingBreakdown, verdict,
+    minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
+    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
+    depositMethods[]{ name, currency, time, fee },
+    registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
+    bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
+    faq[]{ q, a },
+    affiliateUrl, registerUrl,
+    logo { asset->{ url }, alt, hotspot, crop },
+    badge { text, color, show }
     }
   `,
   latestDailyUpdate: `*[_type == "dailyUpdate"] | order(date desc) [0] {
