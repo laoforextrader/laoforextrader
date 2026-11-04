@@ -26,7 +26,6 @@ import {
   CheckIcon,
   CrossIcon,
   Flag,
-  LicenseChips,
   MetaPill,
   NotRecorded,
   ScoreBars,
@@ -119,7 +118,7 @@ export default function BrokerReview({
 
       <div className="mx-auto max-w-[1100px] px-4 pb-16 pt-8 sm:px-6">
         <nav aria-label="ເສັ້ນທາງ" className="mb-6 text-[15px] text-bk-muted">
-          <Link href="/broker" className="text-bk-muted underline">
+          <Link href="/broker" className="-my-2 inline-block py-2 text-bk-muted underline">
             ໂບຣກເກີ
           </Link>
           <span className="mx-2">›</span>
@@ -228,13 +227,15 @@ export default function BrokerReview({
             {facts.map((f) => (
               <div
                 key={f.label}
-                className={`rounded-bk border p-4 sm:p-5 ${
+                className={`rounded-bk border px-3.5 py-3 sm:p-5 ${
                   f.value ? "border-bk-line" : "border-dashed border-bk-line"
                 }`}
               >
-                <div className="mb-2 text-sm leading-normal text-bk-muted">{f.label}</div>
+                <div className="mb-1.5 text-[13px] leading-normal text-bk-muted sm:mb-2 sm:text-sm">
+                  {f.label}
+                </div>
                 {f.value ? (
-                  <div className="font-mono text-[22px] font-bold leading-tight tracking-[-0.03em] text-bk-ink sm:text-[26px]">
+                  <div className="font-mono text-[17px] font-bold leading-tight tracking-[-0.03em] text-bk-ink sm:text-[22px] md:text-[26px]">
                     {f.value}
                   </div>
                 ) : (
@@ -329,145 +330,171 @@ export default function BrokerReview({
           </section>
         )}
 
-        {/* ── pros / cons ───────────────────────────────────────────────── */}
+        {/* ── pros / cons ───────────────────────────────────────────── */}
+        {/* One card, not two. Two bordered cards with 32px of padding each
+            cost ~80px of pure chrome on a phone and said nothing extra. */}
         {(pros.length > 0 || cons.length > 0) && (
-          <section className="mt-4 grid items-start gap-4 md:grid-cols-2">
-            {pros.length > 0 && (
-              <div className={`${CARD} p-6 sm:p-8`}>
-                <h2 className="m-0 mb-4 text-xl font-bold leading-snug tracking-[-0.02em] text-bk-ink">
-                  ຂໍ້ດີ
-                </h2>
-                <ul className="m-0 flex list-none flex-col gap-4 p-0">
-                  {pros.map((p) => (
-                    <li key={p} className="flex items-start gap-3">
-                      <span className="mt-1 text-ok-ink dark:text-ok">
-                        <CheckIcon size={17} />
-                      </span>
-                      <span className="text-[15px] leading-[1.6] text-bk-ink">{p}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {cons.length > 0 && (
-              <div className={`${CARD} p-6 sm:p-8`}>
-                <h2 className="m-0 mb-4 text-xl font-bold leading-snug tracking-[-0.02em] text-bk-ink">
-                  ຂໍ້ເສຍ
-                </h2>
-                <ul className="m-0 flex list-none flex-col gap-4 p-0">
-                  {cons.map((c) => (
-                    <li key={c} className="flex items-start gap-3">
-                      <span className="mt-1 text-bad-ink dark:text-bad">
-                        <CrossIcon size={17} />
-                      </span>
-                      <span className="text-[15px] leading-[1.6] text-bk-ink">{c}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <section className={`mt-12 ${CARD} p-5 sm:p-8`}>
+            <div className="grid gap-7 md:grid-cols-2 md:gap-10">
+              {pros.length > 0 && (
+                <div>
+                  <h2 className="m-0 mb-4 flex items-center gap-2.5 text-lg font-bold leading-snug tracking-[-0.02em] text-bk-ink">
+                    <span className="text-ok-ink dark:text-ok">
+                      <CheckIcon size={19} />
+                    </span>
+                    ຂໍ້ດີ
+                  </h2>
+                  <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
+                    {pros.map((p) => (
+                      <li key={p} className="flex items-start gap-2.5">
+                        <span className="mt-[9px] inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-ok" />
+                        <span className="text-[15px] leading-[1.6] text-bk-ink">{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {cons.length > 0 && (
+                <div className="border-t border-bk-line pt-7 md:border-l md:border-t-0 md:pl-10 md:pt-0">
+                  <h2 className="m-0 mb-4 flex items-center gap-2.5 text-lg font-bold leading-snug tracking-[-0.02em] text-bk-ink">
+                    <span className="text-bad-ink dark:text-bad">
+                      <CrossIcon size={19} />
+                    </span>
+                    ຂໍ້ເສຍ
+                  </h2>
+                  <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
+                    {cons.map((c) => (
+                      <li key={c} className="flex items-start gap-2.5">
+                        <span className="mt-[9px] inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-bad" />
+                        <span className="text-[15px] leading-[1.6] text-bk-ink">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </section>
         )}
 
-        {/* ── licences ──────────────────────────────────────────────────── */}
+        {/* ── licences ──────────────────────────────────────────────── */}
+        {/* One bordered box of rows, not three cards. A licence is three
+            short facts; a card each turned 9 lines into half a screen. */}
         <section className="mt-12">
           <h2 className={`${H2} mb-2`}>ໃບອະນຸຍາດ ແລະ ຄວາມປອດໄພ</h2>
           <p className="mb-4 text-[15px] leading-relaxed text-bk-muted">
             ເລກໃບອະນຸຍາດກວດສອບໄດ້ຈາກເວັບຂອງຜູ້ກຳກັບດູແລໂດຍກົງ
           </p>
           {licenses.length === 0 ? (
-            <div className={`${CARD} p-6 text-[15px] text-bk-muted`}>ຍັງບໍ່ໄດ້ບັນທຶກໃບອະນຸຍາດ</div>
+            <div className={`${CARD} p-5 text-[15px] text-bk-muted`}>ຍັງບໍ່ໄດ້ບັນທຶກໃບອະນຸຍາດ</div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className={`m-0 list-none divide-y divide-bk-line overflow-hidden p-0 ${CARD}`}>
               {licenses.map((l, i) => (
-                <div
+                <li
                   key={`${l.regulator}-${i}`}
-                  className={`rounded-bk border p-5 sm:p-6 ${
-                    l.isRepresentative ? "border-dashed border-bk-dash" : "border-bk-line"
-                  }`}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5 sm:px-5 sm:py-4"
                 >
-                  <div className="mb-3 flex items-center gap-3">
-                    {l.flag && (
-                      <Image
-                        src={l.flag}
-                        alt={l.country ?? ""}
-                        width={30}
-                        height={22}
-                        data-no-dim
-                        className="shrink-0 rounded-[3px] border border-bk-line object-cover"
-                        style={{ width: 30, height: 22 }}
-                      />
-                    )}
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="font-mono text-xl font-bold leading-tight tracking-[-0.02em] text-bk-ink">
-                        {l.regulator}
+                  {l.flag && (
+                    <Image
+                      src={l.flag}
+                      alt={l.country ?? ""}
+                      width={26}
+                      height={19}
+                      data-no-dim
+                      className="shrink-0 rounded-[3px] border border-bk-line object-cover"
+                      style={{ width: 26, height: 19 }}
+                    />
+                  )}
+                  <span className="font-mono text-base font-bold tracking-[-0.02em] text-bk-ink">
+                    {l.regulator}
+                  </span>
+                  {l.country && <span className="text-sm text-bk-muted">{l.country}</span>}
+
+                  <span className="ml-auto shrink-0">
+                    {l.licenseNo ? (
+                      <span className="inline-block rounded-bk border border-bk-line px-2.5 py-1 font-mono text-[13px] font-semibold text-bk-ink">
+                        {l.licenseNo}
                       </span>
-                      {l.country && <span className="text-sm text-bk-muted">{l.country}</span>}
+                    ) : (
+                      <NotRecorded />
+                    )}
+                  </span>
+
+                  {(l.entity || l.isRepresentative) && (
+                    <span className="w-full text-[13px] leading-relaxed">
+                      {l.isRepresentative ? (
+                        // The distinction most directories quietly drop:
+                        // being someone's authorised representative is not
+                        // holding the licence.
+                        <span className="font-semibold text-warn-ink dark:text-warn">
+                          ເປັນພຽງຜູ້ຕາງໜ້າທີ່ໄດ້ຮັບອະນຸຍາດ ບໍ່ແມ່ນຜູ້ຖືໃບອະນຸຍາດເອງ
+                        </span>
+                      ) : (
+                        <span className="text-bk-muted">{l.entity}</span>
+                      )}
                     </span>
-                  </div>
-                  {l.entity && <div className="mb-3 text-[13px] leading-relaxed text-bk-muted">{l.entity}</div>}
-                  {l.isRepresentative && (
-                    // The distinction most sites quietly drop. Being somebody's
-                    // authorised representative is not holding the licence.
-                    <div className="mb-3 text-[13px] font-semibold leading-relaxed text-warn-ink dark:text-warn">
-                      ເປັນພຽງຜູ້ຕາງໜ້າທີ່ໄດ້ຮັບອະນຸຍາດ ບໍ່ແມ່ນຜູ້ຖືໃບອະນຸຍາດເອງ
-                    </div>
                   )}
-                  {l.licenseNo ? (
-                    <div className="inline-block rounded-bk border border-bk-line px-3 py-1.5 font-mono text-sm font-semibold text-bk-ink">
-                      ເລກທີ {l.licenseNo}
-                    </div>
-                  ) : (
-                    <NotRecorded />
-                  )}
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </section>
 
         {/* ── deposit ───────────────────────────────────────────────────── */}
-        {methods.length > 0 && (
-          <section className="mt-12">
-            <h2 className={`${H2} mb-4`}>ການຝາກ-ຖອນເງິນ ສຳລັບຄົນລາວ</h2>
-            <div className={`${CARD} overflow-hidden`}>
-              <div className="hidden grid-cols-4 gap-4 border-b border-bk-line px-5 py-4 text-sm font-semibold text-bk-muted md:grid">
-                <span>ຊ່ອງທາງ</span>
-                <span>ສະກຸນເງິນ</span>
-                <span>ເວລາຖອນ</span>
-                <span>ຄ່າທຳນຽມ</span>
-              </div>
-              <ul className="m-0 list-none divide-y divide-bk-line p-0">
-                {methods.map((m, i) => (
-                  <li
-                    key={`${m.name}-${i}`}
-                    className="grid grid-cols-2 gap-x-4 gap-y-3 px-5 py-5 md:grid-cols-4 md:items-center md:gap-4"
-                  >
-                    <Cell label="ຊ່ອງທາງ" strong>
-                      {m.name ?? "—"}
-                    </Cell>
-                    <Cell label="ສະກຸນເງິນ">{m.currency ?? "—"}</Cell>
-                    <Cell label="ເວລາຖອນ">{m.time ?? <NotRecorded />}</Cell>
-                    <Cell label="ຄ່າທຳນຽມ">{m.fee ?? <NotRecorded />}</Cell>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <p className="mt-3 text-sm text-bk-muted">
-              {lao === "full"
-                ? "ຝາກ-ຖອນຜ່ານທະນາຄານລາວເປັນເງິນກີບໄດ້"
-                : lao === "partial"
-                  ? "ຝາກ-ຖອນຜ່ານທະນາຄານລາວໄດ້ ແຕ່ເປັນສະກຸນ USD"
-                  : "ຍັງບໍ່ຮອງຮັບການຝາກ-ຖອນຜ່ານທະນາຄານລາວໂດຍກົງ"}
-            </p>
-          </section>
-        )}
-
-        {/* ── how to open ───────────────────────────────────────────────── */}
+        {/* Always rendered. This was gated on methods.length and vanished
+            whenever the field was empty — silently hiding the one subject a
+            Lao reader came for, and hiding it from whoever fills the doc too. */}
         <section className="mt-12">
-          <div className={`${CARD} p-6 sm:p-8`}>
-            <h2 className={`${H2} mb-6`}>ເປີດບັນຊີ {broker.name} ແນວໃດ</h2>
-            <ol className="m-0 grid list-none gap-6 p-0 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className={`${H2} mb-2`}>ການຝາກ-ຖອນເງິນ ສຳລັບຄົນລາວ</h2>
+          <p className="mb-4 text-[15px] leading-relaxed text-bk-muted">
+            {lao === "full"
+              ? "ຝາກ-ຖອນຜ່ານທະນາຄານລາວເປັນເງິນກີບໄດ້"
+              : lao === "partial"
+                ? "ຝາກ-ຖອນຜ່ານທະນາຄານລາວໄດ້ ແຕ່ເປັນສະກຸນ USD"
+                : "ຍັງບໍ່ຮອງຮັບການຝາກ-ຖອນຜ່ານທະນາຄານລາວໂດຍກົງ"}
+          </p>
+
+          {methods.length === 0 ? (
+            <div className={`${CARD} border-dashed p-5 text-[15px] leading-relaxed text-bk-muted`}>
+              ຍັງບໍ່ໄດ້ບັນທຶກຊ່ອງທາງຝາກ-ຖອນຂອງໂບຣກນີ້ — ພວກເຮົາກຳລັງທົດສອບ ແລະ ຈະເຕີມໃສ່ເມື່ອຢືນຢັນແລ້ວ
+            </div>
+          ) : (
+            <ul className={`m-0 list-none divide-y divide-bk-line overflow-hidden p-0 ${CARD}`}>
+              {methods.map((m, i) => (
+                <li key={`${m.name}-${i}`} className="px-4 py-3.5 sm:px-5 sm:py-4">
+                  <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                    <span className="text-[15px] font-semibold text-bk-ink">{m.name ?? "—"}</span>
+                    {m.currency && (
+                      <span className="font-mono text-[13px] text-bk-muted">{m.currency}</span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-bk-muted">
+                    <span>ເວລາຖອນ</span>
+                    {m.time ? (
+                      <span className="font-semibold text-bk-ink">{m.time}</span>
+                    ) : (
+                      <NotRecorded />
+                    )}
+                    <span aria-hidden="true">·</span>
+                    <span>ຄ່າທຳນຽມ</span>
+                    {m.fee ? (
+                      <span className="font-semibold text-bk-ink">{m.fee}</span>
+                    ) : (
+                      <NotRecorded />
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* ── how to open ──────────────────────────────────────────── */}
+        {/* The number sits on the title's line. As a stacked badge it pushed
+            every step to three lines and the four of them to half a screen. */}
+        <section className="mt-12">
+          <div className={`${CARD} p-5 sm:p-8`}>
+            <h2 className={`${H2} mb-5`}>ເປີດບັນຊີ {broker.name} ແນວໃດ</h2>
+            <ol className="m-0 grid list-none gap-5 p-0 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
               {[
                 { t: "ກົດລິ້ງສະໝັກ", d: `ເປີດໜ້າສະໝັກຂອງ ${broker.name} ຈາກລິ້ງໃນໜ້ານີ້` },
                 { t: "ຢືນຢັນຕົວຕົນ", d: "ອັບໂຫຼດບັດປະຈຳຕົວ ຫຼື ໜັງສືຜ່ານແດນ ແລະ ເອກະສານທີ່ຢູ່" },
@@ -478,15 +505,17 @@ export default function BrokerReview({
                     : "ຝາກເງິນຜ່ານຊ່ອງທາງທີ່ທ່ານສະດວກ",
                 },
                 { t: "ເລີ່ມເທຣດ", d: "ດາວໂຫຼດແພລດຟອມ ແລ້ວເຂົ້າສູ່ລະບົບດ້ວຍເລກບັນຊີ" },
-              ].map((s, i) => (
-                <li key={s.t}>
-                  <span className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-bk bg-bk-ink font-mono text-base font-semibold text-bk-page">
-                    {i + 1}
-                  </span>
-                  <div className="mb-2 text-[17px] font-bold leading-snug tracking-[-0.015em] text-bk-ink">
-                    {s.t}
+              ].map((s2, i) => (
+                <li key={s2.t}>
+                  <div className="mb-1.5 flex items-center gap-2.5">
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-bk-ink font-mono text-[13px] font-semibold text-bk-page">
+                      {i + 1}
+                    </span>
+                    <span className="text-[16px] font-bold leading-snug tracking-[-0.015em] text-bk-ink">
+                      {s2.t}
+                    </span>
                   </div>
-                  <div className="text-[15px] leading-[1.7] text-bk-muted">{s.d}</div>
+                  <div className="pl-[34px] text-sm leading-[1.65] text-bk-muted">{s2.d}</div>
                 </li>
               ))}
             </ol>
@@ -495,7 +524,7 @@ export default function BrokerReview({
                 href={register}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
-                className={`${btnSolid} mt-8 min-h-[56px] w-full text-[17px] hover:scale-[1.012]`}
+                className={`${btnSolid} mt-7 min-h-[56px] w-full text-[17px] hover:scale-[1.012]`}
               >
                 ເປີດບັນຊີ {broker.name} ດຽວນີ້
                 <ArrowIcon size={18} />
@@ -561,26 +590,6 @@ function CompanyRow({ label, children }: { label: string; children: React.ReactN
   )
 }
 
-/** Labels show only on a phone, where there is no header row to read from. */
-function Cell({
-  label,
-  children,
-  strong = false,
-}: {
-  label: string
-  children: React.ReactNode
-  strong?: boolean
-}) {
-  return (
-    <div>
-      <div className="mb-1 text-xs text-bk-muted md:hidden">{label}</div>
-      <div className={strong ? "text-base font-semibold text-bk-ink" : "text-[15px] text-bk-ink"}>
-        {children}
-      </div>
-    </div>
-  )
-}
-
 function VerdictCard({
   title,
   tone,
@@ -591,7 +600,7 @@ function VerdictCard({
   items: string[]
 }) {
   return (
-    <div className={`${CARD} p-6 sm:p-8`}>
+    <div className={`${CARD} p-5 sm:p-8`}>
       <div className="mb-4 flex items-center gap-3">
         <span className={tone === "good" ? "text-ok-ink dark:text-ok" : "text-bad-ink dark:text-bad"}>
           {tone === "good" ? <CheckIcon size={22} /> : <CrossIcon size={22} />}
