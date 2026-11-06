@@ -198,3 +198,31 @@ export interface EAStats {
   dailyReturns?: Array<{ _key?: string; date: string; profitPct: number }>
   lastUpdate?: string
 }
+
+/** One summarised broker-industry story — see sanity/schemas/brokerNews.ts */
+export interface BrokerNewsEntry {
+  _key?: string
+  id: string
+  title: string
+  summary: string
+  category?: string
+  brokers?: string[]
+  source?: string
+  sourceName?: string
+  sourceTitle?: string
+  pubDate?: string
+}
+
+export interface BrokerNewsDoc {
+  date: string
+  items?: BrokerNewsEntry[]
+}
+
+/** One summarised market story from the daily pipeline's hotNews[]. */
+export interface HotNewsEntry {
+  _key?: string
+  id: string
+  title: string
+  summary?: string
+  pubDate?: string
+}

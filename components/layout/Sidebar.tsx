@@ -8,27 +8,28 @@
 //
 // Two things were also simply broken:
 //   · `trending` was passed in by app/page.tsx and never rendered. Five
-//     articles were being queried and fetched on every homepage request, then
-//     dropped on the floor. It is a list now.
+//     articles were queried and fetched on every homepage request, then
+//     dropped on the floor. It was briefly a "most read" list and is now two
+//     news blocks instead: what moved in the broker industry, and what moved
+//     in the market. A rail that changes on its own is what makes a site look
+//     tended; five links to our own evergreen articles did not.
 //   · The newsletter box was an <input> and a <button> with no handler, so
 //     every address typed into it was discarded. It posts to /api/newsletter
 //     through the same component the footer uses.
 
 import Link from "next/link"
 import Image from "next/image"
-import type { Broker, Article } from "@/types"
+import type { Broker, BrokerNewsEntry, HotNewsEntry } from "@/types"
 import { gradeColor, gradeInk, licensesOf } from "@/lib/broker"
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
-import { categoryRoute } from "@/lib/utils"
+import { BrokerNewsCompact } from "@/components/news/BrokerNewsList"
 
-interface Props { brokers?: Broker[]; trending?: Article[] }
-
-const CAT_LABEL: Record<string, string> = {
-  education: "ການສຶກສາ",
-  "ea-tools": "EA & Tools",
-  analysis: "ວິເຄາະ",
-  news: "ຂ່າວ",
-  broker: "ລີວິວ Broker",
+interface Props {
+  brokers?: Broker[]
+  /** Summarised broker-industry stories — /api/cron/broker-news. */
+  brokerNews?: BrokerNewsEntry[]
+  /** The market stories from the daily pipeline's hotNews[]. */
+  tradingNews?: HotNewsEntry[]
 }
 
 function SideHead({ title, href, hrefLabel }: { title: string; href?: string; hrefLabel?: string }) {
@@ -49,7 +50,7 @@ function SideHead({ title, href, hrefLabel }: { title: string; href?: string; hr
   )
 }
 
-export function Sidebar({ brokers = [], trending = [] }: Props) {
+export function Sidebar({ brokers = [], brokerNews = [], tradingNews = [] }: Props) {
   return (
     <aside className="flex flex-col gap-8 border-t border-bk-line px-4 py-8 sm:px-6 lg:border-l lg:border-t-0 lg:px-6">
       {/* ── brokers ───────────────────────────────────────────────────── */}
@@ -112,33 +113,34 @@ export function Sidebar({ brokers = [], trending = [] }: Props) {
         </section>
       )}
 
-      {/* ── trending ──────────────────────────────────────────────────── */}
-      {trending.length > 0 && (
+      {/* ── broker-industry news ──────────────────────────────────────── */}
+      {brokerNews.length > 0 && (
         <section>
-          <SideHead title="ກຳລັງອ່ານຫຼາຍ" />
-          <ol className="m-0 list-none divide-y divide-bk-line p-0">
-            {trending.map((a, i) => (
-              <li key={a._id}>
-                <Link
-                  href={`/${categoryRoute(a.category)}/${a.slug?.current ?? ""}`}
-                  className="flex gap-3 py-3 no-underline"
-                >
-                  <span className="shrink-0 font-mono text-[15px] font-bold leading-[1.5] text-bk-line">
-                    {String(i + 1).padStart(2, "0")}
+          <SideHead title="ຂ່າວວົງການໂບຣກເກີ" href="/broker#news" hrefLabel="ທັງໝົດ" />
+          <BrokerNewsCompact items={brokerNews.slice(0, 3)} />
+        </section>
+      )}
+
+      {/* ── market news ───────────────────────────────────────────────── */}
+      {tradingNews.length > 0 && (
+        <section>
+          <SideHead title="ຂ່າວຕະຫຼາດ" href="/news" hrefLabel="ທັງໝົດ" />
+          <ul className="m-0 list-none divide-y divide-bk-line p-0">
+            {tradingNews.slice(0, 3).map((n) => (
+              <li key={n._key ?? n.id}>
+                <Link href={`/news/hot/${n.id}`} className="block py-3 no-underline">
+                  <span className="block text-[14px] font-semibold leading-[1.6] tracking-[-0.01em] text-bk-ink hover:underline">
+                    {n.title}
                   </span>
-                  <span className="min-w-0">
-                    <span className="block text-[14px] font-semibold leading-[1.6] tracking-[-0.01em] text-bk-ink hover:underline">
-                      {a.title}
+                  {n.summary && (
+                    <span className="mt-1 block line-clamp-2 text-[11px] leading-[1.6] text-bk-muted">
+                      {n.summary}
                     </span>
-                    <span className="mt-1 block text-[11px] leading-tight text-bk-muted">
-                      {CAT_LABEL[a.category] ?? a.category}
-                      {a.readTime ? ` · ${a.readTime} ນາທີ` : ""}
-                    </span>
-                  </span>
+                  )}
                 </Link>
               </li>
             ))}
-          </ol>
+          </ul>
         </section>
       )}
 

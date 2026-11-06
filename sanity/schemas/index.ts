@@ -7,6 +7,7 @@ import { quizSchema }    from "./quiz"
 import { eaStatsSchema } from "./eaStats"
 import { broadcastScheduleSchema } from "./broadcastSchedule"
 import { dailyUpdateSchema } from "./dailyUpdate"
+import { brokerNewsSchema } from "./brokerNews"
 import { subscriberSchema } from "./subscriber"
 import { chatQuotaSchema } from "./chatQuota"
 import { chatSessionSchema } from "./chatSession"
@@ -14,4 +15,4 @@ import { adminMessageSchema } from "./adminMessage"
 import { supportThreadSchema } from "./supportThread"
 import { clickStatSchema } from "./clickStat"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema, clickStatSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, brokerNewsSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema, clickStatSchema]

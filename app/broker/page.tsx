@@ -3,12 +3,13 @@ import Link from "next/link"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { ArticleCard } from "@/components/article/ArticleCard"
 import BrokerDirectory from "@/components/broker/review/BrokerDirectory"
+import { BrokerNewsList } from "@/components/news/BrokerNewsList"
 import BrokerScoreCard from "@/components/broker/review/BrokerScoreCard"
 import { CheckIcon, MetaPill } from "@/components/broker/review/BrokerBits"
 import { JsonLd, breadcrumbLd } from "@/lib/structuredData"
 import { formatDate } from "@/lib/utils"
 import { sortBrokers } from "@/lib/broker"
-import type { Article, Broker } from "@/types"
+import type { Article, Broker, BrokerNewsDoc } from "@/types"
 
 export const metadata: Metadata = {
   title: "ໂບຣກເກີ Forex ສຳລັບຄົນລາວ 2026 — ທຽບຄ່າທຳນຽມ ໃບອະນຸຍາດ ແລະ ການຝາກ-ຖອນ",
@@ -19,9 +20,14 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function Page() {
-  const [articles, brokers] = await Promise.all([
+  const [articles, brokers, brokerNews] = await Promise.all([
     sanityClient.fetch<Article[]>(QUERIES.articlesByCategory("broker", 6), {}, { next: { revalidate: 60 } }),
     sanityClient.fetch<Broker[]>(QUERIES.allBrokers, {}, { next: { revalidate: 60 } }),
+    // Allowed to be null: a failed run hides the section rather than
+    // rendering an empty heading under a promise of news.
+    sanityClient
+      .fetch<BrokerNewsDoc | null>(QUERIES.latestBrokerNews, {}, { next: { revalidate: 300 } })
+      .catch(() => null),
   ])
 
   const ranked = sortBrokers(brokers ?? [], "rank")
@@ -86,6 +92,23 @@ export default async function Page() {
         <div className="mt-7 sm:mt-10">
           <BrokerDirectory brokers={ranked} />
         </div>
+
+        {/* ── industry news ─────────────────────────────────────────────── */}
+        {brokerNews?.items && brokerNews.items.length > 0 && (
+          <section id="news" className="mt-12 scroll-mt-24">
+            <h2 className="lao-head m-0 text-[26px] font-bold leading-tight tracking-[-0.025em] text-bk-ink sm:text-[30px]">
+              ຂ່າວວົງການໂບຣກເກີ
+            </h2>
+            <p className="m-0 mb-5 mt-2 max-w-[60ch] text-base leading-[1.75] text-bk-muted">
+              ສະຫຼຸບເປັນພາສາລາວຈາກສຳນັກຂ່າວວົງການ — ຄຳສັ່ງຂອງຜູ້ກຳກັບດູແລ, ໃບອະນຸຍາດ, ການຊື້ກິດຈະການ ແລະ ງານວົງການ ·
+              ທຸກຂ່າວມີລິ້ງກັບໄປຫາຕົ້ນສະບັບ
+            </p>
+            <BrokerNewsList items={brokerNews.items} />
+            <p className="m-0 mt-4 text-sm leading-[1.75] text-bk-muted">
+              ພວກເຮົາສະຫຼຸບຂ່າວຂອງຜູ້ອື່ນ ບໍ່ແມ່ນລາຍງານເອງ — ກ່ອນຕັດສິນໃຈ ຄວນກວດກັບຕົ້ນສະບັບ ແລະ ທະບຽນຂອງຜູ້ກຳກັບດູແລ
+            </p>
+          </section>
+        )}
 
         {/* ── how we rate ───────────────────────────────────────────────── */}
         <section id="how-we-rate" className="mt-12 scroll-mt-24 rounded-bk border border-bk-line p-6 sm:p-8">

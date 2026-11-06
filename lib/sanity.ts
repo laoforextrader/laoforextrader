@@ -184,6 +184,15 @@ export const QUERIES = {
     badge { text, color, show }
     }
   `,
+  // Newest broker-news doc, whatever its date. Same shape as
+  // latestDailyUpdate and for the same reason: when a day's run fails, the
+  // section keeps showing the last good set rather than emptying out.
+  // Only a completed run is eligible — a stage-1 doc has rawNews but no
+  // Lao items yet, and serving it would blank the section mid-pipeline.
+  latestBrokerNews: `*[_type == "brokerNews" && pipelineComplete == true] | order(date desc)[0] {
+    date,
+    items[]{ _key, id, title, summary, category, brokers, source, sourceName, sourceTitle, pubDate }
+  }`,
   latestDailyUpdate: `*[_type == "dailyUpdate"] | order(date desc) [0] {
     _id, date, dailySummary,
     topEvents[]{ _key, id, nameLao, nameEn, currency, country, time, timeISO, impact, forecast, previous, description, analysis, tradingGuidance },

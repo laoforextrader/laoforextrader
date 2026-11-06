@@ -35,7 +35,7 @@ import FounderSection from "@/components/sections/FounderSection"
 import EASGrideCTA from "@/components/sections/EASGrideCTA"
 import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
 import { btnSolid, btnOutline, ArrowIcon } from "@/components/broker/review/BrokerBits"
-import type { Article, Broker } from "@/types"
+import type { Article, Broker, BrokerNewsDoc, HotNewsEntry } from "@/types"
 import { categoryRoute, formatDate } from "@/lib/utils"
 
 export const revalidate = 60
@@ -81,6 +81,7 @@ interface LatestByCategory {
 interface DailyUpdate {
   date: string
   calendarHighlights?: Array<{ _key?: string; name: string; time: string; impact: string }>
+  hotNews?: HotNewsEntry[]
 }
 
 interface SiteCounts {
@@ -130,13 +131,15 @@ export default async function HomePage() {
   // the helper, so this doesn't add latency on warm requests.
   const goldSnapshot = await getGoldSnapshot().catch(() => null)
 
+  // The two feeds the sidebar runs on. Both are allowed to be missing: a
+  // failed pipeline hides its block rather than rendering an empty heading.
   let dailyUpdate: DailyUpdate | null = null
+  let brokerNews: BrokerNewsDoc | null = null
   try {
-    dailyUpdate = await sanityClient.fetch<DailyUpdate | null>(
-      QUERIES.latestDailyUpdate,
-      {},
-      { next: { revalidate: 60 } },
-    )
+    ;[dailyUpdate, brokerNews] = await Promise.all([
+      sanityClient.fetch<DailyUpdate | null>(QUERIES.latestDailyUpdate, {}, { next: { revalidate: 60 } }),
+      sanityClient.fetch<BrokerNewsDoc | null>(QUERIES.latestBrokerNews, {}, { next: { revalidate: 300 } }),
+    ])
   } catch {}
 
   const featured = latest.featured
@@ -144,10 +147,6 @@ export default async function HomePage() {
   const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
     .map((cat) => latest[cat])
     .filter((a): a is Article => !!a && a._id !== featured?._id)
-  const trending = [featured, latest.education, latest["ea-tools"], latest.analysis, latest.news].filter(
-    (a): a is Article => !!a,
-  )
-
   /**
    * Every figure here is either counted from Sanity or a claim about us that
    * needs no counting. The old hero also carried "12K+ ສະມາຊິກ", which is
@@ -351,7 +350,11 @@ export default async function HomePage() {
           )}
         </div>
 
-        <Sidebar brokers={brokers} trending={trending.slice(0, 5)} />
+        <Sidebar
+          brokers={brokers}
+          brokerNews={brokerNews?.items ?? []}
+          tradingNews={dailyUpdate?.hotNews ?? []}
+        />
       </div>
 
       {/* ── lessons ─────────────────────────────────────────────────────── */}

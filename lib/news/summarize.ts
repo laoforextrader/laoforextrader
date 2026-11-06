@@ -139,7 +139,9 @@ After writing each Lao sentence, re-read it and ask:
 
 // ── JSON helpers ───────────────────────────────────────────────────────────
 
-function extractJson(text: string): any {
+// Exported so the broker-news summariser parses model output the same way
+// rather than growing a second copy that drifts.
+export function extractJson(text: string): any {
   const noFences = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()
   const start = noFences.indexOf("{")
   const end = noFences.lastIndexOf("}")
@@ -154,7 +156,7 @@ function extractJson(text: string): any {
   }
 }
 
-async function callClaude(client: Anthropic, prompt: string, maxTokens: number) {
+export async function callClaude(client: Anthropic, prompt: string, maxTokens: number) {
   const message = await client.messages.create(
     {
       model: "claude-sonnet-4-6",
@@ -175,7 +177,7 @@ async function callClaude(client: Anthropic, prompt: string, maxTokens: number) 
 // punctuation, and a small whitelist of symbols/emoji. Catches Chinese
 // (换), Thai-only consonants, Korean, etc. that occasionally bleed in.
 const ALLOWED_CHAR_RE = /[຀-໿ -~ -ÿ -⁯‐-‧\n\t📊📰🔥📉📈⚠️💡✨🇺🇸🇪🇺🇬🇧🇯🇵🇦🇺🇨🇦🇨🇭🇳🇿🌐🪙🚀⚡▲▼●→←·]/u
-function sanitizeLao(text: string | undefined): string {
+export function sanitizeLao(text: string | undefined): string {
   if (!text) return ""
   // Whitelist approach: keep Lao + Latin + digits + standard punctuation
   // + emoji + general punctuation, strip everything else (CJK, Korean,

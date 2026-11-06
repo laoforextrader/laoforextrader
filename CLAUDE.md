@@ -45,6 +45,42 @@ Two separate walls can kill it, and the SDK's is the easier one to miss: a `time
 
 **LINE push gate:** `hasVeryHighImpact()` in `lib/news/summarize.ts`, deliberately stricter than `hasHighImpact`. Requires all three: `country === "US"`, `impact === "high"`, and a `TIER1_EVENT_RE` match (NFP · CPI · FOMC · Fed funds · rate decision · core PCE). Keeps pushes to ~4–5/month against the 500-msg quota. `lineSentAt` records a successful push.
 
+### 1b. Broker-industry news (external cron)
+
+Same shape as pipeline 1 and deliberately a separate doc type. `lib/news/brokerSources.ts`
+reads two industry wires — Finance Magnates and LeapRate — keyword-filters them,
+drops exact headline repeats, and `lib/news/summarizeBrokerNews.ts` turns the
+survivors into Lao items in ONE Claude call. `/api/cron/broker-news` writes a
+`brokerNews` doc per day (`_id = broker-news-YYYY-MM-DD`).
+
+It answers a question pipeline 1 does not. FXStreet and ForexLive cover the
+MARKET; these cover the BUSINESS — a regulator fining a broker, a licence
+withdrawn, an acquisition, an iFX EXPO — which is what bears on a reader
+deciding who to hand money to.
+
+- **Not a Vercel cron.** The one daily slot is taken. Schedule it on cron-job.org:
+  `/api/cron/broker-news?secret=<BROADCAST_SECRET>`, once a day (this wire moves in
+  days). A second hit later is a free safety net: a run that finds
+  `pipelineComplete` already true costs one Sanity read and returns. `?force=true`
+  regenerates, `?debug=true` returns the fetched headlines without calling Claude.
+- **Budget:** measured 39.8s for the Claude call at `max_tokens: 1400`. The ~34
+  output-tokens/sec figure from pipeline 1 is what to budget by; change
+  `max_tokens` and that number moves with it. `maxDuration = 300`.
+- **Same two-stage write** as pipeline 1, for the same reason: stage 1 saves the raw
+  wire with `pipelineComplete: false` before spending anything on Claude, so a
+  hard kill leaves a doc behind rather than nothing.
+- **An empty result never overwrites a good one.** Both "no items survived the
+  filter" and "the summariser kept nothing" leave the previous doc intact and send
+  a Telegram notice, because `QUERIES.latestBrokerNews` serves the newest
+  *completed* doc and blanking today's would blank the section.
+- **De-duplication is the model's job, not the fetcher's.** Both outlets run the
+  same story worded differently ("Webull fined $4.2 million by FINRA" vs "FINRA
+  Fines Webull $4.2M After 120K Accounts Bypassed Proper ID Checks"); no string
+  comparison catches that, so the prompt asks for one item per event.
+- **The count varies and that is the design.** It returns what the day's wire
+  actually holds — 3 of 20 candidates on the first live run — and the prompt
+  forbids padding. A thin day is a thin section.
+
 ### 2. LINE broadcast pipeline (external cron + Sanity-driven schedules)
 
 External scheduler **cron-job.org** (Asia/Bangkok TZ) hits `/api/cron/broadcast` hourly → `lib/broadcast/dispatcher.ts` lists `broadcastSchedule` docs from Sanity, evaluates each via `shouldFire()`, and dispatches the due ones.
@@ -122,11 +158,18 @@ A reader-facing switch sits in the Navbar. First visit follows the OS
   inline `<script>` in `<head>`; moving the class assignment into an effect
   would flash white on every navigation for a dark reader. `<html>` carries
   `suppressHydrationWarning` because that script mutates it pre-hydration.
-- **`ForceLight` pins a route to light.** `/admin`, `/tools/*` and the payment
-  flow render it (via their `layout.tsx`) and
-  `html.dark:has([data-force-light])` re-declares the light tokens, so the
-  Navbar and Footer follow and no reader meets a half-converted page. Deleting
-  that one line opts a route into dark.
+- **`ForceLight` pins a route to light.** `/admin` and the payment flow render
+  it (via their `layout.tsx`) and `html.dark:has([data-force-light])`
+  re-declares the light tokens, so the Navbar and Footer follow and no reader
+  meets a half-converted page. Deleting that one line opts a route into dark.
+  `/tools/*` was pinned until 2026-11-06 and is not any more — the converted
+  calculators are the worked example of what un-pinning takes. Two traps
+  there, both from mixing a CSS variable with raw hex and both silent because
+  an invalid CSS value is simply dropped: `m.color + "14"` yields
+  `var(--accent)14`, and `ctx.strokeStyle = "var(--accent)"` cannot resolve a
+  custom property at all, so a Chart.js dataset needs its colours resolved
+  through `getComputedStyle` first and the chart rebuilt when `html.dark`
+  flips (`LotCurveDesigner` carries both).
 - **A role decides whether a colour may move.** A dark neutral used as `color`
   is text and flips; the same hex used as `background` is a deliberately dark
   block and must not. Light neutrals are the mirror image. Dark ink that sits
@@ -160,6 +203,7 @@ Schemas in `sanity/schemas/index.ts`:
 - `eaStats` — one doc per EA id (`sgride`, `megihedge`, `abs`); patched only by `/api/ea/stats`. The doc must be **created in Studio first** — the webhook 404s on an unknown `eaId` (it never auto-creates).
 - `broadcastSchedule` — drives pipeline 2
 - `dailyUpdate` — output of pipeline 1, read by `/news/*`
+- `brokerNews` — output of pipeline 1b, read by `/broker` and the homepage sidebar
 - `subscriber` — newsletter membership; emails captured at signup persist for future broadcasts
 - `chatQuota` — one doc per `(key, day)` where key = `u:<userId>` or `ip:<ip>`. Patched by `/api/chat` per turn. Cap: guest 10/day, user 30/day, pro 1000/day.
 - `chatSession` — one doc per `(userId, day)` for logged-in users. Appends `{role, content, createdAt}` per turn.
