@@ -62,7 +62,7 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                 duplicated element is one more thing to keep in step. */}
             <article
               className={`grid gap-x-3 p-4 sm:gap-x-4 sm:p-5 ${
-                img ? "grid-cols-[88px_minmax(0,1fr)] sm:grid-cols-[132px_minmax(0,1fr)]" : "grid-cols-1"
+                img ? "grid-cols-[104px_minmax(0,1fr)] sm:grid-cols-[132px_minmax(0,1fr)]" : "grid-cols-1"
               }`}
             >
             <div
@@ -103,12 +103,18 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
             {img && (
               <Link
                 href={`/broker/news/${n.id}`}
-                // row-span-2 on a phone is what actually buys the space.
-                // Spanning one row, the 88px picture and the tag/read-more
-                // row below it ADD UP; spanning both, the card is as tall as
-                // the taller of the two columns and the footer sits beside
-                // the lower half of the picture instead of under it.
-                className="col-start-1 row-span-2 row-start-3 mt-2 block self-start sm:row-span-4 sm:row-start-1 sm:mt-0"
+                // On a phone the picture STRETCHES to the rows it spans
+                // instead of being a fixed square, so its bottom edge lands
+                // exactly on the bottom of the tag/read-more row however many
+                // lines the summary takes. A fixed square left one column
+                // short of the other and the ragged edge was the last thing
+                // making these rows look assembled rather than laid out.
+                //
+                // From sm the picture goes back to a square pinned to the top
+                // (self-start), because there it spans four rows and
+                // stretching would give a 132px-wide column a portrait crop
+                // half the height of the card.
+                className="col-start-1 row-span-2 row-start-3 mt-2 block sm:row-span-4 sm:row-start-1 sm:mt-0 sm:self-start"
               >
                 {/* Plain <img>: the host is whatever domain the outlet uses,
                     and next/image needs each one allow-listed up front. */}
@@ -117,7 +123,7 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                   src={img}
                   alt=""
                   data-no-dim
-                  className="aspect-square w-[88px] rounded-bk border border-bk-line object-cover sm:w-[132px]"
+                  className="h-full w-full rounded-bk border border-bk-line object-cover sm:aspect-square sm:h-auto sm:w-[132px]"
                 />
               </Link>
             )}
@@ -143,7 +149,12 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                 one. The link keeps its 44px box, which sets the row height —
                 the chips just sit inside it. */}
             <div
-              className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 ${
+              // Right-aligned on a phone only. There the row sits in a
+              // ~230px column with the space to its right empty, and pushing
+              // it to the edge squares it off against the summary above. On a
+              // desktop the same column is 850px wide, so the far right is
+              // nowhere near the text it belongs to.
+              className={`mt-2 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 sm:justify-start ${
                 img ? "col-start-2 row-start-4" : ""
               }`}
             >

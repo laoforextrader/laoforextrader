@@ -9,21 +9,22 @@
 // It is NOT a general-purpose proxy, and the guards below are the whole
 // reason it is safe to expose:
 //
-//   · https only, and the host must resolve to something public. A proxy that
-//     will fetch http://169.254.169.254/ or http://localhost:3000/api/... on
-//     request is an SSRF hole into the deployment's own network.
+//   · https only, and the host must be one of the few on the allow-list in
+//     lib/images/remote.ts. A proxy that will fetch anything on request —
+//     http://169.254.169.254/, or someone else's bandwidth bill — is an SSRF
+//     hole into the deployment's own network and an open relay besides.
 //   · the response must actually be an image, and it is capped. Without that
 //     this is an open file-relay with our bandwidth bill attached.
 //   · one day of immutable cache, because a news thumbnail never changes and
 //     the point is to pay for each image once.
 //
-// It is deliberately unsigned. Signing would close off third parties using
-// our bandwidth entirely, but it needs a shared secret, and a required new
-// env var means every image on production breaks silently until someone sets
-// it. The guards above cost nothing and fail safe; a signature can be added
-// later if the route is ever abused.
+// It is unsigned, and does not need to be: with a fixed host allow-list there
+// is nothing useful to point it at. A signature would also need a shared
+// secret, and a required new env var is a thing that breaks every image in
+// production the day someone forgets it.
 
 import { NextResponse } from "next/server"
+import { needsProxy } from "@/lib/images/remote"
 
 export const runtime = "nodejs"
 
@@ -61,7 +62,11 @@ export async function GET(req: Request) {
   } catch {
     return new NextResponse("bad url", { status: 400 })
   }
-  if (target.protocol !== "https:" || isPrivateHost(target.hostname)) {
+  // The host allow-list in lib/images/remote.ts is the real gate: this route
+  // will only ever fetch an outlet we have decided needs re-serving, so it is
+  // not a general-purpose proxy for anyone who finds the URL. The private-host
+  // check stays as a second line in case that list ever grows carelessly.
+  if (target.protocol !== "https:" || isPrivateHost(target.hostname) || !needsProxy(target.hostname)) {
     return new NextResponse("forbidden", { status: 403 })
   }
 
