@@ -135,29 +135,30 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
               {n.summary}
             </p>
 
-            {/* Tags and the read-more stay in the right column under the
-                summary, at every width. Run full width under the thumbnail
-                instead and they stack BELOW it — the row is then 88px of
-                picture plus their own height, with the space beside the
-                picture left empty. Beside it, the picture and the text column
-                overlap and the card is shorter. */}
-            <div className={img ? "col-start-2 row-start-4" : ""}>
-              {n.brokers && n.brokers.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {n.brokers.map((b) => (
-                    <span
-                      key={b}
-                      className="inline-flex items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-ink"
-                    >
-                      {b}
-                    </span>
-                  ))}
-                </div>
-              )}
+            {/* Tags and the read-more share one row, in the right column
+                under the summary, at every width.
+                
+                Stacked they cost two rows for about six words, and on a phone
+                that was the difference between two stories per screen and
+                one. The link keeps its 44px box, which sets the row height —
+                the chips just sit inside it. */}
+            <div
+              className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 ${
+                img ? "col-start-2 row-start-4" : ""
+              }`}
+            >
+              {n.brokers?.map((b) => (
+                <span
+                  key={b}
+                  className="inline-flex items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-ink"
+                >
+                  {b}
+                </span>
+              ))}
 
               <Link
                 href={`/broker/news/${n.id}`}
-                className="mt-1 inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+                className="inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
               >
                 ອ່ານຕໍ່
               </Link>
