@@ -1,67 +1,80 @@
-"use client"
+// The lessons block on the homepage.
+//
+// Flat surface, same tokens as /broker. It was a soft-blue grid of pills that
+// slid in one by one behind an IntersectionObserver — a client component, and
+// a client bundle, for a list of ten links. It is a server component now and
+// the numbers do the ordering work the animation was doing.
+
 import Link from "next/link"
-import { useEffect, useRef } from "react"
-import { ChevronRight, Clock } from "lucide-react"
-import { Article } from "@/types"
+import type { Article } from "@/types"
+import { btnOutline, ArrowIcon } from "@/components/broker/review/BrokerBits"
 
-interface Props { lessons: Article[] }
+interface Props {
+  lessons: Article[]
+  /**
+   * How many lessons exist, counted in Sanity. The heading used to say "50
+   * ບົດ" from memory while the dataset held 52 — a number nobody would ever
+   * notice going stale, on a page whose whole argument is that its numbers
+   * are checked.
+   */
+  total?: number
+}
 
-export function LessonsPreview({ lessons }: Props) {
-  const gridRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        gridRef.current?.querySelectorAll(".lesson-row").forEach((el, i) => {
-          setTimeout(() => el.classList.add("in"), i * 55)
-        })
-        obs.disconnect()
-      }
-    }, { threshold: 0.2 })
-    if (gridRef.current) obs.observe(gridRef.current)
-    return () => obs.disconnect()
-  }, [])
+export function LessonsPreview({ lessons, total }: Props) {
+  if (!lessons?.length) return null
 
   return (
-    <>
-      <style>{`
-        .lesson-row { opacity:0; transform:translateX(-14px); transition:opacity .25s, transform .25s; }
-        .lesson-row.in { opacity:1; transform:translateX(0); }
-      `}</style>
-
-      <div className="flex items-center justify-between mb-5">
+    <section>
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <div className="section-eyebrow">ບົດຮຽນ Forex ພື້ນຖານ</div>
-          <h2 className="section-title">ຮຽນຟຣີ <span>50 ບົດ</span></h2>
-          <p className="section-sub">ຕັ້ງແຕ່ສູນ ຈົນ Pro · ພາສາລາວ · ລຳດັບຊັດ</p>
+          <h2 className="lao-head m-0 text-[26px] font-bold leading-tight tracking-[-0.025em] text-bk-ink sm:text-[30px]">
+            ຮຽນ Forex ຟຣີ{total ? ` ${total} ບົດ` : ""}
+          </h2>
+          <p className="m-0 mt-2 text-base leading-[1.7] text-bk-muted">
+            ຕັ້ງແຕ່ສູນຈົນໃຊ້ງານໄດ້ · ພາສາລາວ · ຮຽງຕາມລຳດັບ
+          </p>
         </div>
-        <Link href="/lessons" className="hidden md:flex items-center gap-1 text-[11px] text-accent hover:text-accent-strong font-semibold">
-          ທັງໝົດ <ChevronRight size={13} />
+        <Link
+          href="/lessons"
+          className="hidden shrink-0 text-[15px] font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink sm:block"
+        >
+          ທັງໝົດ
         </Link>
       </div>
 
-      <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-5">
+      <ol className="m-0 mt-6 grid list-none grid-cols-1 gap-0 overflow-hidden rounded-bk border border-bk-line p-0 md:grid-cols-2">
         {lessons.map((lesson, i) => (
-          <Link key={lesson._id} href={`/lessons/${lesson.slug?.current ?? ""}`}
-            className="lesson-row flex items-center gap-3 px-4 py-3 bg-surface-2 border border-line-2 rounded-xl hover:bg-accent-soft hover:border-blue-200 transition-all group">
-            <div className="w-7 h-7 rounded-lg bg-accent-soft border border-blue-200 flex items-center justify-center font-mono text-[10px] font-semibold text-accent flex-shrink-0">
-              {String(i + 1).padStart(2, "0")}
-            </div>
-            <p className="font-lao text-[13px] font-medium text-fg-2 group-hover:text-fg flex-1 leading-snug line-clamp-1 transition-colors">
-              {lesson.title}
-            </p>
-            <div className="flex items-center gap-1 text-fg-4 flex-shrink-0">
-              <Clock size={9} />
-              <span className="font-mono text-[10px]">{lesson.readTime ?? 5}m</span>
-              <ChevronRight size={12} className="group-hover:text-blue-500 transition-colors" />
-            </div>
-          </Link>
+          <li
+            key={lesson._id}
+            // The hairline between two columns has to come from the cells, not
+            // from divide-y: a two-column grid divided by rows draws a line
+            // across the gap and through the middle of the pair.
+            className="border-b border-bk-line last:border-b-0 md:[&:nth-last-child(2):nth-child(odd)]:border-b-0 md:[&:nth-child(odd)]:border-r"
+          >
+            <Link
+              href={`/lessons/${lesson.slug?.current ?? ""}`}
+              className="flex min-h-[56px] items-center gap-3 px-4 py-3 no-underline hover:bg-bk-sunken"
+            >
+              <span className="shrink-0 font-mono text-[13px] font-bold text-bk-muted">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="min-w-0 flex-1 text-[15px] font-semibold leading-[1.6] tracking-[-0.01em] text-bk-ink">
+                {lesson.title}
+              </span>
+              <span className="shrink-0 font-mono text-[12px] text-bk-muted">
+                {lesson.readTime ?? 5}m
+              </span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ol>
 
-      <div className="text-center">
-        <Link href="/lessons" className="btn-outline inline-flex">ຮຽນຄົບ 50 ບົດ →</Link>
+      <div className="mt-6">
+        <Link href="/lessons" className={`${btnOutline} w-full sm:w-auto`}>
+          ເບິ່ງບົດຮຽນທັງໝົດ
+          <ArrowIcon size={15} />
+        </Link>
       </div>
-    </>
+    </section>
   )
 }

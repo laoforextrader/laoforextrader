@@ -29,6 +29,7 @@ import {
   registerHref,
   sortBrokers,
   gradeColor,
+  gradeInk,
 } from "@/lib/broker"
 import { Flag, btnSolid, ArrowIcon } from "./BrokerBits"
 
@@ -340,8 +341,8 @@ function BrokerRow({
         )}
 
         <span
-          className="inline-flex min-w-[44px] shrink-0 items-center justify-center rounded-bk px-2.5 py-1.5 font-mono text-[15px] font-bold tracking-[-0.02em] text-white"
-          style={{ background: gradeColor(rating) }}
+          className="inline-flex min-w-[44px] shrink-0 items-center justify-center rounded-bk px-2.5 py-1.5 font-mono text-[15px] font-bold tracking-[-0.02em]"
+          style={{ background: gradeColor(rating), color: gradeInk(rating) }}
         >
           {rating.toFixed(1)}
         </span>

@@ -6,7 +6,7 @@ import { useState } from "react"
 // having an account. /api/newsletter has existed since the schema was written
 // but nothing ever called it, which is why all 49 members arrived through
 // Google sign-in and none of them through an actual request for mail.
-export function NewsletterSignup() {
+export function NewsletterSignup({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("")
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle")
 
@@ -24,6 +24,51 @@ export function NewsletterSignup() {
     } catch {
       setState("error")
     }
+  }
+
+  // The sidebar variant: the flat /broker surface, stacked, in a 280px column.
+  // Same fetch, same states — only the layout differs, so there is one path to
+  // /api/newsletter rather than a second copy that can rot.
+  if (compact) {
+    return (
+      <div className="rounded-bk border border-bk-line p-4">
+        <h2 className="m-0 text-[17px] font-bold leading-snug tracking-[-0.02em] text-bk-ink">
+          ຮັບຂ່າວທາງອີເມວ
+        </h2>
+        {state === "done" ? (
+          <p className="m-0 mt-2 text-[13px] leading-relaxed text-bk-ink">
+            ✓ ສະໝັກສຳເລັດແລ້ວ — ພວກເຮົາຈະສົ່ງໄປໃຫ້ທ່ານ
+          </p>
+        ) : (
+          <>
+            <p className="m-0 mt-1.5 text-[13px] leading-relaxed text-bk-muted">
+              ວິເຄາະຕະຫຼາດ ແລະ EA ຟຣີ · ບໍ່ມີສະແປມ · ຍົກເລີກໄດ້ທຸກເວລາ
+            </p>
+            <form onSubmit={submit} className="mt-3 flex flex-col gap-2">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); if (state === "error") setState("idle") }}
+                placeholder="you@gmail.com"
+                aria-label="ອີເມວ"
+                className="min-h-[44px] w-full rounded-bk border border-bk-line bg-bk-surface px-3 text-[14px] text-bk-ink outline-none focus:border-bk-ink"
+              />
+              <button
+                type="submit"
+                disabled={state === "busy"}
+                className="min-h-[48px] w-full rounded-bk bg-bk-ink px-4 text-[15px] font-semibold text-bk-page transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 motion-reduce:transform-none"
+              >
+                {state === "busy" ? "..." : "ສະໝັກຮັບຂ່າວ"}
+              </button>
+            </form>
+            {state === "error" && (
+              <p className="m-0 mt-2 text-[12px] text-bad">ສະໝັກບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່</p>
+            )}
+          </>
+        )}
+      </div>
+    )
   }
 
   if (state === "done") {

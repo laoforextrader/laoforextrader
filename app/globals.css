@@ -111,11 +111,16 @@ html.dark:has([data-force-light]) {
   --violet-soft: #F5F3FF;
   --violet-line: #DDD6FE;
 
-  /* ── Broker review surface ────────────────────────────────────────────
-     A flat, size-driven set used only by /broker/*. Deliberately NOT the
-     site's card palette: no shadow, one radius, hairline borders, and ink
-     that is near-black rather than #000, which is harsh at 48px and above.
-     Hierarchy here comes from type size, never from weight or fill. */
+  /* ── Flat review surface ──────────────────────────────────────────────
+     A flat, size-driven set: no shadow, one radius, hairline borders, and
+     ink that is near-black rather than #000, which is harsh at 48px and
+     above. Hierarchy comes from type size, never from weight or fill.
+
+     It started on /broker/* only. It now also carries the homepage, its
+     sidebar and the inline article CTAs, so the name is historical — read
+     --bk-* as "the flat surface", not "the broker page". It is still
+     deliberately separate from the site's card palette above: the two are
+     different systems, and a component picks one, never both. */
   --bk-page: #FFFFFF;
   --bk-surface: #FFFFFF;
   --bk-sunken: #FAFAFC;
@@ -350,6 +355,18 @@ html.dark:not(:has([data-force-light])) img:not([data-no-dim]) { filter: brightn
 /* ── Broker review surface: motion ────────────────────────────────────────
    One settling moment on load, nothing that loops. The bar's own width is a
    custom property so the keyframe can animate to it without JavaScript. */
+/* Lao has no spaces inside a word and Chrome breaks it by syllable, so a
+   display line can split in the middle of one — "ເລືອກໂບຣກ / ເກີ" reads as
+   two words for the half second before you re-parse it. Display headings
+   break at spaces only, and balance so the last line is not one syllable.
+   Body copy keeps the default: forbidding syllable breaks in a narrow
+   paragraph would overflow the column instead. */
+.lao-head {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
 @keyframes bk-grow { from { width: 0 } to { width: var(--bk-w, 0%) } }
 
 .bk-bar {

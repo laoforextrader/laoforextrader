@@ -1,5 +1,12 @@
-// Compact horizontal calendar strip — used on the homepage so visitors
-// see today's important events without leaving /
+// Today's economic calendar as one strip on the homepage.
+//
+// Flat surface, same tokens as /broker. The strip scrolls sideways on a phone
+// instead of wrapping: a wrapped calendar grew the hero by two rows on a
+// 360px screen and pushed the first article below the fold.
+//
+// Impact keeps its colour — it is the one thing here that is a value and not
+// decoration — but it is also spelled out for a screen reader, since a dot of
+// colour is not a label.
 
 import Link from "next/link"
 
@@ -10,51 +17,47 @@ interface CalendarItem {
   impact: "high" | "medium" | "low" | string
 }
 
-const DOT: Record<string, string> = {
-  high:   "var(--danger)",
-  medium: "#F59E0B",
-  low:    "var(--success)",
+const IMPACT: Record<string, { dot: string; lao: string }> = {
+  high:   { dot: "#DC2626", lao: "ຜົນກະທົບສູງ" },
+  medium: { dot: "#D97706", lao: "ຜົນກະທົບກາງ" },
+  low:    { dot: "#65A30D", lao: "ຜົນກະທົບຕ່ຳ" },
 }
 
-export default function CalendarPills({
-  items,
-  date,
-}: {
-  items: CalendarItem[]
-  date?: string
-}) {
+export default function CalendarPills({ items }: { items: CalendarItem[] }) {
   if (!items?.length) return null
+
   return (
-    <div className="bg-surface border-y border-line-2 py-2.5 overflow-hidden">
-      <div className="max-w-[1060px] mx-auto px-6 flex items-center gap-3">
+    <section aria-label="ປະຕິທິນເສດຖະກິດມື້ນີ້" className="border-b border-bk-line">
+      <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-4 py-3 sm:px-6">
         <Link
           href="/news"
-          className="flex-shrink-0 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-accent hover:underline"
+          className="shrink-0 text-[13px] font-semibold text-bk-ink no-underline hover:underline"
         >
-          📊 ມື້ນີ້
+          ປະຕິທິນມື້ນີ້
         </Link>
-        <div className="w-px h-3 bg-line-2 flex-shrink-0" />
-        <div className="flex gap-3 overflow-x-auto pb-0.5 flex-1" style={{ scrollbarWidth: "none" }}>
-          {items.map((e, i) => (
-            <Link
-              key={e._key ?? i}
-              href="/news"
-              className="flex-shrink-0 inline-flex items-center gap-2 hover:bg-surface-2 rounded-full px-2 py-0.5"
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: DOT[e.impact] ?? DOT.low }}
-              />
-              <span className="font-mono text-[11px] font-semibold text-fg-2 whitespace-nowrap">
-                {e.time}
-              </span>
-              <span className="font-lao text-[11px] text-fg-3 whitespace-nowrap">
-                {e.name}
-              </span>
-            </Link>
-          ))}
+        <span aria-hidden="true" className="h-4 w-px shrink-0 bg-bk-line" />
+        <div className="-mr-4 flex flex-1 gap-2 overflow-x-auto pr-4 [scrollbar-width:none] sm:-mr-6 sm:pr-6 [&::-webkit-scrollbar]:hidden">
+          {items.map((e, i) => {
+            const im = IMPACT[e.impact] ?? IMPACT.low
+            return (
+              <Link
+                key={e._key ?? i}
+                href="/news"
+                className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-bk border border-bk-line px-2.5 py-1.5 no-underline hover:bg-bk-sunken"
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ background: im.dot }}
+                />
+                <span className="sr-only">{im.lao}: </span>
+                <span className="font-mono text-[12px] font-bold text-bk-ink">{e.time}</span>
+                <span className="text-[12px] text-bk-muted">{e.name}</span>
+              </Link>
+            )
+          })}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

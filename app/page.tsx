@@ -1,36 +1,74 @@
+// The homepage, on the same flat surface as /broker: one 8px radius, hairline
+// borders, no shadow, weight capped at 700, hierarchy carried by type size.
+//
+// What this replaces leaned on decoration for its hierarchy — a particle
+// canvas behind a gradient headline, a second canvas behind a decorative
+// band, four gradient numbers, gradient buttons, emoji eyebrows. None of it
+// told a first-time reader what the site is for, and the Lao headline was
+// gradient-filled, which thins the tone marks that sit above the baseline.
+//
+// Three things were also broken rather than merely loud:
+//
+//   · The category tabs linked to `/?cat=broker`. Nothing on this page has
+//     ever read a `cat` param, so all six tabs were no-ops that changed the
+//     URL and left the page identical. They point at the real category routes
+//     now, which exist and are indexable.
+//   · The tab row was a plain `flex` with no overflow handling, so six Lao
+//     labels overflowed a 360px viewport and gave the whole page a sideways
+//     scroll. It scrolls inside its own row now, like the /broker filters.
+//   · The hero advertised "48 ລີວິວ Broker" and "12K+ ສະມາຊິກ" as hard
+//     numbers while /broker rendered six brokers from six docs. See
+//     HERO_STATS: the counts come from Sanity now.
+
+import type { Metadata } from "next"
+import Link from "next/link"
+import Image from "next/image"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { getGoldSnapshot } from "@/lib/gold"
 import { Sidebar } from "@/components/layout/Sidebar"
-import { HeroCanvas } from "@/components/ui/HeroCanvas"
-import { StarburstCanvas } from "@/components/ui/StarburstCanvas"
 import { GoldWidget } from "@/components/ui/GoldWidget"
 import CalendarPills from "@/components/news/CalendarPills"
-
-interface DailyUpdate {
-  date: string
-  calendarHighlights?: Array<{ _key?: string; name: string; time: string; impact: string }>
-}
 import { BrokerSection } from "@/components/broker/BrokerSection"
 import { LessonsPreview } from "@/components/lessons/LessonsPreview"
 import MerchSection from "@/components/sections/MerchSection"
 import FounderSection from "@/components/sections/FounderSection"
 import EASGrideCTA from "@/components/sections/EASGrideCTA"
 import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
-import { Article, Broker } from "@/types"
+import { btnSolid, btnOutline, ArrowIcon } from "@/components/broker/review/BrokerBits"
+import type { Article, Broker } from "@/types"
 import { categoryRoute, formatDate } from "@/lib/utils"
-import Image from "next/image"
-import Link from "next/link"
-
-const CATEGORY_TABS = [
-  { label: "ທັງໝົດ",    href: "/" },
-  { label: "ໂບຣກເກີ",  href: "/?cat=broker" },
-  { label: "ການສຶກສາ",  href: "/?cat=education" },
-  { label: "ຂ່າວ",      href: "/?cat=news" },
-  { label: "ວິເຄາະ",    href: "/?cat=analysis" },
-  { label: "EA / Tools", href: "/?cat=ea-tools" },
-]
 
 export const revalidate = 60
+
+export const metadata: Metadata = {
+  title: "LaoForexTrader — ລີວິວໂບຣກເກີ ແລະ ຄວາມຮູ້ການເທຣດ ພາສາລາວ",
+  description:
+    "ລີວິວໂບຣກເກີ Forex ຈາກການເປີດບັນຊີຈິງ, ບົດຮຽນການເທຣດພາສາລາວ, ຂ່າວ ແລະ ວິເຄາະຕະຫຼາດ ພ້ອມລະບົບເທຣດອັດຕະໂນມັດ EA",
+}
+
+/** Real routes, not query strings that nothing reads. */
+const CATEGORY_TABS = [
+  { label: "ໂບຣກເກີ", href: "/broker" },
+  { label: "ບົດຮຽນ", href: "/lessons" },
+  { label: "ການສຶກສາ", href: "/education" },
+  { label: "ຂ່າວ", href: "/news" },
+  { label: "ວິເຄາະ", href: "/analysis" },
+  { label: "EA / Tools", href: "/ea-system" },
+]
+
+const HERO_LINKS = [
+  { label: "ລີວິວໂບຣກເກີ", href: "/broker" },
+  { label: "ຮຽນຟຣີ", href: "/lessons" },
+  { label: "ລະບົບ EA", href: "/ea-system" },
+]
+
+const CAT_LABEL: Record<string, string> = {
+  education: "ການສຶກສາ",
+  "ea-tools": "EA & Tools",
+  analysis: "ວິເຄາະ",
+  news: "ຂ່າວ",
+  broker: "ລີວິວ Broker",
+}
 
 interface LatestByCategory {
   featured: Article | null
@@ -40,52 +78,58 @@ interface LatestByCategory {
   news: Article | null
 }
 
-const CAT_COLOR: Record<string, string> = {
-  education: "text-violet",
-  "ea-tools": "text-pink",
-  analysis: "text-amber-600",
-  news: "text-green-600",
-  broker: "text-accent",
+interface DailyUpdate {
+  date: string
+  calendarHighlights?: Array<{ _key?: string; name: string; time: string; impact: string }>
 }
-const CAT_LABEL: Record<string, string> = {
-  education: "● ການສຶກສາ",
-  "ea-tools": "● EA & Tools",
-  analysis: "● ວິເຄາະ",
-  news: "● ຂ່າວ",
-  broker: "● ລີວິວ Broker",
+
+interface SiteCounts {
+  brokers: number
+  lessons: number
+  articles: number
 }
+
+const COUNTS_QUERY = `{
+  "brokers": count(*[_type == "broker"]),
+  "lessons": count(*[_type == "article" && category == "education"]),
+  "articles": count(*[_type == "article"])
+}`
 
 export default async function HomePage() {
   let latest: LatestByCategory = { featured: null, education: null, "ea-tools": null, analysis: null, news: null }
   let brokers: Broker[] = []
   let lessons: Article[] = []
   let popular: Article[] = []
+  let counts: SiteCounts | null = null
 
   try {
     const data = await Promise.all([
       sanityClient.fetch<LatestByCategory>(QUERIES.latestByCategory, {}, { next: { revalidate: 60 } }),
       sanityClient.fetch<Broker[]>(QUERIES.featuredBrokers(6), {}, { next: { revalidate: 60 } }),
-      sanityClient.fetch<Article[]>(`
-        *[_type == "article" && category == "education"] | order(publishedAt asc) [0...10] {
+      sanityClient.fetch<Article[]>(
+        `*[_type == "article" && category == "education"] | order(publishedAt asc) [0...10] {
           _id, title, slug, readTime
-        }
-      `, {}, { next: { revalidate: 60 } }),
+        }`,
+        {},
+        { next: { revalidate: 60 } },
+      ),
       sanityClient.fetch<Article[]>(QUERIES.popularArticles(2), {}, { next: { revalidate: 60 } }),
+      sanityClient.fetch<SiteCounts>(COUNTS_QUERY, {}, { next: { revalidate: 300 } }),
     ])
     latest = data[0] || latest
     brokers = data[1] || []
     lessons = data[2] || []
     popular = data[3] || []
+    counts = data[4] || null
   } catch (err) {
     console.error("Sanity fetch error:", err)
   }
 
-  // Pre-fetch gold so the widget paints with a real number on first load
+  // Pre-fetch gold so the panel paints with a real number on first load
   // (avoids the "Loading…" flash). Cached upstream via revalidate=60 inside
   // the helper, so this doesn't add latency on warm requests.
   const goldSnapshot = await getGoldSnapshot().catch(() => null)
 
-  // Today's economic calendar pills shown above the category tabs
   let dailyUpdate: DailyUpdate | null = null
   try {
     dailyUpdate = await sanityClient.fetch<DailyUpdate | null>(
@@ -96,233 +140,258 @@ export default async function HomePage() {
   } catch {}
 
   const featured = latest.featured
-  const popularPick = popular.find(p => p._id !== featured?._id) ?? null
+  const popularPick = popular.find((p) => p._id !== featured?._id) ?? null
   const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
-    .map(cat => latest[cat])
+    .map((cat) => latest[cat])
     .filter((a): a is Article => !!a && a._id !== featured?._id)
-  const trending = [featured, latest.education, latest["ea-tools"], latest.analysis, latest.news]
-    .filter((a): a is Article => !!a)
+  const trending = [featured, latest.education, latest["ea-tools"], latest.analysis, latest.news].filter(
+    (a): a is Article => !!a,
+  )
+
+  /**
+   * Every figure here is either counted from Sanity or a claim about us that
+   * needs no counting. The old hero also carried "12K+ ສະມາຊິກ", which is
+   * dropped rather than carried over: a review site that asks readers to check
+   * licence numbers cannot publish an audience figure it does not hold. Put it
+   * back as a fourth entry the day there is a real number behind it.
+   */
+  const HERO_STATS: { value: string; label: string }[] = [
+    ...(counts?.brokers ? [{ value: String(counts.brokers), label: "ໂບຣກເກີທົດສອບແລ້ວ" }] : []),
+    ...(counts?.lessons ? [{ value: String(counts.lessons), label: "ບົດຮຽນພາສາລາວ" }] : []),
+    ...(counts?.articles ? [{ value: String(counts.articles), label: "ບົດຄວາມ" }] : []),
+    { value: "5 ປີ", label: "ປະສົບການເທຣດ" },
+  ]
 
   return (
-    <div>
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-surface border-b border-line-2">
-        <HeroCanvas />
-        <div className="relative z-10 max-w-[1060px] mx-auto px-6 py-14 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-9 items-start">
+    <div className="bg-bk-page">
+      {/* ── hero ─────────────────────────────────────────────────────────── */}
+      <section className="border-b border-bk-line">
+        <div className="mx-auto max-w-[1100px] px-4 pb-10 pt-8 sm:px-6 sm:pb-12 sm:pt-10 lg:grid lg:grid-cols-[1fr_300px] lg:items-start lg:gap-10">
           <div>
-            <div className="inline-flex items-center gap-2 bg-accent-soft border border-blue-200 rounded-full px-3 py-1 text-[11px] font-bold text-accent tracking-widest uppercase mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse-dot" />
-              🇱🇦 ແຫຼ່ງຂໍ້ມູນການເທຣດ #1 ສຳລັບຄົນລາວ
-            </div>
-            <h1 className="font-sans font-extrabold text-[46px] leading-[1.06] tracking-tight mb-4">
-              Trade<br />
-              <span style={{ background: "linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                Smarter.
-              </span><br />
-              <span style={{ background: "linear-gradient(135deg,#0891B2,#2563EB)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                ຮຽນເທຣດກັບມືອາຊີບ
-              </span>
-            </h1>
-            <p className="font-lao text-sm text-fg-3 leading-relaxed max-w-[380px] mb-7">
-              ລີວິວ Broker ທີ່ຊື່ສັດ · ຄວາມຮູ້ການເທຣດ ຟຣີ<br />
-              ວິເຄາະຕະຫຼາດ · ຂ່າວ · ລະບົບເທຣດອັດຕະໂນມັດ EA
-            </p>
-            <div className="flex gap-3 flex-wrap mb-10">
-              <Link href="/lessons" className="btn-primary">ເລີ່ມຮຽນ Forex ຟຣີ →</Link>
-              <Link href="/broker" className="btn-outline">ເບິ່ງລີວິວ Broker</Link>
-            </div>
-            <div className="flex gap-8 pt-6 border-t border-line-2">
-              {[["12K+","ສະມາຊິກ"],["48","ລີວິວ Broker"],["50","ບົດຮຽນ"],["5Y","ປະສົບການ"]].map(([n,l])=>(
-                <div key={l}>
-                  <div className="text-2xl font-bold" style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>{n}</div>
-                  <div className="font-lao text-[11px] text-fg-4 mt-0.5">{l}</div>
-                </div>
+            <div className="flex flex-wrap gap-2">
+              {HERO_LINKS.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="inline-flex min-h-[36px] items-center rounded-bk border border-bk-line px-3 text-[13px] font-semibold text-bk-ink no-underline hover:bg-bk-sunken"
+                >
+                  {l.label}
+                </Link>
               ))}
             </div>
+
+            <h1 className="lao-head m-0 mt-5 text-[34px] font-bold leading-[1.18] tracking-[-0.03em] text-bk-ink sm:text-[44px] lg:text-[48px]">
+              ຮຽນເທຣດ ແລະ ເລືອກໂບຣກເກີ ດ້ວຍຂໍ້ມູນຈິງ
+            </h1>
+
+            <p className="m-0 mt-4 max-w-[52ch] text-base leading-[1.75] text-bk-muted sm:text-[17px]">
+              ລີວິວໂບຣກເກີຈາກການເປີດບັນຊີຈິງ ຝາກຈິງ ຖອນຈິງ · ບົດຮຽນການເທຣດພາສາລາວ ຟຣີ ·
+              ຂ່າວ ແລະ ວິເຄາະຕະຫຼາດ ທຸກວັນ
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link href="/lessons" className={`${btnSolid} w-full sm:w-auto`}>
+                ເລີ່ມຮຽນ Forex ຟຣີ
+                <ArrowIcon size={15} />
+              </Link>
+              <Link href="/broker" className={`${btnOutline} w-full sm:w-auto`}>
+                ທຽບໂບຣກເກີ
+              </Link>
+            </div>
+
+            {HERO_STATS.length > 0 && (
+              <dl className="m-0 mt-8 grid grid-cols-2 gap-x-4 gap-y-5 border-t border-bk-line pt-6 sm:grid-cols-4">
+                {HERO_STATS.map((s) => (
+                  <div key={s.label} className="min-w-0">
+                    <dd className="m-0 font-mono text-[26px] font-bold leading-none tracking-[-0.03em] text-bk-ink">
+                      {s.value}
+                    </dd>
+                    <dt className="mt-1.5 text-[12px] leading-tight text-bk-muted">{s.label}</dt>
+                  </div>
+                ))}
+              </dl>
+            )}
           </div>
-          {/* Live price + Lao gold widget */}
-          <GoldWidget initial={goldSnapshot} />
+
+          <div className="mt-8 lg:mt-0">
+            <GoldWidget initial={goldSnapshot} />
+          </div>
         </div>
       </section>
 
-      {/* ── ECONOMIC CALENDAR PILLS ── */}
+      {/* ── today's calendar ─────────────────────────────────────────────── */}
       {dailyUpdate?.calendarHighlights && dailyUpdate.calendarHighlights.length > 0 && (
-        <CalendarPills items={dailyUpdate.calendarHighlights} date={dailyUpdate.date} />
+        <CalendarPills items={dailyUpdate.calendarHighlights} />
       )}
 
-      {/* ── CATEGORY TABS ── */}
-      <div className="bg-surface border-b border-line-2">
-        <div className="max-w-[1060px] mx-auto px-6 flex">
-          {CATEGORY_TABS.map(tab => (
-            <Link key={tab.href} href={tab.href}
-              className="font-lao text-[12px] text-fg-3 hover:text-accent px-3.5 py-2.5 border-b-2 border-transparent hover:border-blue-500 transition-colors font-medium whitespace-nowrap">
-              {tab.label}
-            </Link>
-          ))}
+      {/* ── category tabs ───────────────────────────────────────────────── */}
+      <nav aria-label="ໝວດເນື້ອຫາ" className="border-b border-bk-line">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
+          <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max gap-1 sm:w-auto">
+              {CATEGORY_TABS.map((tab) => (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  className="inline-flex min-h-[44px] items-center whitespace-nowrap border-b-2 border-transparent px-3 text-[14px] font-semibold text-bk-muted no-underline hover:border-bk-ink hover:text-bk-ink"
+                >
+                  {tab.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      </nav>
 
-      {/* ── MAIN GRID ── */}
-      <div className="max-w-[1060px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_280px]">
-        <div className="border-r border-line-2 bg-surface">
+      {/* ── articles + sidebar ──────────────────────────────────────────── */}
+      <div className="mx-auto max-w-[1100px] lg:grid lg:grid-cols-[1fr_300px]">
+        <div className="px-4 py-8 sm:px-6">
           {featured && (
-            <Link href={`/${categoryRoute(featured.category)}/${featured.slug?.current ?? ""}`} className="block group border-b border-line-2">
-              <div style={{ height: 3, background: "linear-gradient(90deg,#2563EB,#4F46E5)" }} />
-              <div className="p-5">
-                <div className="text-[9px] font-bold uppercase tracking-widest text-accent mb-2.5">⭐ ບົດຄວາມແນະນຳ</div>
-                {featured.coverImage?.asset?.url && (
-                  <div className="relative w-full rounded-xl overflow-hidden mb-3.5 bg-surface-3" style={{ height: 240 }}>
-                    <Image
-                      src={featured.coverImage.asset.url}
-                      alt={featured.title}
-                      fill
-                      priority
-                      sizes="(max-width:768px) 100vw, 700px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                )}
-                <h2 className="font-lao font-bold leading-snug text-fg group-hover:text-accent-strong transition-colors mb-2 line-clamp-2"
-                    style={{ fontSize: 24, letterSpacing: "-0.01em" }}>
+            <Link
+              href={`/${categoryRoute(featured.category)}/${featured.slug?.current ?? ""}`}
+              className="group block overflow-hidden rounded-bk border border-bk-line no-underline"
+            >
+              {featured.coverImage?.asset?.url && (
+                <div className="relative aspect-[16/9] w-full border-b border-bk-line bg-bk-sunken">
+                  <Image
+                    src={featured.coverImage.asset.url}
+                    alt={featured.title}
+                    fill
+                    priority
+                    sizes="(max-width:1024px) 100vw, 740px"
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-4 sm:p-5">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-bk-muted">
+                  ບົດຄວາມແນະນຳ
+                </span>
+                <h2 className="lao-head m-0 mt-2 text-[24px] font-bold leading-[1.3] tracking-[-0.025em] text-bk-ink group-hover:underline sm:text-[28px]">
                   {featured.title}
                 </h2>
                 {featured.excerpt && (
-                  <p className="font-lao text-[13px] text-fg-3 line-clamp-2 leading-relaxed mb-3">
+                  <p className="m-0 mt-2.5 line-clamp-2 text-[15px] leading-[1.7] text-bk-muted">
                     {featured.excerpt}
                   </p>
                 )}
-                <div className="flex items-center gap-2 text-[11px] font-lao">
-                  <span className={`font-bold uppercase tracking-widest ${CAT_COLOR[featured.category] ?? "text-fg-3"}`}>
-                    {CAT_LABEL[featured.category] ?? featured.category}
-                  </span>
-                  {featured.publishedAt && <><span className="text-fg-4">·</span><span className="text-fg-4">{formatDate(featured.publishedAt)}</span></>}
-                  {featured.readTime && <><span className="text-fg-4">·</span><span className="text-fg-4">{featured.readTime}m</span></>}
-                </div>
+                <p className="m-0 mt-3 text-[12px] text-bk-muted">
+                  {CAT_LABEL[featured.category] ?? featured.category}
+                  {featured.publishedAt ? ` · ${formatDate(featured.publishedAt)}` : ""}
+                  {featured.readTime ? ` · ${featured.readTime} ນາທີ` : ""}
+                </p>
               </div>
             </Link>
           )}
+
           {popularPick && (
-            <Link href={`/${categoryRoute(popularPick.category)}/${popularPick.slug?.current ?? ""}`} className="block group border-b border-line-2">
-              <div style={{ height: 3, background: "linear-gradient(90deg,#F97316,#EF4444)" }} />
-              <div className="p-5 flex gap-4">
-                {popularPick.coverImage?.asset?.url && (
-                  <div className="relative rounded-xl overflow-hidden bg-surface-3 flex-shrink-0" style={{ width: 130, height: 130 }}>
-                    <Image
-                      src={popularPick.coverImage.asset.url}
-                      alt={popularPick.title}
-                      fill
-                      sizes="130px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                )}
-                <div className="min-w-0 flex flex-col justify-center">
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-orange-600 mb-2">🔥 ບົດຄວາມຍອດນິຍົມ</div>
-                  <h3 className="font-lao font-bold leading-snug text-fg group-hover:text-accent-strong transition-colors mb-2 line-clamp-2"
-                      style={{ fontSize: 16, letterSpacing: "-0.01em" }}>
-                    {popularPick.title}
-                  </h3>
-                  <div className="flex items-center gap-2 text-[11px] font-lao flex-wrap">
-                    <span className={`font-bold uppercase tracking-widest ${CAT_COLOR[popularPick.category] ?? "text-fg-3"}`}>
-                      {CAT_LABEL[popularPick.category] ?? popularPick.category}
-                    </span>
-                    <span className="text-fg-4">·</span>
-                    <span className="text-fg-4">👁 {(popularPick.views ?? 0).toLocaleString()}</span>
-                    {popularPick.readTime && <><span className="text-fg-4">·</span><span className="text-fg-4">{popularPick.readTime}m</span></>}
-                  </div>
+            <Link
+              href={`/${categoryRoute(popularPick.category)}/${popularPick.slug?.current ?? ""}`}
+              className="group mt-4 flex gap-4 rounded-bk border border-bk-line p-4 no-underline"
+            >
+              {popularPick.coverImage?.asset?.url && (
+                <div className="relative h-[92px] w-[92px] shrink-0 overflow-hidden rounded-bk border border-bk-line bg-bk-sunken sm:h-[112px] sm:w-[112px]">
+                  <Image
+                    src={popularPick.coverImage.asset.url}
+                    alt={popularPick.title}
+                    fill
+                    sizes="112px"
+                    className="object-cover"
+                  />
                 </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-bk-muted">
+                  ອ່ານຫຼາຍທີ່ສຸດ
+                </span>
+                <h3 className="m-0 mt-1.5 line-clamp-2 text-[17px] font-bold leading-[1.4] tracking-[-0.02em] text-bk-ink group-hover:underline">
+                  {popularPick.title}
+                </h3>
+                <p className="m-0 mt-2 text-[12px] text-bk-muted">
+                  {CAT_LABEL[popularPick.category] ?? popularPick.category}
+                  {popularPick.views ? ` · ${popularPick.views.toLocaleString()} ຄົນອ່ານ` : ""}
+                  {popularPick.readTime ? ` · ${popularPick.readTime} ນາທີ` : ""}
+                </p>
               </div>
             </Link>
           )}
-          <div className="text-[10px] text-fg-4 uppercase tracking-widest font-bold px-5 py-3 border-b border-line-2">ລ່າສຸດ · 1 ຕໍ່ໝວດ</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5">
-            {categoryCards.map(article => (
-              <Link
-                key={article._id}
-                href={`/${categoryRoute(article.category)}/${article.slug?.current ?? ""}`}
-                className="group flex flex-col bg-surface rounded-xl p-4 transition-all hover:-translate-y-1"
-                style={{ border: "1px solid var(--line)", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }}
-              >
-                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${CAT_COLOR[article.category] ?? "text-fg-3"}`}>
-                  {CAT_LABEL[article.category] ?? article.category}
-                </div>
-                <h3 className="font-lao text-[14px] font-semibold leading-snug text-fg group-hover:text-accent-strong transition-colors mb-2 line-clamp-2">
-                  {article.title}
-                </h3>
-                {article.excerpt && (
-                  <p className="font-lao text-[12px] text-fg-3 leading-relaxed line-clamp-2 mb-3 flex-1">
-                    {article.excerpt}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 text-[10px] text-fg-4 font-lao mt-auto">
-                  {article.publishedAt && <span>{formatDate(article.publishedAt)}</span>}
-                  {article.readTime && <><span>·</span><span>{article.readTime}m</span></>}
-                </div>
-              </Link>
-            ))}
-          </div>
+
+          {categoryCards.length > 0 && (
+            <>
+              <h2 className="lao-head m-0 mb-4 mt-10 text-[20px] font-bold leading-tight tracking-[-0.02em] text-bk-ink">
+                ລ່າສຸດ ໜຶ່ງບົດຕໍ່ໜຶ່ງໝວດ
+              </h2>
+              <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2">
+                {categoryCards.map((article) => (
+                  <li key={article._id} className="flex">
+                    <Link
+                      href={`/${categoryRoute(article.category)}/${article.slug?.current ?? ""}`}
+                      className="group flex w-full flex-col rounded-bk border border-bk-line p-4 no-underline"
+                    >
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-bk-muted">
+                        {CAT_LABEL[article.category] ?? article.category}
+                      </span>
+                      <h3 className="m-0 mt-2 line-clamp-2 text-[16px] font-bold leading-[1.45] tracking-[-0.02em] text-bk-ink group-hover:underline">
+                        {article.title}
+                      </h3>
+                      {article.excerpt && (
+                        <p className="m-0 mt-2 line-clamp-2 flex-1 text-[14px] leading-[1.65] text-bk-muted">
+                          {article.excerpt}
+                        </p>
+                      )}
+                      <p className="m-0 mt-3 text-[12px] text-bk-muted">
+                        {article.publishedAt ? formatDate(article.publishedAt) : ""}
+                        {article.readTime ? ` · ${article.readTime} ນາທີ` : ""}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
+
         <Sidebar brokers={brokers} trending={trending.slice(0, 5)} />
       </div>
 
-      {/* ── LESSONS ── */}
-      <div className="bg-surface border-t border-line-2 border-b border-line-2">
-        <div className="max-w-[1060px] mx-auto px-6 py-12">
-          <LessonsPreview lessons={lessons} />
+      {/* ── lessons ─────────────────────────────────────────────────────── */}
+      <div className="border-t border-bk-line">
+        <div className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 sm:py-14">
+          <LessonsPreview lessons={lessons} total={counts?.lessons} />
         </div>
       </div>
 
-      {/* ── QUIZZES ── */}
+      {/* ── quizzes ─────────────────────────────────────────────────────── */}
       <QuizzesHomeSection />
 
-      {/* ── STARBURST ── */}
-      <div className="relative overflow-hidden border-t border-b border-accent-soft2" style={{ background: "linear-gradient(180deg,var(--accent-soft) 0%,var(--accent-soft-2) 50%,var(--accent-soft) 100%)" }}>
-        <StarburstCanvas />
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-16 pointer-events-none">
-          <div className="text-[11px] font-bold uppercase tracking-widest text-accent mb-2">ຄວາມຮູ້ທີ່ຈະຊ່ວຍທ່ານ</div>
-          <h2 className="font-sans font-extrabold text-[26px] leading-tight tracking-tight text-fg mb-2">
-            ເລີ່ມ{" "}
-            <span style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
-              Trade
-            </span>{" "}
-            ດ້ວຍຄວາມໝັ້ນໃຈ
-          </h2>
-          <p className="font-lao text-[13px] text-fg-3 max-w-[420px] leading-relaxed">
-            50 ບົດຮຽນ · Beginner ຈົນ Pro · ພາສາລາວ · ຟຣີ
-          </p>
-        </div>
-      </div>
-
-      {/* ── BROKER SECTION ── */}
+      {/* ── brokers ─────────────────────────────────────────────────────── */}
       <BrokerSection brokers={brokers} />
 
-      {/* ── MERCH ── */}
+      {/* ── merch · EA · founder ────────────────────────────────────────── */}
       <MerchSection />
-
-      {/* ── EA SGride CTA ── */}
       <EASGrideCTA />
-
-      {/* ── FOUNDER ── */}
       <FounderSection />
 
-      {/* ── CTA ── */}
-      <div className="max-w-[1060px] mx-auto px-6 py-12">
-        <div className="bg-surface border border-line-2 rounded-2xl p-12 text-center relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none" style={{ background:"radial-gradient(ellipse 60% 50% at 50% 0%,rgba(37,99,235,0.04),transparent)" }} />
-          <h2 className="font-sans font-extrabold text-[26px] tracking-tight mb-2 relative" style={{ color:"var(--fg)" }}>
-            ເລີ່ມ{" "}
-            <span style={{ background:"linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
-              Trade ຢ່າງ Pro
-            </span>{" "}
-            ວັນນີ້
+      {/* ── closing ─────────────────────────────────────────────────────── */}
+      <section className="border-t border-bk-line">
+        <div className="mx-auto max-w-[1100px] px-4 py-14 sm:px-6">
+          <h2 className="lao-head m-0 max-w-[34ch] text-[26px] font-bold leading-tight tracking-[-0.025em] text-bk-ink sm:text-[30px]">
+            ເລີ່ມຈາກບົດທີ 1 ຫຼື ເລືອກໂບຣກເກີກ່ອນ
           </h2>
-          <p className="font-lao text-sm text-fg-3 mb-6 relative">ສະໝັກຟຣີ · ຮຽນ 50 ບົດ · ລີວິວ Broker ທີ່ໄວ້ໃຈໄດ້</p>
-          <div className="flex gap-3 justify-center relative flex-wrap">
-            <Link href="/lessons" className="btn-primary">ເລີ່ມຮຽນ Forex ຟຣີ →</Link>
-            <Link href="/broker" className="btn-outline">ເບິ່ງ Broker ທັງໝົດ</Link>
+          <p className="m-0 mt-3 max-w-[60ch] text-base leading-[1.75] text-bk-muted">
+            ບົດຮຽນທັງໝົດຟຣີ ແລະ ບໍ່ຕ້ອງສະໝັກ · ລີວິວທຸກອັນມາຈາກບັນຊີຈິງຂອງພວກເຮົາ
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link href="/lessons" className={`${btnSolid} w-full sm:w-auto`}>
+              ເລີ່ມຮຽນ Forex ຟຣີ
+              <ArrowIcon size={15} />
+            </Link>
+            <Link href="/broker" className={`${btnOutline} w-full sm:w-auto`}>
+              ເບິ່ງໂບຣກເກີທັງໝົດ
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

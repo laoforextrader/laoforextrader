@@ -1,169 +1,174 @@
-"use client"
+// The broker block on the homepage: the three top-ranked brokers with the
+// figures someone actually decides on, and a way into the full directory.
+//
+// Flat surface, same tokens as /broker. What it replaces was a client
+// component that staggered three gradient cards in behind an
+// IntersectionObserver, drew a #1 badge on a gold gradient, and keyed its
+// per-broker tags off slugs ("xm-global", "ic-markets") that no broker doc
+// uses any more — so two of the three tags had silently stopped rendering.
+//
+// It carries no number it has not been given: a broker doc with no recorded
+// spread shows "—" here exactly as it does in the directory.
+
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { useEffect, useRef } from "react"
-import { Broker } from "@/types"
-import { urlFor } from "@/lib/sanity"
-import { event } from "@/lib/gtag"
-import { trackClick, brokerTarget } from "@/lib/trackClick"
+import type { Broker } from "@/types"
+import {
+  licensesOf,
+  minDepositLabel,
+  spreadLabel,
+  laoDepositState,
+  LAO_DEPOSIT_SHORT,
+  registerHref,
+  gradeColor,
+  gradeInk,
+  scoreWord,
+  sortBrokers,
+} from "@/lib/broker"
+import { Flag, ArrowIcon, btnSolid, btnOutline } from "@/components/broker/review/BrokerBits"
+import { TrackedBrokerLink } from "./TrackedBrokerLink"
 
-interface Props { brokers: Broker[] }
-
-const BROKER_META: Record<string, { tag: string; tagClass: string; highlight?: boolean }> = {
-  "xm-global":   { tag: "#1 ທາງເລືອກ Trader ລາວ", tagClass: "bg-warn-soft text-amber-600", highlight: true },
-  "exness":       { tag: "ຖອນ Instant 24/7",        tagClass: "bg-accent-soft text-accent" },
-  "ic-markets":   { tag: "ດີທີ່ສຸດ ສຳລັບ EA",       tagClass: "bg-ok-soft text-green-600" },
-}
-
-type RankStyle = { label: string; bg: string; color: string; border?: string }
-function getRankStyle(rank?: number): RankStyle | null {
-  if (!rank) return null
-  if (rank === 1) return { label: "🏆 #1 ແນະນຳ", bg: "linear-gradient(135deg,#F59E0B,#FCD34D)", color: "#78350F", border: "#F59E0B" }
-  if (rank === 2) return { label: "#2",           bg: "linear-gradient(135deg,#9CA3AF,var(--line-2))", color: "var(--fg)" }
-  if (rank === 3) return { label: "#3",           bg: "linear-gradient(135deg,#B45309,#D97706)", color: "#FFF7ED" }
-  return { label: `#${rank}`, bg: "var(--surface-3)", color: "var(--fg-3)" }
-}
-
-function getLogoStyle(name: string) {
-  if (name.toLowerCase().includes("xm"))     return { bg: "var(--danger-soft)", color: "var(--danger)" }
-  if (name.toLowerCase().includes("exness")) return { bg: "var(--accent-soft)", color: "var(--accent)" }
-  if (name.toLowerCase().includes("ic"))     return { bg: "var(--success-soft)", color: "var(--success)" }
-  return { bg: "var(--surface-3)", color: "var(--fg-3)" }
+interface Props {
+  brokers: Broker[]
 }
 
 export function BrokerSection({ brokers }: Props) {
-  const router   = useRouter()
-  const gridRef  = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        gridRef.current?.querySelectorAll(".bk-card").forEach((el, i) => {
-          setTimeout(() => el.classList.add("in"), i * 110)
-        })
-        obs.disconnect()
-      }
-    }, { threshold: 0.15 })
-    if (gridRef.current) obs.observe(gridRef.current)
-    return () => obs.disconnect()
-  }, [])
+  if (!brokers?.length) return null
+  const top = sortBrokers(brokers, "rank").slice(0, 3)
 
   return (
-    <section className="border-t border-line-2" style={{ background: "var(--bg)" }}>
-      <style>{`
-        .bk-card { opacity:0; transform:translateY(16px) scale(.97); transition:opacity .3s, transform .3s, border-color .2s, box-shadow .3s; cursor:pointer; }
-        .bk-card.in { opacity:1; transform:translateY(0) scale(1); }
-        .bk-card:hover { border-color:#93C5FD!important; box-shadow:0 6px 24px rgba(37,99,235,.09); transform:translateY(-4px)!important; }
-      `}</style>
-      <div className="max-w-[1060px] mx-auto px-6 py-12">
-        <div className="section-eyebrow">ລີວິວ Broker ທີ່ໄວ້ໃຈໄດ້</div>
-        <h2 className="section-title">Broker <span>ແນະນຳ</span> 2026</h2>
-        <p className="section-sub">ທົດສອບຈິງ · ຝາກ-ຖອນ BCEL · ທຽບ Spread · Support ພາສາລາວ</p>
+    <section className="border-t border-bk-line">
+      <div className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 sm:py-14">
+        <h2 className="lao-head m-0 text-[26px] font-bold leading-tight tracking-[-0.025em] text-bk-ink sm:text-[30px]">
+          ໂບຣກເກີທີ່ພວກເຮົາທົດສອບແລ້ວ
+        </h2>
+        <p className="m-0 mt-2 max-w-[60ch] text-base leading-[1.75] text-bk-muted">
+          ເປີດບັນຊີຈິງ ຝາກຈິງ ຖອນຈິງ ກ່ອນໃຫ້ຄະແນນ · ຊ່ອງທີ່ຍັງບໍ່ໄດ້ທົດສອບຈະປະໄວ້ຫວ່າງ
+        </p>
 
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-          {brokers.map((broker, i) => {
-            const meta = BROKER_META[broker.slug?.current ?? ""] ?? { tag: "", tagClass: "bg-surface-3 text-fg-3" }
-            const logo = getLogoStyle(broker.name)
-            const rankStyle = getRankStyle(broker.rank)
-            const isTop = broker.rank === 1
-            const slug = broker.slug?.current ?? ""
+        <ul className="m-0 mt-7 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
+          {top.map((b) => {
+            const slug = b.slug?.current ?? ""
+            const licenses = licensesOf(b)
+            const rating = b.rating
+            const logo = b.logo?.asset?.url as string | undefined
+            const register = registerHref(b)
+            const lao = laoDepositState(b)
+
+            const rows: { label: string; value: string | null; strong?: boolean }[] = [
+              { label: "ຝາກຂັ້ນຕ່ຳ", value: minDepositLabel(b) },
+              { label: "Spread ຈາກ", value: spreadLabel(b) },
+              { label: "Leverage", value: b.maxLeverage ?? null },
+              { label: "ທະນາຄານລາວ", value: LAO_DEPOSIT_SHORT[lao], strong: lao === "full" },
+            ]
 
             return (
-              <div key={broker._id}
-                className="bk-card bg-surface rounded-2xl p-5 relative overflow-hidden"
-                style={{ border: isTop ? "2px solid #F59E0B" : "1.5px solid var(--line-2)" }}
-                onClick={() => router.push(`/broker/${slug}`)}>
-
-                {rankStyle && (
-                  <div className="absolute top-0 right-3.5 text-[9px] font-extrabold tracking-wide px-2.5 py-1 rounded-b-lg"
-                    style={{ background: rankStyle.bg, color: rankStyle.color }}>
-                    {rankStyle.label}
+              <li key={b._id} className="flex flex-col rounded-bk border border-bk-line bg-bk-surface">
+                <div className="flex items-center gap-3 p-4">
+                  {logo && (
+                    <Image
+                      src={logo}
+                      alt=""
+                      width={44}
+                      height={44}
+                      data-no-dim
+                      className="shrink-0 rounded-bk border border-bk-line object-cover"
+                      style={{ width: 44, height: 44 }}
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/broker/${slug}`}
+                        className="truncate text-[17px] font-bold leading-snug tracking-[-0.02em] text-bk-ink no-underline hover:underline"
+                      >
+                        {b.name}
+                      </Link>
+                      {b.rank === 1 && (
+                        <span className="shrink-0 whitespace-nowrap rounded-md border border-bk-ink px-1.5 py-px text-[10px] font-bold text-bk-ink">
+                          ອັນດັບ 1
+                        </span>
+                      )}
+                    </div>
+                    {typeof rating === "number" && (
+                      <span className="mt-1 block text-[11px] leading-tight text-bk-muted">
+                        {scoreWord(rating)}
+                      </span>
+                    )}
                   </div>
-                )}
-
-                {broker.logo?.asset?.url ? (
-                  <Image
-                    src={urlFor(broker.logo).width(96).height(96).url()}
-                    alt={broker.logo.alt || broker.name}
-                    width={42}
-                    height={42}
-                    style={{
-                      borderRadius: 12,
-                      objectFit: "contain",
-                      background: "var(--surface)",
-                      border: "1px solid var(--line)",
-                      padding: 4,
-                      marginBottom: 12,
-                    }}
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-bold mb-3 border border-line-2"
-                    style={{ background: logo.bg, color: logo.color }}>
-                    {broker.name.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
-
-                <div className="text-[15px] font-bold text-fg mb-0.5">{broker.name}</div>
-                <div className="text-xs tracking-tight text-amber-400 mb-2" style={{ letterSpacing: "-1px" }}>
-                  {"★".repeat(Math.floor(broker.rating ?? 4))}{"☆".repeat(5 - Math.floor(broker.rating ?? 4))}
-                </div>
-
-                {meta.tag && (
-                  <span className={`inline-block text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-full mb-3 ${meta.tagClass}`}>
-                    {meta.tag}
-                  </span>
-                )}
-
-                <div className="border-t border-line-2 pt-3 flex flex-col gap-1.5">
-                  <div className="flex justify-between text-[12px]">
-                    <span className="font-lao text-fg-4">ຝາກຂັ້ນຕ່ຳ</span>
-                    <span className="font-mono font-medium text-fg">${broker.minDeposit ?? "5"}</span>
-                  </div>
-                  <div className="flex justify-between text-[12px]">
-                    <span className="font-lao text-fg-4">Leverage</span>
-                    <span className="font-mono font-medium text-fg">{broker.maxLeverage ?? "1:1000"}</span>
-                  </div>
-                  <div className="flex justify-between text-[12px]">
-                    <span className="font-lao text-fg-4">ຝາກ BCEL</span>
-                    <span className={`font-mono font-medium ${broker.laoDeposit ? "text-green-600" : "text-fg-4"}`}>
-                      {broker.laoDeposit ? "✓ ຮອງຮັບ" : "— Crypto"}
+                  {typeof rating === "number" && (
+                    <span
+                      className="inline-flex min-w-[44px] shrink-0 items-center justify-center rounded-bk px-2.5 py-1.5 font-mono text-[15px] font-bold tracking-[-0.02em]"
+                      style={{ background: gradeColor(rating), color: gradeInk(rating) }}
+                    >
+                      {rating.toFixed(1)}
                     </span>
-                  </div>
+                  )}
                 </div>
 
-                <div className="flex gap-2 mt-3.5" onClick={e => e.stopPropagation()}>
-                  {broker.registerUrl && (
-                    <a href={broker.registerUrl} target="_blank" rel="noopener noreferrer"
-                      onClick={() => {
-                      event({ action: "broker_click", category: "Broker", label: broker.name })
-                      trackClick({ target: brokerTarget(broker.slug?.current ?? broker.name), label: broker.name, group: "broker" })
-                    }}
-                      className="btn-primary flex-1 text-[12px] py-2 text-center">
-                      ສະໝັກເປີດບັນຊີ →
-                    </a>
-                  )}
-                  {broker.affiliateUrl && (
-                    <a href={broker.affiliateUrl} target="_blank" rel="noopener noreferrer"
-                      onClick={() => {
-                      event({ action: "broker_website_click", category: "Broker", label: broker.name })
-                      trackClick({ target: `${brokerTarget(broker.slug?.current ?? broker.name)}-web`, label: `${broker.name} (ເວັບໄຊທ໌)`, group: "broker" })
-                    }}
-                      className="btn-outline text-[12px] py-2 px-3">
-                      ເວັບໄຊທ໌
-                    </a>
-                  )}
+                <div className="flex items-center gap-1.5 border-t border-bk-line px-4 py-2.5">
+                  {licenses.slice(0, 3).map((l, i) => (
+                    <Flag key={`${l.regulator}-${i}`} src={l.flag} alt={l.country ?? ""} w={17} h={12} />
+                  ))}
+                  <span className="truncate text-xs text-bk-muted">
+                    {licenses
+                      .slice(0, 3)
+                      .map((l) => l.regulator)
+                      .join(" · ") || "ຍັງບໍ່ໄດ້ບັນທຶກໃບອະນຸຍາດ"}
+                  </span>
                 </div>
-              </div>
+
+                <dl className="m-0 grid flex-1 grid-cols-2 gap-x-4 gap-y-3 border-t border-bk-line px-4 py-4">
+                  {rows.map((r) => (
+                    <div key={r.label} className="min-w-0">
+                      <dt className="truncate text-[11px] leading-tight text-bk-muted">{r.label}</dt>
+                      <dd
+                        className={`m-0 mt-1 truncate font-mono text-[15px] font-bold tracking-[-0.02em] ${
+                          r.value === null
+                            ? "text-bk-muted"
+                            : r.strong
+                              ? "text-ok-ink dark:text-ok"
+                              : "text-bk-ink"
+                        }`}
+                      >
+                        {r.value ?? "—"}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="flex flex-col gap-2.5 border-t border-bk-line p-4">
+                  {register && (
+                    <TrackedBrokerLink
+                      href={register}
+                      brokerName={b.name}
+                      slug={slug}
+                      className={`${btnSolid} w-full`}
+                    >
+                      ເປີດບັນຊີ
+                      <ArrowIcon size={15} />
+                    </TrackedBrokerLink>
+                  )}
+                  <Link
+                    href={`/broker/${slug}`}
+                    className="text-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+                  >
+                    ອ່ານລີວິວເຕັມ
+                  </Link>
+                </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
 
-        <div className="text-center mb-3">
-          <Link href="/broker" className="btn-ghost text-[12px]">ເບິ່ງ Broker ທັງໝົດ →</Link>
-        </div>
-        <div className="text-center text-[12px] text-fg-4 font-lao flex items-center justify-center gap-1.5">
-          <span>⚠</span> ລີວິວຈາກການໃຊ້ງານຂອງພວກເຮົາເທົ່ານັ້ນ · ການລົງທຶນມີຄວາມສ່ຽງ
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <Link href="/broker" className={`${btnOutline} w-full sm:w-auto`}>
+            ທຽບໂບຣກເກີທັງໝົດ
+            <ArrowIcon size={15} />
+          </Link>
+          <Link href="/broker#how-we-rate" className={`${btnOutline} w-full sm:w-auto`}>
+            ພວກເຮົາໃຫ້ຄະແນນແນວໃດ
+          </Link>
         </div>
       </div>
     </section>

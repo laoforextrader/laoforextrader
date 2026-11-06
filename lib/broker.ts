@@ -153,6 +153,26 @@ export function gradeColor(v: number): string {
   return "#DC2626"
 }
 
+/**
+ * The ink to put on top of gradeColor(v).
+ *
+ * White fails WCAG AA on three of the five grades — 3.09:1 on the lime,
+ * 2.4:1 on the amber — and the score chip is the one element on these pages
+ * that is pure colour carrying a number. Darkening the fills would fix it but
+ * flatten the lightness ramp, and that ramp is the whole reason the grades
+ * survive greyscale and colour-blind vision. So the fills stay and the text
+ * flips instead.
+ *
+ * Measured against gradeColor(v): #047857 + white 4.83:1 · #65A30D + ink
+ * 5.88:1 · #CA8A04 + ink 6.17:1 · #EA580C + ink 5.09:1 · #DC2626 + white
+ * 4.83:1. All clear the 4.5:1 floor these chips need at 12-15px bold.
+ */
+export function gradeInk(v: number): string {
+  if (v >= 4.5) return "#FFFFFF"
+  if (v < 1.5) return "#FFFFFF"
+  return "#14160F"
+}
+
 export function scoreWord(rating?: number): string {
   const v = rating ?? 0
   if (v >= 4.5) return "ດີເລີດ"
