@@ -19,17 +19,25 @@ export default function RiskReward() {
     return { ratio, reward, valid: true }
   }, [entry, stop, target, risk, side])
 
+  // A soft fill + its matching ink, not one saturated fill with white on it.
+  // --success and friends flip to a LIGHT hex under html.dark, so white text
+  // on them drops to about 1.9:1 there; the -soft/-line/-ink families are the
+  // ones built to flip together and they already clear the audit.
   const verdict =
-    !calc.valid ? { color: "var(--fg-4)", label: "ໃສ່ຄ່າຍັງບໍ່ຖືກຕ້ອງ", desc: "" } :
-    calc.ratio >= 3 ? { color: "var(--success)", label: "ດີຫຼາຍ", desc: "RR ≥ 1:3 — ກຳໄລດີຖ້າຊະນະ" } :
-    calc.ratio >= 2 ? { color: "#0EA5E9", label: "ດີ", desc: "RR ≥ 1:2 — ຍອມຮັບໄດ້" } :
-    calc.ratio >= 1 ? { color: "#F59E0B", label: "ຄວນລະວັງ", desc: "RR ຕ່ຳ — ຕ້ອງຊະນະຫຼາຍຄັ້ງຈຶ່ງມີກຳໄລ" } :
-    { color: "var(--danger)", label: "ບໍ່ຄຸ້ມ", desc: "Risk ຫຼາຍກວ່າ Reward — ບໍ່ແນະນຳ" }
+    !calc.valid
+      ? { soft: "var(--surface-2)", line: "var(--line-2)", ink: "var(--fg-2)", label: "ໃສ່ຄ່າຍັງບໍ່ຖືກຕ້ອງ", desc: "" }
+      : calc.ratio >= 3
+        ? { soft: "var(--success-soft)", line: "var(--success-line)", ink: "var(--success-ink)", label: "ດີຫຼາຍ", desc: "RR ≥ 1:3 — ກຳໄລດີຖ້າຊະນະ" }
+        : calc.ratio >= 2
+          ? { soft: "var(--accent-soft)", line: "var(--accent-line)", ink: "var(--accent-ink)", label: "ດີ", desc: "RR ≥ 1:2 — ຍອມຮັບໄດ້" }
+          : calc.ratio >= 1
+            ? { soft: "var(--warn-soft)", line: "var(--warn-line)", ink: "var(--warn-ink)", label: "ຄວນລະວັງ", desc: "RR ຕ່ຳ — ຕ້ອງຊະນະຫຼາຍຄັ້ງຈຶ່ງມີກຳໄລ" }
+            : { soft: "var(--danger-soft)", line: "var(--danger-line)", ink: "var(--danger-ink)", label: "ບໍ່ຄຸ້ມ", desc: "Risk ຫຼາຍກວ່າ Reward — ບໍ່ແນະນຳ" }
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "80vh" }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7C3AED", marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--violet)", marginBottom: 6 }}>
           ເຄື່ອງມື Forex
         </div>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--fg)", marginBottom: 6, letterSpacing: "-0.02em" }}>
@@ -59,8 +67,13 @@ export default function RiskReward() {
                     fontWeight: 700,
                     border: side === s ? "1.5px solid transparent" : "1.5px solid var(--line-2)",
                     background: side === s
-                      ? (s === "long" ? "linear-gradient(135deg,#10B981,#059669)" : "linear-gradient(135deg,#EF4444,#DC2626)")
-                      : "#F9FAFB",
+                      // Solid, and darker than the gradient they replace:
+                      // white on #10B981 is 3.0:1 and on #EF4444 4.0:1, both
+                      // under the 4.5:1 floor this 13px bold label needs.
+                      // These two clear it, and they are fixed in both themes
+                      // because the fill is the state, not the surface.
+                      ? (s === "long" ? "#047857" : "#B91C1C")
+                      : "var(--surface-2)",
                     color: side === s ? "#fff" : "var(--fg-2)",
                     cursor: "pointer",
                     transition: "all 0.15s",
@@ -96,7 +109,7 @@ export default function RiskReward() {
               value={stop}
               step={0.1}
               onChange={e => setStop(parseFloat(e.target.value) || 0)}
-              style={{ width: "100%", background: "var(--danger-soft)", border: "1.5px solid #FCA5A5", color: "#991B1B", fontSize: 14, padding: "10px 12px", borderRadius: 8, outline: "none", fontFamily: "monospace" }}
+              style={{ width: "100%", background: "var(--danger-soft)", border: "1.5px solid var(--danger-line)", color: "var(--danger-ink)", fontSize: 14, padding: "10px 12px", borderRadius: 8, outline: "none", fontFamily: "monospace" }}
             />
           </div>
 
@@ -110,7 +123,7 @@ export default function RiskReward() {
               value={target}
               step={0.1}
               onChange={e => setTarget(parseFloat(e.target.value) || 0)}
-              style={{ width: "100%", background: "var(--success-soft)", border: "1.5px solid var(--success-line)", color: "#065F46", fontSize: 14, padding: "10px 12px", borderRadius: 8, outline: "none", fontFamily: "monospace" }}
+              style={{ width: "100%", background: "var(--success-soft)", border: "1.5px solid var(--success-line)", color: "var(--success-ink)", fontSize: 14, padding: "10px 12px", borderRadius: 8, outline: "none", fontFamily: "monospace" }}
             />
           </div>
 
@@ -134,19 +147,19 @@ export default function RiskReward() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
               <div>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--fg-3)", marginBottom: 6 }}>RR Ratio</div>
-                <div style={{ fontFamily: "monospace", fontSize: 24, fontWeight: 800, color: "#7C3AED" }}>
+                <div style={{ fontFamily: "monospace", fontSize: 24, fontWeight: 800, color: "var(--violet)" }}>
                   {calc.valid ? `1 : ${calc.ratio.toFixed(2)}` : "—"}
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--fg-3)", marginBottom: 6 }}>ຖ້າຊະນະ ໄດ້</div>
-                <div style={{ fontFamily: "monospace", fontSize: 24, fontWeight: 800, color: "var(--success)" }}>
+                <div style={{ fontFamily: "monospace", fontSize: 24, fontWeight: 800, color: "var(--success-ink)" }}>
                   {calc.valid ? `+$${calc.reward.toFixed(2)}` : "—"}
                 </div>
               </div>
             </div>
             <div style={{ borderTop: "1px solid var(--violet-line)", paddingTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ display: "inline-flex", padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff", background: verdict.color }}>
+              <span style={{ display: "inline-flex", padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: verdict.ink, background: verdict.soft, border: `1px solid ${verdict.line}` }}>
                 {verdict.label}
               </span>
               {verdict.desc && (

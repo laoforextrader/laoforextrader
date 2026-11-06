@@ -22,7 +22,7 @@ const TOOLS = [
     title: "Risk/Reward Calculator",
     desc: "ຄຳນວນ Risk:Reward Ratio",
     href: "/tools/risk-reward",
-    color: "#7C3AED", bg: "var(--violet-soft)", border: "var(--violet-line)",
+    color: "var(--violet)", bg: "var(--violet-soft)", border: "var(--violet-line)",
   },
   {
     icon: LineChart,

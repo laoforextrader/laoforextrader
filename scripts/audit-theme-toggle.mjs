@@ -125,15 +125,25 @@ for (const os of ["dark", "light"]) {
   const { page, done } = await freshPage("dark")
   await page.goto(BASE + "/", { waitUntil: "domcontentloaded" })
   // /admin is omitted: it redirects to /login when unauthenticated, so its
-  // ForceLight marker never renders here. It uses the identical layout as
-  // these two.
-  for (const path of ["/tools", "/tools/lot-calculator", "/signal/trs-signal-pro/payment"]) {
+  // ForceLight marker never renders here. It uses the identical layout.
+  //
+  // /tools and /tools/* were pinned too and no longer are — the calculators
+  // and the designer's Chart.js canvas were converted to the theme tokens, so
+  // the pin came off. They are checked as ordinary dark routes below instead.
+  for (const path of ["/signal/trs-signal-pro/payment"]) {
     await page.goto(BASE + path, { waitUntil: "domcontentloaded" }).catch(() => {})
     const s = await page.evaluate(state)
     const light = s.bodyBg === "rgb(237, 238, 242)"
     check(`${path} pinned light under OS=dark`, s.pinned && light,
           `marker=${s.pinned} body=${s.bodyBg}`)
   }
+  // the un-pinned calculators now follow the theme like any other route
+  for (const path of ["/tools", "/tools/lot-calculator", "/tools/risk-reward", "/tools/lot-curve-designer"]) {
+    await page.goto(BASE + path, { waitUntil: "domcontentloaded" }).catch(() => {})
+    const t = await page.evaluate(state)
+    check(`${path} follows dark`, t.dark && !t.pinned, `html.dark=${t.dark} marker=${t.pinned} body=${t.bodyBg}`)
+  }
+
   // and a normal route right after is dark again
   await page.goto(BASE + "/news", { waitUntil: "domcontentloaded" })
   const s = await page.evaluate(state)

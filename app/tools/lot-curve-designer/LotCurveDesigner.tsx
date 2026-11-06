@@ -12,13 +12,14 @@ const MODES: Record<string, { name: string; desc: string; color: string; formula
             formula: `lot = StartLot × level^${FIX.pw}` },
   decay:  { name: "Decaying Mult", desc: `${FIX.ds}/${FIX.dd}/${FIX.df} (ຄ່າຄົງທີ່)`, color: "var(--warn)",
             formula: `mult(lv) = ${FIX.df} + (${FIX.ds} − ${FIX.df}) × ${FIX.dd}^(lv−2) — ຄູນສະສົມທີລະ level` },
-  sat:    { name: "Saturating", desc: `ເພດານ StartLot×${FIX.satCapMult}`, color: "#7C3AED",
+  sat:    { name: "Saturating", desc: `ເພດານ StartLot×${FIX.satCapMult}`, color: "var(--violet)",
             formula: `lot = Cap − (Cap − StartLot) × e^(−${FIX.satK}×(lv−1)),  Cap = StartLot × ${FIX.satCapMult}` },
-  custom: { name: "Custom Table", desc: "ປັບຄ່າເອງໄດ້", color: "#DB2777",
+  custom: { name: "Custom Table", desc: "ປັບຄ່າເອງໄດ້", color: "var(--pink)",
             formula: "mult(lv) = Floor + (Start − Floor) × Decay^(lv−2) + Max Lot cap — ໃຊ້ຄ່າຈາກ Custom Parameters" },
 }
 
-const PIN_COLORS = ["#6B7280", "#60A5FA", "#F9A8D4"]
+// Mid-tones, so a pinned curve stays visible on either theme.
+const PIN_COLORS = ["#9CA3AF", "#60A5FA", "#F9A8D4"]
 const STORAGE_KEY = "lft_lotcurve_presets"
 
 type Params = {
@@ -86,6 +87,21 @@ const btn = (color: string, bg: string, border: string): React.CSSProperties => 
   whiteSpace: "nowrap", color, background: bg,
 })
 
+/**
+ * Resolve a CSS custom property to a real colour.
+ *
+ * Chart.js paints on a canvas, and `ctx.strokeStyle = "var(--accent)"` is an
+ * invalid assignment that the browser silently ignores — which is why the lot
+ * curve has been drawing in the default black rather than its mode colour.
+ * Everything handed to Chart.js goes through here first.
+ */
+function resolveColor(c: string): string {
+  if (typeof window === "undefined" || !c.startsWith("var(")) return c
+  const name = c.slice(4, -1).trim()
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return v || c
+}
+
 export default function LotCurveDesigner() {
   const [mode, setMode] = useState("decay")
   const [p, setP] = useState<Params>(DEFAULTS)
@@ -121,11 +137,25 @@ export default function LotCurveDesigner() {
   const clr = MODES[mode].color
   const maxShare = Math.max(...rows.map(r => r.share))
 
+  // The canvas cannot follow a theme change on its own, so the charts are
+  // rebuilt when <html class="dark"> flips. ThemeScript sets that class before
+  // paint and the toggle mutates it later, so an observer catches both.
+  const [dark, setDark] = useState(false)
+  useEffect(() => {
+    const read = () => setDark(document.documentElement.classList.contains("dark"))
+    read()
+    const obs = new MutationObserver(read)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+    return () => obs.disconnect()
+  }, [])
+
   // ── charts ──
   useEffect(() => {
     charts.current.forEach(c => c.destroy())
     charts.current = []
-    const gridClr = "rgba(0,0,0,0.06)", tickClr = "#9CA3AF"
+    const gridClr = dark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.06)"
+    const tickClr = resolveColor("var(--fg-4)")
+    const lineClr = resolveColor(clr)
     const baseOpts = {
       responsive: true, maintainAspectRatio: false, animation: { duration: 200 },
       plugins: { legend: { display: false } },
@@ -138,8 +168,8 @@ export default function LotCurveDesigner() {
 
     if (cLot.current) {
       const datasets: object[] = [{
-        label: MODES[mode].name, data: rows.map(r => r.mt5), borderColor: clr,
-        borderWidth: 2.5, pointRadius: 2.5, pointBackgroundColor: clr, fill: false, tension: 0.3,
+        label: MODES[mode].name, data: rows.map(r => r.mt5), borderColor: lineClr,
+        borderWidth: 2.5, pointRadius: 2.5, pointBackgroundColor: lineClr, fill: false, tension: 0.3,
       }]
       pins.forEach((pin, i) => datasets.push({
         label: "📌 " + pin.label, data: pin.data, borderColor: PIN_COLORS[i % PIN_COLORS.length],
@@ -157,14 +187,14 @@ export default function LotCurveDesigner() {
     if (cMult.current) {
       charts.current.push(new Chart(cMult.current, {
         type: "bar",
-        data: { labels, datasets: [{ data: rows.map(r => (r.ratio ? parseFloat(r.ratio.toFixed(3)) : null)), backgroundColor: clr + "bb", borderRadius: 2 }] },
+        data: { labels, datasets: [{ data: rows.map(r => (r.ratio ? parseFloat(r.ratio.toFixed(3)) : null)), backgroundColor: `color-mix(in srgb, ${lineClr} 73%, transparent)`, borderRadius: 2 }] },
         options: baseOpts as never,
       }))
     }
     const snapshot = charts.current
     return () => snapshot.forEach(c => c.destroy())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, p, pins])
+  }, [mode, p, pins, dark, clr])
 
   // ── pins ──
   const pinLabel = () => {
@@ -236,7 +266,7 @@ export default function LotCurveDesigner() {
 
   const lastShare = last.share
   const num = (label: string, key: keyof Params, step: number, note?: string, accent?: string) => (
-    <div style={{ ...card, padding: "10px 12px", ...(accent ? { borderColor: accent + "66" } : {}) }}>
+    <div style={{ ...card, padding: "10px 12px", ...(accent ? { borderColor: `color-mix(in srgb, ${accent} 45%, transparent)` } : {}) }}>
       <label style={{ fontSize: 11, color: accent || "var(--fg-3)", display: "block", marginBottom: 4, fontWeight: 600 }}>{label}</label>
       <input type="number" step={step} value={p[key]} onChange={set(key)} style={inputStyle} />
       {note && <div style={{ fontSize: 10, color: "var(--fg-4)", marginTop: 3 }}>{note}</div>}
@@ -263,8 +293,8 @@ export default function LotCurveDesigner() {
           {Object.entries(MODES).map(([k, m]) => (
             <div key={k} onClick={() => setMode(k)}
               style={{
-                display: "flex", flexDirection: "column", gap: 2, background: mode === k ? m.color + "14" : "var(--surface)",
-                border: `1.5px solid ${mode === k ? m.color : "#E2E6F0"}`, borderRadius: 10,
+                display: "flex", flexDirection: "column", gap: 2, background: mode === k ? `color-mix(in srgb, ${m.color} 10%, transparent)` : "var(--surface)",
+                border: `1.5px solid ${mode === k ? m.color : "var(--line-2)"}`, borderRadius: 10,
                 padding: "8px 14px", cursor: "pointer", userSelect: "none", minWidth: 118,
               }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: mode === k ? m.color : "var(--fg)" }}>{m.name}</span>
@@ -288,7 +318,7 @@ export default function LotCurveDesigner() {
                   display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 7, padding: "4px 10px",
                   fontSize: 11, cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
                   background: activePreset === n ? "var(--accent-soft)" : "var(--surface-2)",
-                  border: `1.5px solid ${activePreset === n ? "#2563EB" : "var(--line-2)"}`,
+                  border: `1.5px solid ${activePreset === n ? "var(--accent)" : "var(--line-2)"}`,
                   color: activePreset === n ? "var(--accent)" : "var(--fg-2)", fontWeight: 600,
                 }}>
                 {n}
@@ -298,11 +328,11 @@ export default function LotCurveDesigner() {
             ))}
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button style={btn("#D97706", "#FFF7ED", "#FED7AA")} onClick={pinCurve}>📌 Pin ເສັ້ນ</button>
-            <button style={btn("#DC2626", "#FEF2F2", "#FECACA")} onClick={() => setPins([])}>✕ ລ້າງ Pin</button>
-            <button style={btn("#059669", "#ECFDF5", "#A7F3D0")} onClick={doSave}>💾 ບັນທຶກ</button>
-            <button style={btn("#2563EB", "#EEF3FF", "#BFCFFF")} onClick={exportPresets}>⬇ Export</button>
-            <button style={btn("#7C3AED", "#F5F3FF", "#DDD6FE")} onClick={() => fileRef.current?.click()}>⬆ Import</button>
+            <button style={btn("var(--warn-ink)", "var(--warn-soft)", "var(--warn-line)")} onClick={pinCurve}>📌 Pin ເສັ້ນ</button>
+            <button style={btn("var(--danger-ink)", "var(--danger-soft)", "var(--danger-line)")} onClick={() => setPins([])}>✕ ລ້າງ Pin</button>
+            <button style={btn("var(--success-ink)", "var(--success-soft)", "var(--success-line)")} onClick={doSave}>💾 ບັນທຶກ</button>
+            <button style={btn("var(--accent-ink)", "var(--accent-soft)", "var(--accent-line)")} onClick={exportPresets}>⬇ Export</button>
+            <button style={btn("var(--violet)", "var(--violet-soft)", "var(--violet-line)")} onClick={() => fileRef.current?.click()}>⬆ Import</button>
             <input ref={fileRef} type="file" accept=".json" style={{ display: "none" }} onChange={importPresets} />
           </div>
         </div>
@@ -312,7 +342,7 @@ export default function LotCurveDesigner() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 8 }}>
           {num("Lot ເລີ່ມຕົ້ນ", "sl", 0.001)}
           {num("Max Level", "ml", 1)}
-          {num("Lot Step ຂອງໂບຣກເກີ", "ls", 0.001, "lot ຂັ້ນຕໍ່າສຸດທີ່ broker ຮັບ", "#2563EB")}
+          {num("Lot Step ຂອງໂບຣກເກີ", "ls", 0.001, "lot ຂັ້ນຕໍ່າສຸດທີ່ broker ຮັບ", "var(--accent)")}
           {num("ໄລຍະ Grid (pips)", "gp", 1)}
           {num("Pip Value (USD/pip/lot)", "pv", 0.1)}
         </div>
@@ -320,10 +350,10 @@ export default function LotCurveDesigner() {
         {mode === "custom" && (<>
           <div style={secTitle}>Custom Parameters — ໃຊ້ໄດ້ສະເພາະໂໝດ Custom Table</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 8 }}>
-            {num("Mult Start (ຄູນໄມ້ທຳອິດ)", "ds", 0.05, undefined, "#D97706")}
-            {num("Mult Decay (0–1)", "dd", 0.05, "ຍິ່ງນ້ອຍ ຍິ່ງອ່ອນລົງໄວ · 1.0 = ຄູນຄົງທີ່", "#D97706")}
-            {num("Mult Floor (ຄູນຕໍ່າສຸດ)", "df", 0.05, undefined, "#D97706")}
-            {num("Max Lot ຕໍ່ໄມ້", "cm", 0.01, "0 = ບໍ່ຈຳກັດ", "#D97706")}
+            {num("Mult Start (ຄູນໄມ້ທຳອິດ)", "ds", 0.05, undefined, "var(--warn)")}
+            {num("Mult Decay (0–1)", "dd", 0.05, "ຍິ່ງນ້ອຍ ຍິ່ງອ່ອນລົງໄວ · 1.0 = ຄູນຄົງທີ່", "var(--warn)")}
+            {num("Mult Floor (ຄູນຕໍ່າສຸດ)", "df", 0.05, undefined, "var(--warn)")}
+            {num("Max Lot ຕໍ່ໄມ້", "cm", 0.01, "0 = ບໍ່ຈຳກັດ", "var(--warn)")}
           </div>
         </>)}
 
@@ -381,10 +411,10 @@ export default function LotCurveDesigner() {
                   <td style={{ padding: "6px 10px", textAlign: "center", color: "var(--fg-4)", borderBottom: "1px solid var(--line-2)" }}>{r.lv}</td>
                   <td style={{ padding: "6px 10px", textAlign: "right", fontWeight: 600, borderBottom: "1px solid var(--line-2)", color: "var(--fg)" }}>{r.ratio ? "×" + r.ratio.toFixed(2) : <span style={{ color: "var(--fg-4)" }}>— (ເລີ່ມ)</span>}</td>
                   <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--fg-4)", fontSize: 11, borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.rawLot.toFixed(6)}</td>
-                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--accent)", fontWeight: 700, background: "#EEF3FF55", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.mt5.toFixed(2)}</td>
+                  <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--accent)", fontWeight: 700, background: "var(--accent-soft)", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.mt5.toFixed(2)}</td>
                   <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--fg-3)", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>{r.cumLot.toFixed(2)}</td>
                   <td style={{ padding: "6px 10px", textAlign: "right", borderBottom: "1px solid var(--line-2)", color: "var(--fg)" }}>
-                    <span style={{ display: "inline-block", height: 8, background: "#F59E0B66", borderRadius: 2, verticalAlign: "middle", marginRight: 6, width: Math.max(2, (r.share / maxShare) * 60) }} />
+                    <span style={{ display: "inline-block", height: 8, background: "var(--warn)", borderRadius: 2, verticalAlign: "middle", marginRight: 6, width: Math.max(2, (r.share / maxShare) * 60) }} />
                     {r.share.toFixed(1)}%
                   </td>
                   <td style={{ padding: "6px 10px", textAlign: "right", color: "var(--warn)", borderBottom: "1px solid var(--line-2)", fontFamily: "monospace" }}>${r.lvLoss.toLocaleString()}</td>

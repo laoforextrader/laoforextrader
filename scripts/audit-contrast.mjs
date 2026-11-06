@@ -22,8 +22,9 @@ const PAGES = [
   "/ea-system", "/ea-system/sgrid-download", "/ea-system/abs-backtest",
   "/ea", "/ea-tools", "/about", "/contact", "/privacy", "/search?q=forex",
   "/signal/trs-signal-pro", "/login", "/unsubscribe",
-  // light-pinned, checked so the pin is proven to hold
-  "/tools", "/tools/lot-calculator",
+  // /tools was light-pinned and now follows the theme, so these are audited
+  // in dark like everything else; the payment flow is still pinned.
+  "/tools", "/tools/lot-calculator", "/tools/risk-reward", "/tools/lot-curve-designer",
 ]
 
 function findLocalChrome() {

@@ -16,6 +16,13 @@
 //    (the LINE caption, EAStatsCard); this one did not.
 //
 // So: no animation, no gradient, and the base is stated under the figures.
+//
+// The figures do keep a colour. On the rest of the flat surface a number is
+// ink, because a minimum deposit is not good or bad — but a return has a
+// sign, and reading "+24.7%" in the same black as "$31" makes the one thing
+// the reader came for work to find. Green and red are the semantic tokens
+// the audit already clears in both themes, not raw hexes, and "—" stays ink
+// so a gap in the data never reads as a result.
 
 import Link from 'next/link'
 import { trackClick } from '@/lib/trackClick'
@@ -43,6 +50,15 @@ export default function EaCTA({
   href,
   comingSoon = false,
 }: Props) {
+  // The figures arrive pre-formatted ("+500%", "-3.2%", "—"), so the sign is
+  // read off the string rather than passed twice and allowed to disagree.
+  const toneOf = (v: string) =>
+    v.startsWith("+")
+      ? "text-ok-ink dark:text-ok"
+      : v.startsWith("-")
+        ? "text-bad"
+        : "text-bk-ink"
+
   // Stable id for /admin — 'MegiHedge v2.0' -> 'megihedge-v2-0'
   const eaSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
@@ -65,13 +81,21 @@ export default function EaCTA({
           <dl className="m-0 grid grid-cols-2 gap-4">
             <div className="min-w-0">
               <dt className="truncate text-[11px] leading-tight text-bk-muted">ກຳໄລລວມ</dt>
-              <dd className="m-0 mt-1 font-mono text-[22px] font-bold leading-none tracking-[-0.02em] text-bk-ink">
+              <dd
+                className={`m-0 mt-1 font-mono text-[22px] font-bold leading-none tracking-[-0.02em] ${toneOf(
+                  totalGain,
+                )}`}
+              >
                 {totalGain}
               </dd>
             </div>
             <div className="min-w-0">
               <dt className="truncate text-[11px] leading-tight text-bk-muted">{monthLabel}</dt>
-              <dd className="m-0 mt-1 font-mono text-[22px] font-bold leading-none tracking-[-0.02em] text-bk-ink">
+              <dd
+                className={`m-0 mt-1 font-mono text-[22px] font-bold leading-none tracking-[-0.02em] ${toneOf(
+                  monthGain,
+                )}`}
+              >
                 {monthGain}
               </dd>
             </div>
