@@ -19,6 +19,12 @@
 //   · The hero advertised "48 ລີວິວ Broker" and "12K+ ສະມາຊິກ" as hard
 //     numbers while /broker rendered six brokers from six docs. See
 //     HERO_STATS: the counts come from Sanity now.
+//
+// Card photos: not one of the 71 articles in Sanity carries a coverImage, so
+// every card was a block of text. lib/images/articleImage.ts matches a photo
+// from Pexels on the English topic words the Lao titles already contain. An
+// editor's real cover always wins, and with PEXELS_API_KEY unset the whole
+// thing returns null and the cards render exactly as they did before.
 
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -37,6 +43,8 @@ import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
 import { btnSolid, btnOutline, ArrowIcon } from "@/components/broker/review/BrokerBits"
 import type { Article, Broker, BrokerNewsDoc, HotNewsEntry } from "@/types"
 import { categoryRoute, formatDate } from "@/lib/utils"
+import { articlePhoto } from "@/lib/images/articleImage"
+import PhotoCredit from "@/components/ui/PhotoCredit"
 
 export const revalidate = 60
 
@@ -147,6 +155,14 @@ export default async function HomePage() {
   const categoryCards = (["education", "ea-tools", "analysis", "news"] as const)
     .map((cat) => latest[cat])
     .filter((a): a is Article => !!a && a._id !== featured?._id)
+  // One lookup per card, in parallel, each cached for a week by Next and
+  // each allowed to come back null.
+  const [featuredPhoto, popularPhoto, cardPhotos] = await Promise.all([
+    featured ? articlePhoto(featured) : Promise.resolve(null),
+    popularPick ? articlePhoto(popularPick) : Promise.resolve(null),
+    Promise.all(categoryCards.map((a) => articlePhoto(a))),
+  ])
+
   /**
    * Every figure here is either counted from Sanity or a claim about us that
    * needs no counting. The old hero also carried "12K+ ສະມາຊິກ", which is
@@ -250,11 +266,11 @@ export default async function HomePage() {
               href={`/${categoryRoute(featured.category)}/${featured.slug?.current ?? ""}`}
               className="group block overflow-hidden rounded-bk border border-bk-line no-underline"
             >
-              {featured.coverImage?.asset?.url && (
+              {(featured.coverImage?.asset?.url || featuredPhoto) && (
                 <div className="relative aspect-[16/9] w-full border-b border-bk-line bg-bk-sunken">
                   <Image
-                    src={featured.coverImage.asset.url}
-                    alt={featured.title}
+                    src={featured.coverImage?.asset?.url ?? featuredPhoto!.url}
+                    alt={featured.coverImage?.asset?.url ? featured.title : featuredPhoto!.alt || featured.title}
                     fill
                     priority
                     sizes="(max-width:1024px) 100vw, 740px"
@@ -282,17 +298,21 @@ export default async function HomePage() {
               </div>
             </Link>
           )}
+          {/* Outside the <Link>: PhotoCredit renders anchors, and an <a>
+              inside an <a> is invalid HTML that React flags as a hydration
+              error. */}
+          <PhotoCredit photo={featuredPhoto} />
 
           {popularPick && (
             <Link
               href={`/${categoryRoute(popularPick.category)}/${popularPick.slug?.current ?? ""}`}
               className="group mt-4 flex gap-4 rounded-bk border border-bk-line p-4 no-underline"
             >
-              {popularPick.coverImage?.asset?.url && (
+              {(popularPick.coverImage?.asset?.url || popularPhoto) && (
                 <div className="relative h-[92px] w-[92px] shrink-0 overflow-hidden rounded-bk border border-bk-line bg-bk-sunken sm:h-[112px] sm:w-[112px]">
                   <Image
-                    src={popularPick.coverImage.asset.url}
-                    alt={popularPick.title}
+                    src={popularPick.coverImage?.asset?.url ?? popularPhoto!.url}
+                    alt=""
                     fill
                     sizes="112px"
                     className="object-cover"
@@ -321,12 +341,32 @@ export default async function HomePage() {
                 ລ່າສຸດ ໜຶ່ງບົດຕໍ່ໜຶ່ງໝວດ
               </h2>
               <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2">
-                {categoryCards.map((article) => (
+                {categoryCards.map((article, i) => {
+                  const stock = cardPhotos[i]
+                  const photo = article.coverImage?.asset?.url ?? stock?.url ?? null
+                  return (
                   <li key={article._id} className="flex">
                     <Link
                       href={`/${categoryRoute(article.category)}/${article.slug?.current ?? ""}`}
-                      className="group flex w-full flex-col rounded-bk border border-bk-line p-4 no-underline"
+                      className="group flex w-full flex-col overflow-hidden rounded-bk border border-bk-line no-underline"
                     >
+                      {photo && (
+                        <div className="relative aspect-[16/9] w-full border-b border-bk-line bg-bk-sunken">
+                          <Image
+                            src={photo}
+                            alt=""
+                            fill
+                            sizes="(max-width:640px) 100vw, 360px"
+                            className="object-cover"
+                            // Per-photo credit without a caption on every
+                            // card; the visible Pexels link sits under the
+                            // grid. Both together are what their guidance
+                            // asks for.
+                            title={stock?.photographer ? `ຮູບ: ${stock.photographer} / Pexels` : undefined}
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-1 flex-col p-4">
                       <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-bk-muted">
                         {CAT_LABEL[article.category] ?? article.category}
                       </span>
@@ -342,10 +382,26 @@ export default async function HomePage() {
                         {article.publishedAt ? formatDate(article.publishedAt) : ""}
                         {article.readTime ? ` · ${article.readTime} ນາທີ` : ""}
                       </p>
+                      </div>
                     </Link>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
+              {cardPhotos.some(Boolean) && (
+                <p className="m-0 mt-4 text-[11px] leading-tight text-bk-muted">
+                  ຮູບປະກອບບົດຄວາມຈາກ{" "}
+                  <a
+                    href="https://www.pexels.com"
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="underline decoration-bk-line underline-offset-2"
+                  >
+                    Pexels
+                  </a>{" "}
+                  · ເລື່ອນໃສ່ຮູບເພື່ອເບິ່ງຊື່ຜູ້ຖ່າຍ
+                </p>
+              )}
             </>
           )}
         </div>

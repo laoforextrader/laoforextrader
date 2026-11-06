@@ -3,7 +3,9 @@ import { notFound } from "next/navigation"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { formatDateDDMMYYYY } from "@/lib/news/sources-shared"
 import { newsRobots } from "@/lib/news/freshness"
+import NewsNextStep from "@/components/news/NewsNextStep"
 import type { Metadata } from "next"
+import { newsImageSrc } from "@/lib/images/remote"
 
 export const revalidate = 60
 
@@ -60,6 +62,7 @@ export default async function HotNewsPage({ params }: Props) {
   const doc = await fetchDoc(decoded)
   if (!doc || !doc.item) notFound()
   const item = doc.item
+  const img = newsImageSrc(item.imageUrl)
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -70,10 +73,14 @@ export default async function HotNewsPage({ params }: Props) {
 
         <article className="bg-surface rounded-2xl border border-line-2 overflow-hidden">
           {/* Cover image */}
-          {item.imageUrl ? (
+          {img ? (
             <div className="relative w-full bg-surface-3 overflow-hidden" style={{ height: 280 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+              <img
+                src={img}
+                alt={item.title}
+                className="w-full h-full object-cover"
+              />
             </div>
           ) : (
             <div
@@ -139,6 +146,10 @@ export default async function HotNewsPage({ params }: Props) {
             </div>
           </div>
         </article>
+
+        {/* Somewhere to go that is not back out to the source. Same block,
+            same rotation, as the broker-news pages. */}
+        <NewsNextStep seed={item.id} />
 
         {/* Quick links */}
         <div className="flex justify-center gap-3 mt-6 flex-wrap">

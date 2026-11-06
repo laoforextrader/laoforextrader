@@ -23,7 +23,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@sanity/client"
 import { fetchBrokerNews } from "@/lib/news/brokerSources"
 import { summarizeBrokerNews } from "@/lib/news/summarizeBrokerNews"
-import { todayInVientiane } from "@/lib/news/sources"
+import { todayInVientiane, fetchOgImage } from "@/lib/news/sources"
 import { sendAdminTelegram, escapeHtml } from "@/lib/alertAdmin"
 import { cronAuthorized } from "@/lib/cronAuth"
 
@@ -124,10 +124,19 @@ async function handle(req: Request) {
       return NextResponse.json({ ok: false, reason: "no-summaries", date, timing })
     }
 
+    // Cover images, for the survivors only. Twenty og:image fetches to
+    // publish seven would be eighteen seconds of someone else's bandwidth for
+    // nothing; these run in parallel and each one is allowed to fail.
+    const tImg = Date.now()
+    const withImages = await Promise.all(
+      items.map(async (it) => ({ ...it, imageUrl: it.source ? await fetchOgImage(it.source) : "" })),
+    )
+    timing.imageMs = Date.now() - tImg
+
     await sanity
       .patch(docId)
       .set({
-        items: items.map((it, i) => ({ _key: `bn-${i}`, ...it })),
+        items: withImages.map((it, i) => ({ _key: `bn-${i}`, ...it })),
         pipelineComplete: true,
       })
       .commit()

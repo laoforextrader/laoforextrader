@@ -40,7 +40,10 @@ const EAS = {
     href: '/ea-system',
     fallbackTotal: '+247%',
     fallbackMonth: '+22.1%',
-    comingSoon: true, // MEGI_COMING_SOON — numbers above are placeholders
+    // Live since 2026-11-06: the eaStats doc reports updateMode "daily" with
+    // twelve months of history, so the figures above are only the
+    // not-yet-shipped placeholder and the card shows the real account.
+    comingSoon: false,
   },
   'ea-abs': {
     eaId: 'abs',

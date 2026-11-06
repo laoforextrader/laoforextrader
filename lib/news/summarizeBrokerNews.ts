@@ -33,6 +33,7 @@ export interface BrokerNewsSummaryItem {
   sourceName: string
   sourceTitle: string
   pubDate: string
+  imageUrl: string
 }
 
 const CATEGORIES = ["regulation", "expo", "company", "product"] as const
@@ -120,6 +121,9 @@ export async function summarizeBrokerNews(
         sourceName: src.sourceName,
         sourceTitle: src.title,
         pubDate: src.pubDate,
+        // Filled in by the caller: the og:image is only worth fetching for
+        // the items that survived selection, not all twenty candidates.
+        imageUrl: "",
       }
     })
     .filter((x): x is BrokerNewsSummaryItem => x !== null)

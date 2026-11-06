@@ -191,7 +191,14 @@ export const QUERIES = {
   // Lao items yet, and serving it would blank the section mid-pipeline.
   latestBrokerNews: `*[_type == "brokerNews" && pipelineComplete == true] | order(date desc)[0] {
     date,
-    items[]{ _key, id, title, summary, category, brokers, source, sourceName, sourceTitle, pubDate }
+    items[]{ _key, id, title, summary, category, brokers, source, sourceName, sourceTitle, imageUrl, pubDate }
+  }`,
+  /** One broker-news item plus the date of the doc holding it. */
+  brokerNewsByItemId: `*[_type == "brokerNews" && $id in items[].id] | order(date desc)[0] {
+    date,
+    "item": items[id == $id][0]{
+      id, title, summary, category, brokers, source, sourceName, sourceTitle, imageUrl, pubDate
+    }
   }`,
   latestDailyUpdate: `*[_type == "dailyUpdate"] | order(date desc) [0] {
     _id, date, dailySummary,

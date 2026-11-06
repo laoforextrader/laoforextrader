@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },
+      // Topic photos for articles with no cover image — see lib/images/pexels.ts
+      { protocol: "https", hostname: "images.pexels.com" },
       { protocol: "https", hostname: "laoforextrader.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "lh4.googleusercontent.com" },

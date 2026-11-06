@@ -77,6 +77,16 @@ deciding who to hand money to.
   same story worded differently ("Webull fined $4.2 million by FINRA" vs "FINRA
   Fines Webull $4.2M After 120K Accounts Bypassed Proper ID Checks"); no string
   comparison catches that, so the prompt asks for one item per event.
+- **Each item gets a page at `/broker/news/<id>`.** Linking a headline straight
+  out to Finance Magnates hands the reader an English page and does not get them
+  back, and the Lao summary — the only reason this is useful to the audience —
+  goes unread. The original is one clearly-marked link away on that page, which
+  also carries the AI-summary disclaimer.
+- **Every news page ends with one onward step** (`components/news/NewsNextStep.tsx`),
+  on `/broker/news/*` and `/news/hot/*` alike: a three-broker shortlist, the EA
+  copy-trade pitch, or a single top-broker card, chosen by a hash of the item id.
+  Stable per story and spread across the catalogue — deliberately not random,
+  because a block that changes on refresh reads as an ad slot.
 - **The count varies and that is the design.** It returns what the day's wire
   actually holds — 3 of 20 candidates on the first live run — and the prompt
   forbids padding. A thin day is a thin section.
@@ -140,6 +150,42 @@ Separate from ingestion: the public-facing EA marketing layer. All of it degrade
 - **`EAStatsCard.tsx`** is the detailed live card at `/ea/[id]`.
 
 **Adding a new EA touches ~6 places** (keep them in sync): create the `eaStats` Studio doc · add an `EAShowcaseSection` to `/ea-system` · the `ea-*` union in `types/index.ts` · the option list in `sanity/schemas/article.ts` · a branch in `CTASelector.tsx` (+ theme in `EaCTA.tsx`) · a `mql/EAStatsReporter_<EA>.set` preset whose `EAID` matches the doc's `eaId`.
+
+## Images
+
+Two unrelated problems, two mechanisms. Neither is allowed to fail a render.
+
+**Remote news thumbnails go through `/api/img`.** News outlets block hotlinking:
+investinglive serves the image to a server request and refuses the same URL to a
+browser, and `referrerPolicy="no-referrer"` does not help — so every hot-news
+thumbnail on the site was a grey box. The route re-serves the bytes from our own
+origin with a day of immutable cache. `lib/images/remote.ts` (`newsImageSrc`) is
+the only way to build such a `src`; nothing should point an `<img>` at an outlet's
+CDN directly. The route is https-only, blocks private and link-local hosts
+(an unguarded proxy is an SSRF hole into the deployment's own network), requires
+an `image/*` content type and caps the body — it is unsigned on purpose, because
+a required new secret would break every image in production the day it is missed.
+
+Related trap, fixed in `fetchOgImage`: an HTML attribute is entity-encoded and a
+URL is not, so `content="...jpg?w=960&amp;format=webp"` was being stored verbatim
+and every request asked for a parameter called `amp;format`.
+
+**Article cards use Pexels.** Not one of the 71 articles in Sanity carries a
+`coverImage`, so every card was a block of text. `lib/images/articleImage.ts`
+builds a query from the English topic words the Lao titles already contain
+("Risk/Reward Ratio: ຕົວເລກ…" → `Risk Reward forex trading chart`) and
+`lib/images/pexels.ts` fetches it. Three rules:
+
+- An editor's real `coverImage` always wins; the lookup is skipped entirely.
+- No `PEXELS_API_KEY`, no photo — every caller renders exactly what it rendered
+  before. The key currently lives in the machine environment, NOT in a `.env`
+  file, so it must be added to the Vercel project or production ships no photos.
+- The result index comes from a hash of the article id, so one article keeps one
+  photo across visits and two cards in a row do not land on the same stock laptop.
+
+Pexels asks for attribution: the photographer is in each card image's `title` and
+a visible Pexels link sits under the grid (`components/ui/PhotoCredit.tsx` is the
+full credit line, used where there is room).
 
 ## Theming (light / dark)
 

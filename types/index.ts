@@ -210,6 +210,7 @@ export interface BrokerNewsEntry {
   source?: string
   sourceName?: string
   sourceTitle?: string
+  imageUrl?: string
   pubDate?: string
 }
 
@@ -224,5 +225,6 @@ export interface HotNewsEntry {
   id: string
   title: string
   summary?: string
+  imageUrl?: string
   pubDate?: string
 }

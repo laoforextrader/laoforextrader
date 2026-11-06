@@ -40,6 +40,7 @@ export const brokerNewsSchema = {
             { name: "source", title: "Source URL", type: "url" },
             { name: "sourceName", title: "ຊື່ແຫຼ່ງ", type: "string" },
             { name: "sourceTitle", title: "ຫົວຂໍ້ຕົ້ນສະບັບ (EN)", type: "string" },
+            { name: "imageUrl", title: "Image URL (og:image ຂອງຕົ້ນສະບັບ)", type: "url" },
             { name: "pubDate", title: "Publish Date", type: "string" },
           ],
           preview: { select: { title: "title", subtitle: "sourceName" } },

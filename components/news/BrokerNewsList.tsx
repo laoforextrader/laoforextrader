@@ -6,13 +6,16 @@
 // abandoned, and a dated feed is the cheapest honest way to show the page is
 // still being kept.
 //
-// Each item names its source and links to it. The Lao text is a summary of
-// somebody else's reporting, not our reporting, and a reader who cannot get
-// back to the original has no way to check it.
+// Each item names its source and gets its own page at /broker/news/<id>.
+// Linking the headline straight out to Finance Magnates would hand the reader
+// to an English page and never get them back, and the Lao summary — the thing
+// that makes this useful here — would go unread. The original stays one
+// clearly-marked link away on that page.
 
 import Link from "next/link"
 import type { BrokerNewsEntry } from "@/types"
 import { formatDate } from "@/lib/utils"
+import { newsImageSrc } from "@/lib/images/remote"
 
 const CATEGORY_LAO: Record<string, string> = {
   regulation: "ກົດລະບຽບ",
@@ -36,11 +39,27 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
     <ul className="m-0 list-none divide-y divide-bk-line overflow-hidden rounded-bk border border-bk-line p-0">
       {items.map((n) => {
         const d = itemDate(n.pubDate)
+        const img = newsImageSrc(n.imageUrl)
         return (
           // The id is what the homepage sidebar deep-links to, so a reader who
           // taps a headline there lands on that story rather than the top of
           // the section.
-          <li key={n._key ?? n.id} id={`news-${n.id}`} className="scroll-mt-24 p-4 sm:p-5">
+          <li key={n._key ?? n.id} id={`news-${n.id}`} className="scroll-mt-24">
+            <article className="flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
+            {img && (
+              <Link href={`/broker/news/${n.id}`} className="block shrink-0 sm:order-2">
+                {/* Plain <img>: the host is whatever domain the outlet uses,
+                    and next/image needs each one allow-listed up front. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img}
+                  alt=""
+                  data-no-dim
+                  className="aspect-[16/9] w-full rounded-bk border border-bk-line object-cover sm:aspect-square sm:w-[132px]"
+                />
+              </Link>
+            )}
+            <div className="min-w-0 flex-1 sm:order-1">
             <div className="flex flex-wrap items-center gap-2">
               {n.category && (
                 <span className="inline-flex shrink-0 items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-muted">
@@ -59,7 +78,9 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
             </div>
 
             <h3 className="lao-head m-0 mt-2 text-[17px] font-bold leading-[1.45] tracking-[-0.02em] text-bk-ink sm:text-[19px]">
-              {n.title}
+              <Link href={`/broker/news/${n.id}`} className="text-bk-ink no-underline hover:underline">
+                {n.title}
+              </Link>
             </h3>
 
             <p className="m-0 mt-2 text-[15px] leading-[1.75] text-bk-muted">{n.summary}</p>
@@ -77,16 +98,14 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
               </div>
             )}
 
-            {n.source && (
-              <a
-                href={n.source}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-block text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
-              >
-                ອ່ານຕົ້ນສະບັບ{n.sourceName ? ` ທີ່ ${n.sourceName}` : ""}
-              </a>
-            )}
+            <Link
+              href={`/broker/news/${n.id}`}
+              className="mt-3 inline-block text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+            >
+              ອ່ານຕໍ່
+            </Link>
+            </div>
+            </article>
           </li>
         )
       })}
@@ -103,19 +122,36 @@ export function BrokerNewsCompact({ items }: { items: BrokerNewsEntry[] }) {
     <ul className="m-0 list-none divide-y divide-bk-line p-0">
       {items.map((n) => {
         const d = itemDate(n.pubDate)
+        const img = newsImageSrc(n.imageUrl)
         return (
           <li key={n._key ?? n.id}>
-            {/* Into the page that carries the Lao summary, not straight out to
-                the English source: the summary is the thing worth reading and
-                it lives on /broker. */}
-            <Link href={`/broker#news-${n.id}`} className="block py-3 no-underline">
-              <span className="block text-[14px] font-semibold leading-[1.6] tracking-[-0.01em] text-bk-ink hover:underline">
-                {n.title}
-              </span>
-              <span className="mt-1 block text-[11px] leading-tight text-bk-muted">
-                {[n.category ? (CATEGORY_LAO[n.category] ?? n.category) : null, d, n.sourceName]
-                  .filter(Boolean)
-                  .join(" · ")}
+            <Link href={`/broker/news/${n.id}`} className="flex gap-3 py-3 no-underline">
+              {img ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={img}
+                  alt=""
+                  data-no-dim
+                  className="h-[52px] w-[70px] shrink-0 rounded-md border border-bk-line object-cover"
+                />
+              ) : (
+                // A placeholder of the same size, so a story whose source
+                // publishes no og:image does not knock the row out of line
+                // with the ones around it.
+                <span
+                  aria-hidden="true"
+                  className="h-[52px] w-[70px] shrink-0 rounded-md border border-dashed border-bk-line"
+                />
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14px] font-semibold leading-[1.5] tracking-[-0.01em] text-bk-ink hover:underline">
+                  {n.title}
+                </span>
+                <span className="mt-1 block text-[11px] leading-tight text-bk-muted">
+                  {[n.category ? (CATEGORY_LAO[n.category] ?? n.category) : null, d, n.sourceName]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
               </span>
             </Link>
           </li>

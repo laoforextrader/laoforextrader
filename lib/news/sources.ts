@@ -80,7 +80,29 @@ export async function fetchEconomicCalendar(date: string): Promise<CalendarEvent
 // Fetch the og:image (or twitter:image) from a news article URL.
 // Most major outlets including FXStreet/ForexLive expose this meta tag
 // even when their RSS feeds don't carry an image.
-async function fetchOgImage(url: string): Promise<string> {
+/**
+ * An HTML attribute is entity-encoded, a URL is not.
+ *
+ * investinglive publishes `content="...jpg?width=960&amp;format=webp"`, and
+ * taking the match raw stored that `&amp;` verbatim — so every request asked
+ * for a parameter called `amp;format` and the thumbnail simply never loaded.
+ * It went unnoticed because /news/hot renders a broken <img> at a size where
+ * a blank box looks like a layout choice.
+ */
+function decodeAttr(url: string): string {
+  return url
+    .replace(/&amp;/g, "&")
+    .replace(/&#38;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .trim()
+}
+
+// Exported so the broker-news pipeline reuses this rather than growing a
+// second copy of the same meta-tag scraping.
+export async function fetchOgImage(url: string): Promise<string> {
   if (!url) return ""
   try {
     const res = await fetch(url, {
@@ -94,12 +116,12 @@ async function fetchOgImage(url: string): Promise<string> {
     const html = await res.text()
     // Try og:image first, then twitter:image
     const og = html.match(/<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i)
-    if (og?.[1]) return og[1]
+    if (og?.[1]) return decodeAttr(og[1])
     const tw = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-    if (tw?.[1]) return tw[1]
+    if (tw?.[1]) return decodeAttr(tw[1])
     // Sometimes content first, then property
     const og2 = html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-    if (og2?.[1]) return og2[1]
+    if (og2?.[1]) return decodeAttr(og2[1])
     return ""
   } catch {
     return ""

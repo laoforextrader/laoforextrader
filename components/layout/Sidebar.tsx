@@ -23,6 +23,7 @@ import type { Broker, BrokerNewsEntry, HotNewsEntry } from "@/types"
 import { gradeColor, gradeInk, licensesOf } from "@/lib/broker"
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
 import { BrokerNewsCompact } from "@/components/news/BrokerNewsList"
+import { newsImageSrc } from "@/lib/images/remote"
 
 interface Props {
   brokers?: Broker[]
@@ -126,20 +127,42 @@ export function Sidebar({ brokers = [], brokerNews = [], tradingNews = [] }: Pro
         <section>
           <SideHead title="ຂ່າວຕະຫຼາດ" href="/news" hrefLabel="ທັງໝົດ" />
           <ul className="m-0 list-none divide-y divide-bk-line p-0">
-            {tradingNews.slice(0, 3).map((n) => (
+            {tradingNews.slice(0, 3).map((n) => {
+              const img = newsImageSrc(n.imageUrl)
+              return (
               <li key={n._key ?? n.id}>
-                <Link href={`/news/hot/${n.id}`} className="block py-3 no-underline">
-                  <span className="block text-[14px] font-semibold leading-[1.6] tracking-[-0.01em] text-bk-ink hover:underline">
-                    {n.title}
-                  </span>
-                  {n.summary && (
-                    <span className="mt-1 block line-clamp-2 text-[11px] leading-[1.6] text-bk-muted">
-                      {n.summary}
-                    </span>
+                {/* Same row shape as the broker block above — thumbnail,
+                    headline, one meta line — so the two read as one rail
+                    rather than two widgets that happen to sit together. */}
+                <Link href={`/news/hot/${n.id}`} className="flex gap-3 py-3 no-underline">
+                  {img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={img}
+                      alt=""
+                      data-no-dim
+                      className="h-[52px] w-[70px] shrink-0 rounded-md border border-bk-line object-cover"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="h-[52px] w-[70px] shrink-0 rounded-md border border-dashed border-bk-line"
+                    />
                   )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[14px] font-semibold leading-[1.5] tracking-[-0.01em] text-bk-ink hover:underline">
+                      {n.title}
+                    </span>
+                    {n.summary && (
+                      <span className="mt-1 block line-clamp-2 text-[11px] leading-[1.55] text-bk-muted">
+                        {n.summary}
+                      </span>
+                    )}
+                  </span>
                 </Link>
               </li>
-            ))}
+              )
+            })}
           </ul>
         </section>
       )}

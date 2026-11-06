@@ -2,6 +2,7 @@
 // Click → /news/hot/[id] for the article-style detail page.
 
 import Link from "next/link"
+import { newsImageSrc } from "@/lib/images/remote"
 
 export interface HotNewsItem {
   _key?: string
@@ -37,10 +38,12 @@ export default function HotNewsSection({ items }: { items: HotNewsItem[] }) {
           >
             {/* Image LEFT — square */}
             <div className="flex-shrink-0 w-[140px] h-[140px] bg-surface-3 overflow-hidden">
-              {item.imageUrl ? (
+              {/* Through our own origin: these outlets block hotlinking, so
+                  the thumbnail on this page was a grey box too. */}
+              {newsImageSrc(item.imageUrl) ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
-                  src={item.imageUrl}
+                  src={newsImageSrc(item.imageUrl)!}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
