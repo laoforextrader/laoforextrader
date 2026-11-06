@@ -42,7 +42,7 @@ function SideHead({ title, href, hrefLabel }: { title: string; href?: string; hr
       {href && (
         <Link
           href={href}
-          className="shrink-0 text-[13px] font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+          className="inline-flex min-h-[40px] shrink-0 items-center text-[13px] font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
         >
           {hrefLabel}
         </Link>

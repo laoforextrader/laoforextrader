@@ -95,11 +95,11 @@ export default async function BrokerNewsPage({ params }: Props) {
 
       <div className="mx-auto max-w-[760px] px-4 pb-16 pt-8 sm:px-6 sm:pt-9">
         <nav aria-label="ເສັ້ນທາງ" className="mb-5 text-[15px] text-bk-muted">
-          <Link href="/broker" className="text-bk-muted underline">
+          <Link href="/broker" className="inline-flex min-h-[40px] items-center text-bk-muted underline">
             ໂບຣກເກີ
           </Link>
           <span className="mx-2">›</span>
-          <Link href="/broker#news" className="text-bk-muted underline">
+          <Link href="/broker#news" className="inline-flex min-h-[40px] items-center text-bk-muted underline">
             ຂ່າວວົງການ
           </Link>
         </nav>
@@ -162,7 +162,7 @@ export default async function BrokerNewsPage({ params }: Props) {
               href={item.source}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-block text-sm font-semibold text-bk-ink underline decoration-bk-line underline-offset-4"
+              className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-ink underline decoration-bk-line underline-offset-4"
             >
               ອ່ານຕົ້ນສະບັບ{item.sourceName ? ` ທີ່ ${item.sourceName}` : ""} ↗
             </a>
@@ -179,7 +179,7 @@ export default async function BrokerNewsPage({ params }: Props) {
         <div className="mt-8 border-t border-bk-line pt-5">
           <Link
             href="/broker#news"
-            className="text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+            className="inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
           >
             ← ຂ່າວວົງການໂບຣກເກີທັງໝົດ
           </Link>

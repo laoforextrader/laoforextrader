@@ -57,7 +57,7 @@ export default async function Page() {
 
       <div className="mx-auto max-w-[1100px] px-4 pb-16 pt-8 sm:px-6 sm:pt-9">
         <nav aria-label="ເສັ້ນທາງ" className="mb-5 text-[15px] text-bk-muted">
-          <Link href="/" className="text-bk-muted underline">
+          <Link href="/" className="inline-flex min-h-[40px] items-center text-bk-muted underline">
             ໜ້າຫຼັກ
           </Link>
           <span className="mx-2">›</span>

@@ -151,7 +151,7 @@ export function BrokerSection({ brokers }: Props) {
                   )}
                   <Link
                     href={`/broker/${slug}`}
-                    className="text-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+                    className="inline-flex min-h-[44px] items-center justify-center text-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
                   >
                     ອ່ານລີວິວເຕັມ
                   </Link>

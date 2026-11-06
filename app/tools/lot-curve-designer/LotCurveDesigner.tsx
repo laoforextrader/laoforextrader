@@ -327,7 +327,12 @@ export default function LotCurveDesigner() {
               </span>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          {/* wrap, not nowrap. Five buttons that refuse to break come to
+              ~450px of min-content, and a flex row cannot shrink below that —
+              which forced the LAYOUT VIEWPORT to 453px on a 360px phone and
+              zoomed the whole page out. The overflowing table everyone looks
+              at first was innocent; it already scrolls in its own box. */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <button style={btn("var(--warn-ink)", "var(--warn-soft)", "var(--warn-line)")} onClick={pinCurve}>📌 Pin ເສັ້ນ</button>
             <button style={btn("var(--danger-ink)", "var(--danger-soft)", "var(--danger-line)")} onClick={() => setPins([])}>✕ ລ້າງ Pin</button>
             <button style={btn("var(--success-ink)", "var(--success-soft)", "var(--success-line)")} onClick={doSave}>💾 ບັນທຶກ</button>
@@ -398,7 +403,7 @@ export default function LotCurveDesigner() {
 
         {/* TABLE */}
         <div style={secTitle}>ຕາຕະລາງ Lot</div>
-        <div style={{ overflowX: "auto", border: "1.5px solid var(--line)", borderRadius: 12, background: "var(--surface)" }}>
+        <div style={{ overflowX: "auto", maxWidth: "100%", border: "1.5px solid var(--line)", borderRadius: 12, background: "var(--surface)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead><tr style={{ background: "var(--surface-2)" }}>
               {["Lv", "ຕົວຄູນ", "Lot (raw)", "MT5 Lot ★", "Lot ສະສົມ", "% ຂອງທັງໝົດ", "ຂາດທຶນ/Level", "ຂາດທຶນສະສົມ"].map((h, i) => (

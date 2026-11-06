@@ -45,9 +45,14 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
           // taps a headline there lands on that story rather than the top of
           // the section.
           <li key={n._key ?? n.id} id={`news-${n.id}`} className="scroll-mt-24">
-            <article className="flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
+            {/* The photo sits to the RIGHT of the text at every width, not
+                only on a desktop. As a full-bleed banner above the text each
+                story filled a phone screen on its own and three of them took
+                three screens — the same mistake the broker rows were rebuilt
+                to avoid. A square thumbnail keeps a story to one glance. */}
+            <article className="flex gap-3 p-4 sm:gap-4 sm:p-5">
             {img && (
-              <Link href={`/broker/news/${n.id}`} className="block shrink-0 sm:order-2">
+              <Link href={`/broker/news/${n.id}`} className="order-2 block shrink-0">
                 {/* Plain <img>: the host is whatever domain the outlet uses,
                     and next/image needs each one allow-listed up front. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,11 +60,11 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                   src={img}
                   alt=""
                   data-no-dim
-                  className="aspect-[16/9] w-full rounded-bk border border-bk-line object-cover sm:aspect-square sm:w-[132px]"
+                  className="aspect-square w-[88px] rounded-bk border border-bk-line object-cover sm:w-[132px]"
                 />
               </Link>
             )}
-            <div className="min-w-0 flex-1 sm:order-1">
+            <div className="order-1 min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               {n.category && (
                 <span className="inline-flex shrink-0 items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-muted">
@@ -67,12 +72,17 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                 </span>
               )}
               {d && <span className="text-[12px] text-bk-muted">{d}</span>}
+              {/* The source hides below sm. Beside a thumbnail the text column
+                  is ~250px at 360px, so "· Finance Magnates" wrapped to its
+                  own line and left the separator dangling at the end of the
+                  one above. It is still named on the item page and in the
+                  "ອ່ານຕົ້ນສະບັບ ທີ່ …" link. */}
               {n.sourceName && (
                 <>
-                  <span aria-hidden="true" className="text-[12px] text-bk-muted">
+                  <span aria-hidden="true" className="hidden text-[12px] text-bk-muted sm:inline">
                     ·
                   </span>
-                  <span className="text-[12px] text-bk-muted">{n.sourceName}</span>
+                  <span className="hidden text-[12px] text-bk-muted sm:inline">{n.sourceName}</span>
                 </>
               )}
             </div>
@@ -83,7 +93,9 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
               </Link>
             </h3>
 
-            <p className="m-0 mt-2 text-[15px] leading-[1.75] text-bk-muted">{n.summary}</p>
+            <p className="m-0 mt-2 line-clamp-3 text-[14px] leading-[1.7] text-bk-muted sm:line-clamp-none sm:text-[15px] sm:leading-[1.75]">
+              {n.summary}
+            </p>
 
             {n.brokers && n.brokers.length > 0 && (
               <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -100,7 +112,7 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
 
             <Link
               href={`/broker/news/${n.id}`}
-              className="mt-3 inline-block text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+              className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
             >
               ອ່ານຕໍ່
             </Link>

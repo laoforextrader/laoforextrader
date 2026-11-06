@@ -67,7 +67,7 @@ export default async function HotNewsPage({ params }: Props) {
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <div className="max-w-[760px] mx-auto px-6 py-8">
-        <Link href="/news" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-fg-3 hover:text-accent mb-5">
+        <Link href="/news" className="inline-flex min-h-[44px] items-center gap-1.5 text-[12px] font-semibold text-fg-3 hover:text-accent mb-2">
           ← ກັບໄປ ໜ້າຂ່າວ
         </Link>
 
@@ -131,7 +131,7 @@ export default async function HotNewsPage({ params }: Props) {
                   href={item.source}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-widest text-accent hover:underline"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 text-[12px] font-bold uppercase tracking-widest text-accent hover:underline"
                 >
                   ເບິ່ງແຫຼ່ງຂ່າວຕົ້ນສະບັບ ↗
                 </a>
@@ -153,11 +153,11 @@ export default async function HotNewsPage({ params }: Props) {
 
         {/* Quick links */}
         <div className="flex justify-center gap-3 mt-6 flex-wrap">
-          <Link href="/news" className="text-[12px] font-bold uppercase tracking-widest text-accent hover:underline">
+          <Link href="/news" className="inline-flex min-h-[44px] items-center text-[12px] font-bold uppercase tracking-widest text-accent hover:underline">
             ← ໜ້າຂ່າວ
           </Link>
           <span className="text-fg-4">·</span>
-          <Link href="/broker" className="text-[12px] font-bold uppercase tracking-widest text-accent hover:underline">
+          <Link href="/broker" className="inline-flex min-h-[44px] items-center text-[12px] font-bold uppercase tracking-widest text-accent hover:underline">
             ເລືອກ Broker →
           </Link>
         </div>

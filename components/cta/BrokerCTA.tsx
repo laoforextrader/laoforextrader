@@ -166,7 +166,7 @@ export default function BrokerCTA({ broker, name, slug, fallbackRegisterUrl }: P
         )}
         <Link
           href={`/broker/${slug}`}
-          className="text-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink sm:text-left"
+          className="inline-flex min-h-[44px] items-center justify-center text-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink sm:justify-start sm:text-left"
         >
           ອ່ານລີວິວເຕັມ
         </Link>
