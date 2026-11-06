@@ -103,7 +103,12 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
             {img && (
               <Link
                 href={`/broker/news/${n.id}`}
-                className="col-start-1 row-start-3 mt-2 block self-start sm:row-span-4 sm:row-start-1 sm:mt-0"
+                // row-span-2 on a phone is what actually buys the space.
+                // Spanning one row, the 88px picture and the tag/read-more
+                // row below it ADD UP; spanning both, the card is as tall as
+                // the taller of the two columns and the footer sits beside
+                // the lower half of the picture instead of under it.
+                className="col-start-1 row-span-2 row-start-3 mt-2 block self-start sm:row-span-4 sm:row-start-1 sm:mt-0"
               >
                 {/* Plain <img>: the host is whatever domain the outlet uses,
                     and next/image needs each one allow-listed up front. */}
@@ -130,11 +135,13 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
               {n.summary}
             </p>
 
-            {/* Tags and the read-more run under the thumbnail on a phone, so
-                the column the picture leaves behind is not dead space. */}
-            <div
-              className={img ? "col-span-2 row-start-4 sm:col-span-1 sm:col-start-2 sm:row-start-4" : ""}
-            >
+            {/* Tags and the read-more stay in the right column under the
+                summary, at every width. Run full width under the thumbnail
+                instead and they stack BELOW it — the row is then 88px of
+                picture plus their own height, with the space beside the
+                picture left empty. Beside it, the picture and the text column
+                overlap and the card is shorter. */}
+            <div className={img ? "col-start-2 row-start-4" : ""}>
               {n.brokers && n.brokers.length > 0 && (
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {n.brokers.map((b) => (
