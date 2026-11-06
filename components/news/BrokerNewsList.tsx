@@ -45,15 +45,66 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
           // taps a headline there lands on that story rather than the top of
           // the section.
           <li key={n._key ?? n.id} id={`news-${n.id}`} className="scroll-mt-24">
-            {/* Thumbnail first, text after, at every width — the same reading
-                order as the rail on the homepage and as the broker rows, so a
-                reader scanning down the page hits the pictures in one column
-                instead of alternating sides. It stays a square thumbnail
-                rather than a full-bleed banner: as a banner each story filled
-                a phone screen on its own and three took three screens. */}
-            <article className="flex gap-3 p-4 sm:gap-4 sm:p-5">
+            {/* Two layouts from one DOM order, via grid placement.
+                
+                Phone: the meta and the headline run the full width, then the
+                thumbnail drops into the left column beside the summary. The
+                headline is the thing being scanned, and squeezing it into a
+                250px column beside a picture cost it three lines; given the
+                whole width it takes two, and the picture fills what would
+                otherwise be dead space next to the summary.
+                
+                sm and up: the thumbnail spans every row on the left, which is
+                the reading order the rail and the broker rows already use.
+                
+                Grid, not two copies of the <img> behind `hidden` — the
+                browser still fetches an image inside display:none, and a
+                duplicated element is one more thing to keep in step. */}
+            <article
+              className={`grid gap-x-3 p-4 sm:gap-x-4 sm:p-5 ${
+                img ? "grid-cols-[88px_minmax(0,1fr)] sm:grid-cols-[132px_minmax(0,1fr)]" : "grid-cols-1"
+              }`}
+            >
+            <div
+              className={`flex flex-wrap items-center gap-2 ${
+                img ? "col-span-2 row-start-1 sm:col-span-1 sm:col-start-2 sm:row-start-1" : ""
+              }`}
+            >
+              {n.category && (
+                <span className="inline-flex shrink-0 items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-muted">
+                  {CATEGORY_LAO[n.category] ?? n.category}
+                </span>
+              )}
+              {d && <span className="text-[12px] text-bk-muted">{d}</span>}
+              {/* The source hides below sm: even across the full width the
+                  meta line is tight once the chip and date are on it. It is
+                  still named on the item page and in the "ອ່ານຕົ້ນສະບັບ ທີ່ …"
+                  link. */}
+              {n.sourceName && (
+                <>
+                  <span aria-hidden="true" className="hidden text-[12px] text-bk-muted sm:inline">
+                    ·
+                  </span>
+                  <span className="hidden text-[12px] text-bk-muted sm:inline">{n.sourceName}</span>
+                </>
+              )}
+            </div>
+
+            <h3
+              className={`lao-head m-0 mt-2 text-[17px] font-bold leading-[1.45] tracking-[-0.02em] text-bk-ink sm:text-[19px] ${
+                img ? "col-span-2 row-start-2 sm:col-span-1 sm:col-start-2 sm:row-start-2" : ""
+              }`}
+            >
+              <Link href={`/broker/news/${n.id}`} className="text-bk-ink no-underline hover:underline">
+                {n.title}
+              </Link>
+            </h3>
+
             {img && (
-              <Link href={`/broker/news/${n.id}`} className="block shrink-0">
+              <Link
+                href={`/broker/news/${n.id}`}
+                className="col-start-1 row-start-3 mt-2 block self-start sm:row-span-4 sm:row-start-1 sm:mt-0"
+              >
                 {/* Plain <img>: the host is whatever domain the outlet uses,
                     and next/image needs each one allow-listed up front. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,58 +116,44 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                 />
               </Link>
             )}
-            <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              {n.category && (
-                <span className="inline-flex shrink-0 items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-muted">
-                  {CATEGORY_LAO[n.category] ?? n.category}
-                </span>
-              )}
-              {d && <span className="text-[12px] text-bk-muted">{d}</span>}
-              {/* The source hides below sm. Beside a thumbnail the text column
-                  is ~250px at 360px, so "· Finance Magnates" wrapped to its
-                  own line and left the separator dangling at the end of the
-                  one above. It is still named on the item page and in the
-                  "ອ່ານຕົ້ນສະບັບ ທີ່ …" link. */}
-              {n.sourceName && (
-                <>
-                  <span aria-hidden="true" className="hidden text-[12px] text-bk-muted sm:inline">
-                    ·
-                  </span>
-                  <span className="hidden text-[12px] text-bk-muted sm:inline">{n.sourceName}</span>
-                </>
-              )}
-            </div>
 
-            <h3 className="lao-head m-0 mt-2 text-[17px] font-bold leading-[1.45] tracking-[-0.02em] text-bk-ink sm:text-[19px]">
-              <Link href={`/broker/news/${n.id}`} className="text-bk-ink no-underline hover:underline">
-                {n.title}
-              </Link>
-            </h3>
-
-            <p className="m-0 mt-2 line-clamp-3 text-[14px] leading-[1.7] text-bk-muted sm:line-clamp-none sm:text-[15px] sm:leading-[1.75]">
+            <p
+              // self-start matters: a grid item stretches to its row by
+              // default, and line-clamp renders inside whatever height the
+              // element ends up with — so stretched to the 88px thumbnail it
+              // showed a clipped fourth line under the ellipsis. Sized to its
+              // own content, the clamp lands where it should.
+              className={`m-0 mt-2 line-clamp-3 self-start text-[14px] leading-[1.7] text-bk-muted sm:line-clamp-none sm:text-[15px] sm:leading-[1.75] ${
+                img ? "col-start-2 row-start-3 sm:col-start-2 sm:row-start-3" : ""
+              }`}
+            >
               {n.summary}
             </p>
 
-            {n.brokers && n.brokers.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {n.brokers.map((b) => (
-                  <span
-                    key={b}
-                    className="inline-flex items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-ink"
-                  >
-                    {b}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <Link
-              href={`/broker/news/${n.id}`}
-              className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+            {/* Tags and the read-more run under the thumbnail on a phone, so
+                the column the picture leaves behind is not dead space. */}
+            <div
+              className={img ? "col-span-2 row-start-4 sm:col-span-1 sm:col-start-2 sm:row-start-4" : ""}
             >
-              ອ່ານຕໍ່
-            </Link>
+              {n.brokers && n.brokers.length > 0 && (
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {n.brokers.map((b) => (
+                    <span
+                      key={b}
+                      className="inline-flex items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-ink"
+                    >
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <Link
+                href={`/broker/news/${n.id}`}
+                className="mt-1 inline-flex min-h-[44px] items-center text-sm font-semibold text-bk-muted underline decoration-bk-line underline-offset-4 hover:text-bk-ink"
+              >
+                ອ່ານຕໍ່
+              </Link>
             </div>
             </article>
           </li>
