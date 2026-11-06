@@ -45,14 +45,15 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
           // taps a headline there lands on that story rather than the top of
           // the section.
           <li key={n._key ?? n.id} id={`news-${n.id}`} className="scroll-mt-24">
-            {/* The photo sits to the RIGHT of the text at every width, not
-                only on a desktop. As a full-bleed banner above the text each
-                story filled a phone screen on its own and three of them took
-                three screens — the same mistake the broker rows were rebuilt
-                to avoid. A square thumbnail keeps a story to one glance. */}
+            {/* Thumbnail first, text after, at every width — the same reading
+                order as the rail on the homepage and as the broker rows, so a
+                reader scanning down the page hits the pictures in one column
+                instead of alternating sides. It stays a square thumbnail
+                rather than a full-bleed banner: as a banner each story filled
+                a phone screen on its own and three took three screens. */}
             <article className="flex gap-3 p-4 sm:gap-4 sm:p-5">
             {img && (
-              <Link href={`/broker/news/${n.id}`} className="order-2 block shrink-0">
+              <Link href={`/broker/news/${n.id}`} className="block shrink-0">
                 {/* Plain <img>: the host is whatever domain the outlet uses,
                     and next/image needs each one allow-listed up front. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,7 +65,7 @@ export function BrokerNewsList({ items }: { items: BrokerNewsEntry[] }) {
                 />
               </Link>
             )}
-            <div className="order-1 min-w-0 flex-1">
+            <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               {n.category && (
                 <span className="inline-flex shrink-0 items-center rounded-md border border-bk-line px-2 py-0.5 text-[11px] font-semibold text-bk-muted">

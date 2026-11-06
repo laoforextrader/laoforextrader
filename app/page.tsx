@@ -338,7 +338,7 @@ export default async function HomePage() {
           {categoryCards.length > 0 && (
             <>
               <h2 className="lao-head m-0 mb-4 mt-10 text-[20px] font-bold leading-tight tracking-[-0.02em] text-bk-ink">
-                ລ່າສຸດ ໜຶ່ງບົດຕໍ່ໜຶ່ງໝວດ
+                ລ່າສຸດ
               </h2>
               <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2">
                 {categoryCards.map((article, i) => {
