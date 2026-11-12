@@ -1,10 +1,11 @@
 import Link from "next/link"
 import Image from "next/image"
+import { Zap, Smartphone, KeyRound } from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "RocketMagi Semi — EA ເຄິ່ງອັດຕະໂນມັດ",
-  description: "ທ່ານເລືອກຈັງຫວະ ລະບົບເຮັດທີ່ເຫຼືອ — ກຣິດຄຳເທິງ XAUUSD M5 ທີ່ທ່ານເປັນຜູ້ເລີ່ມ ແລ້ວ EA ຖົວ ແລະ ປິດກະຕ່າໃຫ້ ພ້ອມແດຊບອດສົດເທິງມືຖື.",
+  description: "ທ່ານເລືອກຈັງຫວະ ລະບົບເຮັດທີ່ເຫຼືອ — ກຣິດຄຳເທິງ XAUUSD M5 ທີ່ທ່ານເປັນຜູ້ເລີ່ມ ແລ້ວ EA ແກ້ໄມ້ ແລະປິດ basket ໃຫ້ ພ້ອມ Dashboard ສົດເທິງມືຖື.",
   alternates: { canonical: "https://www.laoforextrader.com/ea-system/semi" },
   openGraph: {
     title: "RocketMagi Semi — EA ເຄິ່ງອັດຕະໂນມັດ | LaoForexTrader",
@@ -14,11 +15,13 @@ export const metadata: Metadata = {
   },
 }
 
-// The dark hero matches /ea-system's own gradient world. The accent runs
-// green → cyan → blue rather than the blue→violet the other EAs use, so this
-// one reads as its own product while still belonging to the same family.
+// Accent runs green → cyan → blue: its own product inside /ea-system's
+// gradient world, where the other three run blue → violet.
+// Radii follow the site's flat surface: 8px on panels, 10px on buttons,
+// pill only on status chips — same as the broker pages.
 const INK = "linear-gradient(135deg, #4ADE80 0%, #22D3EE 60%, #60A5FA 100%)"
 const LAO = "Noto Sans Lao, sans-serif"
+const R = 8
 
 function Gradient({ children }: { children: React.ReactNode }) {
   return (
@@ -33,7 +36,7 @@ function Gradient({ children }: { children: React.ReactNode }) {
 function FlowArt() {
   return (
     <svg viewBox="0 0 320 120" className="w-full max-w-[520px]" role="img"
-         aria-label="ທ່ານກົດ → ລະບົບຖົວໃຫ້ → ປິດຕອນກຳໄລ">
+         aria-label="ທ່ານກົດ → ລະບົບແກ້ໄມ້ໃຫ້ → ປິດຕອນກຳໄລ">
       <defs>
         <linearGradient id="semiLine" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#4ADE80" />
@@ -66,9 +69,9 @@ function FlowArt() {
 }
 
 const STEPS: Array<[string, string, string]> = [
-  ["01", "ທ່ານກົດຝັ່ງທີ່ຕ້ອງການ", "Buy ຫຼື Sell — ຈາກປຸ່ມເທິງຊາດ, ມືຖື ຫຼືແດຊບອດເທິງເວັບ"],
-  ["02", "ລະບົບຖົວໃຫ້ອັດຕະໂນມັດ", "ວາງຂັ້ນໄດທຸກ Grid ທີ່ກຳນົດ ແລະຄິດຈຸດຄຸ້ມທຶນໃຫ້ຕະຫຼອດເວລາ"],
-  ["03", "ປິດກະຕ່າຕອນເປັນກຳໄລ", "ຮອດເປົ້າແລ້ວປິດທັງກະຕ່າ ຈາກນັ້ນລໍຖ້າຄຳສັ່ງຕໍ່ໄປຈາກທ່ານ"],
+  ["01", "ທ່ານກົດຝັ່ງທີ່ຕ້ອງການ", "Buy ຫຼື Sell — ຈາກປຸ່ມເທິງຊາດ, ມືຖື ຫຼື Dashboard ເທິງເວັບ"],
+  ["02", "ລະບົບແກ້ໄມ້ໃຫ້ອັດຕະໂນມັດ", "ວາງຂັ້ນໄດທຸກ Grid ທີ່ກຳນົດ ແລະຄິດຈຸດຄຸ້ມທຶນໃຫ້ຕະຫຼອດເວລາ"],
+  ["03", "ປິດ basket ຕອນເປັນກຳໄລ", "ຮອດເປົ້າແລ້ວປິດທັງ basket ຈາກນັ້ນລໍຖ້າຄຳສັ່ງຕໍ່ໄປຈາກທ່ານ"],
 ]
 
 const FEATURES: Array<[string, string, string]> = [
@@ -77,13 +80,19 @@ const FEATURES: Array<[string, string, string]> = [
   ["◉", "ມິເຕີຕະຫຼາດສົດ",
    "Trend · Speed · ATR · Spread · Equity guard ອ່ານຈາກ MT5 ໂດຍກົງທຸກ 3 ວິນາທີ"],
   ["⬢", "ຄວບຄຸມຈາກມືຖື",
-   "ເປີດ ປິດ ປ່ຽນໂໝດ ແລະປັບ First lot / Grid / Guard ຈາກແດຊບອດເທິງເວັບ"],
+   "ເປີດ ປິດ ປ່ຽນໂໝດ ແລະປັບ First lot / Grid / Guard ຈາກ Dashboard ເທິງເວັບ"],
   ["◈", "ແຈ້ງເຕືອນເຂົ້າ MT5",
-   "ເປີດກະຕ່າ ປິດກະຕ່າ ປ່ຽນໂໝດ ຫຼືເລື່ອງສຸກເສີນ — ເລືອກເປີດປິດເອງໄດ້"],
+   "ເປີດ basket ປິດ basket ປ່ຽນໂໝດ ຫຼືເລື່ອງສຸກເສີນ — ເລືອກເປີດປິດເອງໄດ້"],
   ["⬟", "ສະເກລຂັ້ນໄດຕາມລ໋ອດ",
    "ກຳນົດລ໋ອດໄມ້ທຳອິດເອງ ຂັ້ນໄດທັງໝົດສະເກລຕາມ ພ້ອມບອກລ໋ອດລວມຕອນເຕັມຂັ້ນໄດ"],
   ["◆", "ດ່ານສຸກເສີນ",
    "ສະເປຣດກວ້າງ ຫຼືລາຄາກະໂດດແຮງຜິດປົກກະຕິ — ລະບົບຢຸດເປີດໄມ້ໃໝ່ໃຫ້ເອງ"],
+]
+
+const TRUST: Array<[React.ComponentType<{ size?: number; strokeWidth?: number }>, string]> = [
+  [Zap, "ອັບເດດທຸກ 3 ວິນາທີ"],
+  [Smartphone, "ສັ່ງງານຈາກມືຖື"],
+  [KeyRound, "ຜູກບັນຊີດ້ວຍກະແຈສ່ວນຕົວ"],
 ]
 
 export default function SemiLandingPage() {
@@ -111,16 +120,16 @@ export default function SemiLandingPage() {
           <p className="mx-auto mt-5 max-w-[560px] text-[14px] leading-[1.75] sm:text-[15px]"
              style={{ color: "rgba(255,255,255,0.58)", fontFamily: LAO }}>
             ກຣິດຄຳເທິງ XAUUSD M5 ທີ່ທ່ານເປັນຜູ້ເລີ່ມເອງ — ກົດຝັ່ງດຽວ
-            ແລ້ວ EA ສ້າງກະຕ່າ ຖົວໃຫ້ ແລະປິດຕອນໄດ້ກຳໄລ ຈາກນັ້ນລໍຖ້າທ່ານສັ່ງໃໝ່
+            ແລ້ວ EA ສ້າງ basket ແກ້ໄມ້ໃຫ້ ແລະປິດຕອນໄດ້ກຳໄລ ຈາກນັ້ນລໍຖ້າທ່ານສັ່ງໃໝ່
           </p>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/semi" className="rounded-full px-6 py-3 text-[14px] font-bold text-[#04070F] no-underline"
-                  style={{ background: INK }}>
-              ເຂົ້າສູ່ແດຊບອດ →
+            <Link href="/semi" className="px-6 py-3 text-[14px] font-bold text-[#04070F] no-underline"
+                  style={{ background: INK, borderRadius: 10 }}>
+              ເຂົ້າສູ່ Dashboard →
             </Link>
-            <Link href="/ea-system" className="rounded-full border px-6 py-3 text-[14px] font-semibold text-white no-underline"
-                  style={{ borderColor: "rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.04)" }}>
+            <Link href="/ea-system" className="border px-6 py-3 text-[14px] font-semibold text-white no-underline"
+                  style={{ borderColor: "rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.04)", borderRadius: 10 }}>
               ເບິ່ງ EA ຕົວອື່ນ
             </Link>
           </div>
@@ -131,7 +140,7 @@ export default function SemiLandingPage() {
                  style={{ background: "rgba(34,211,238,0.18)" }} />
             <Image
               src="/ea/semi-mockup.png"
-              alt="RocketMagi Semi — ແດຊບອດເທິງມືຖືແລະຄອມພິວເຕີ"
+              alt="RocketMagi Semi — Dashboard ເທິງມືຖືແລະຄອມພິວເຕີ"
               width={1535}
               height={1024}
               priority
@@ -140,11 +149,15 @@ export default function SemiLandingPage() {
             />
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-[11px]"
-               style={{ color: "rgba(255,255,255,0.42)", fontFamily: LAO }}>
-            <span>⚡ ອັບເດດທຸກ 3 ວິນາທີ</span>
-            <span>📱 ສັ່ງງານຈາກມືຖື</span>
-            <span>🔒 ຜູກບັນຊີດ້ວຍກະແຈສ່ວນຕົວ</span>
+          {/* trust strip — vector icons inherit the text colour, no emoji */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5 text-[11.5px]"
+               style={{ color: "rgba(255,255,255,0.46)", fontFamily: LAO }}>
+            {TRUST.map(([Icon, label]) => (
+              <span key={label} className="inline-flex items-center gap-2">
+                <Icon size={14} strokeWidth={1.9} />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -162,8 +175,8 @@ export default function SemiLandingPage() {
           <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
             <div className="flex flex-col gap-3">
               {STEPS.map(([num, title, body]) => (
-                <div key={num} className="flex items-start gap-4 rounded-2xl p-4"
-                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid #16203C" }}>
+                <div key={num} className="flex items-start gap-4 p-4"
+                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid #16203C", borderRadius: R }}>
                   <span className="font-mono text-[13px] font-bold" style={{ color: "#22D3EE" }}>{num}</span>
                   <span className="min-w-0">
                     <span className="block text-[14px] font-bold text-white" style={{ fontFamily: LAO }}>{title}</span>
@@ -174,13 +187,13 @@ export default function SemiLandingPage() {
               ))}
             </div>
 
-            <div className="flex flex-col items-center gap-4 rounded-2xl p-6"
-                 style={{ background: "linear-gradient(180deg, rgba(34,211,238,0.06), transparent)", border: "1px solid #16203C" }}>
+            <div className="flex flex-col items-center gap-4 p-6"
+                 style={{ background: "linear-gradient(180deg, rgba(34,211,238,0.06), transparent)", border: "1px solid #16203C", borderRadius: R }}>
               <FlowArt />
               <div className="flex w-full max-w-[520px] justify-between text-[11px] font-semibold"
                    style={{ fontFamily: LAO }}>
                 <span style={{ color: "#4ADE80" }}>ທ່ານກົດ</span>
-                <span style={{ color: "#22D3EE" }}>ລະບົບຖົວໃຫ້</span>
+                <span style={{ color: "#22D3EE" }}>ລະບົບແກ້ໄມ້</span>
                 <span style={{ color: "#60A5FA" }}>ປິດຕອນກຳໄລ</span>
               </div>
             </div>
@@ -200,10 +213,10 @@ export default function SemiLandingPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(([icon, title, body]) => (
-              <div key={title} className="rounded-2xl p-5"
-                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid #16203C" }}>
-                <div className="mb-3 grid h-9 w-9 place-items-center rounded-xl text-[15px]"
-                     style={{ background: "rgba(34,211,238,0.10)", border: "1px solid rgba(34,211,238,0.25)", color: "#22D3EE" }}>
+              <div key={title} className="p-5"
+                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid #16203C", borderRadius: R }}>
+                <div className="mb-3 grid h-9 w-9 place-items-center text-[15px]"
+                     style={{ background: "rgba(34,211,238,0.10)", border: "1px solid rgba(34,211,238,0.25)", borderRadius: R, color: "#22D3EE" }}>
                   {icon}
                 </div>
                 <div className="text-[13.5px] font-bold text-white" style={{ fontFamily: LAO }}>{title}</div>
@@ -227,13 +240,13 @@ export default function SemiLandingPage() {
             ເທົ່ານັ້ນກໍຄວບຄຸມບັນຊີຂອງທ່ານໄດ້ຈາກທຸກບ່ອນ
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/semi" className="rounded-full px-7 py-3.5 text-[14px] font-bold text-[#04070F] no-underline"
-                  style={{ background: INK }}>
-              ເຂົ້າສູ່ແດຊບອດ →
+            <Link href="/semi" className="px-7 py-3.5 text-[14px] font-bold text-[#04070F] no-underline"
+                  style={{ background: INK, borderRadius: 10 }}>
+              ເຂົ້າສູ່ Dashboard →
             </Link>
           </div>
-          <p className="mx-auto mt-8 max-w-[640px] rounded-xl px-4 py-3 text-[11px] leading-[1.7]"
-             style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.22)", color: "#FCD34D", fontFamily: LAO }}>
+          <p className="mx-auto mt-8 max-w-[640px] px-4 py-3 text-[11px] leading-[1.7]"
+             style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.22)", borderRadius: R, color: "#FCD34D", fontFamily: LAO }}>
             ⚠ ການລົງທຶນໃນ Forex ມີຄວາມສ່ຽງ · ລະບົບນີ້ເປັນເຄື່ອງມືຊ່ວຍເທຣດ ບໍ່ແມ່ນການຮັບປະກັນກຳໄລ
             · ແນະນຳໃຫ້ທົດລອງໃນບັນຊີ Demo ກ່ອນສະເໝີ
           </p>

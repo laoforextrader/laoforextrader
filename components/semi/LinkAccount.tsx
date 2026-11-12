@@ -42,7 +42,7 @@ export default function LinkAccount() {
       <div className="flex justify-end gap-0.5 rounded-bk border border-bk-line bg-bk-sunken p-0.5 self-end">
         {LANGS.map(l => (
           <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("semi.lang", l) } catch {} }}
-            className={`rounded-md px-2.5 py-1 text-[12px] font-bold ${lang === l ? "bg-accent text-white" : "text-bk-muted"}`}>
+            className={`rounded-bk px-2.5 py-1 text-[12px] font-bold ${lang === l ? "bg-accent text-white" : "text-bk-muted"}`}>
             {LANG_LABEL[l]}
           </button>
         ))}

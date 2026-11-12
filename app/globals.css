@@ -396,6 +396,6 @@ html.dark:not(:has([data-force-light])) img:not([data-no-dim]) { filter: brightn
   .bk-panel { transition: none; }
 }
 
-/* RocketMagi Semi teaser card on /ea-system */
-.semi-card-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-@media (min-width: 640px) { .semi-card-grid { grid-template-columns: repeat(3, 1fr); } }
+/* RocketMagi Semi card on /ea-system — text beside the node map */
+.semi-row { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; }
+@media (min-width: 900px) { .semi-row { grid-template-columns: 1.05fr 0.95fr; gap: 40px; } }

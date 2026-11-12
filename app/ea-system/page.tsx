@@ -79,83 +79,136 @@ export default function EASystemPage() {
         </div>
       </section>
 
-      {/* ── EA #0 — RocketMagi Semi (teaser card, no live stats yet) ───── */}
-      {/* Unlike the three below this one has no live account to quote, so the
-          card sells what it *is* rather than what it has returned: the one
-          thing none of the others do, which is let a human pick the entry. */}
+      {/* ── EA #0 — RocketMagi Semi ────────────────────────────────────
+          Same two-column anatomy as the three EAs below, but the right-hand
+          panel holds a node map instead of live stats: this one has no track
+          record to quote yet, so it shows what it IS. ─────────────────────── */}
       <section style={{ background: "linear-gradient(180deg,#0B1230 0%,#050816 100%)", borderBottom: "1px solid #1E1B4B" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "40px 24px" }}>
-          <Link href="/ea-system/semi" style={{ textDecoration: "none", display: "block" }}>
-            <div style={{
-              position: "relative", overflow: "hidden",
-              background: "radial-gradient(120% 140% at 85% 0%, rgba(34,211,238,0.14) 0%, transparent 55%), rgba(255,255,255,0.03)",
-              border: "1px solid rgba(34,211,238,0.28)", borderRadius: 20, padding: 24,
-            }}>
-              <div style={{
-                position: "absolute", inset: 0, bottom: "auto", height: 2,
-                background: "linear-gradient(90deg,#4ADE80,#22D3EE,#60A5FA)",
-              }} />
+        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "52px 24px" }}>
+          <div className="semi-row">
 
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 100,
-                  background: "rgba(74,222,128,0.12)", border: "0.5px solid rgba(74,222,128,0.35)",
-                  padding: "4px 12px", fontSize: 11, fontWeight: 600, color: "#4ADE80",
-                }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 9999, background: "#4ADE80" }} />
-                  NEW · Semi-automatic
-                </span>
-                <span style={{
-                  borderRadius: 100, background: "rgba(96,165,250,0.10)",
-                  border: "0.5px solid rgba(96,165,250,0.3)", padding: "4px 12px",
-                  fontSize: 11, fontWeight: 600, color: "#93C5FD",
-                }}>
-                  XAUUSD · M5
-                </span>
+            {/* text + CTA */}
+            <div>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "rgba(74,222,128,0.10)", border: "1px solid rgba(74,222,128,0.32)",
+                borderRadius: 100, padding: "5px 14px", marginBottom: 16,
+                fontSize: 11, fontWeight: 700, color: "#4ADE80",
+                letterSpacing: "0.08em", textTransform: "uppercase",
+              }}>
+                <Zap size={13} strokeWidth={2.5} />
+                TheRocket EA · Semi
               </div>
 
-              <h3 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.15, marginBottom: 8 }}>
-                <span style={{ color: "#fff" }}>RocketMagi </span>
+              <h2 style={{
+                fontSize: 32, fontWeight: 800, letterSpacing: "-0.025em",
+                lineHeight: 1.12, marginBottom: 8, color: "#fff",
+              }}>
+                RocketMagi{" "}
                 <span style={{
                   background: "linear-gradient(135deg,#4ADE80,#22D3EE,#60A5FA)",
                   WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
                 }}>Semi</span>
-              </h3>
+              </h2>
 
               <p style={{
-                fontSize: 13.5, lineHeight: 1.75, color: "rgba(255,255,255,0.58)",
-                fontFamily: "Noto Sans Lao, sans-serif", maxWidth: 620, marginBottom: 18,
+                fontSize: 16, fontWeight: 700, marginBottom: 10,
+                background: "linear-gradient(135deg,#4ADE80,#22D3EE)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                fontFamily: "Noto Sans Lao, sans-serif",
               }}>
-                EA ຕົວດຽວໃນຊຸດນີ້ທີ່ <strong style={{ color: "#fff", fontWeight: 700 }}>ທ່ານເປັນຜູ້ເລືອກຈັງຫວະເອງ</strong> —
-                ກົດ Buy ຫຼື Sell ຈາກມືຖື ແລ້ວລະບົບຈະຖົວ ແລະປິດກະຕ່າໃຫ້ເມື່ອເປັນກຳໄລ
-                ພ້ອມແດຊບອດສົດທີ່ຄວບຄຸມໄດ້ຈາກທຸກບ່ອນ
+                ທ່ານເລືອກຈັງຫວະ · ລະບົບເຮັດທີ່ເຫຼືອ
               </p>
 
-              <div className="semi-card-grid" style={{ marginBottom: 20 }}>
-                {[
-                  ["3 ໂໝດ", "Manual · Semi · Auto"],
-                  ["ຄວບຄຸມຈາກມືຖື", "ເປີດ ປິດ ປ່ຽນຄ່າ ໄດ້ທຸກບ່ອນ"],
-                  ["ມິເຕີສົດ", "Trend · Speed · ATR · Spread"],
-                ].map(([t, sub]) => (
-                  <div key={t} style={{
-                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 12, padding: "12px 14px",
-                  }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "Noto Sans Lao, sans-serif" }}>{t}</div>
-                    <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", marginTop: 2, fontFamily: "Noto Sans Lao, sans-serif" }}>{sub}</div>
-                  </div>
-                ))}
+              <p style={{
+                fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.55)",
+                fontFamily: "Noto Sans Lao, sans-serif", marginBottom: 24, maxWidth: 480,
+              }}>
+                EA ຕົວດຽວໃນຊຸດນີ້ທີ່ທ່ານເປັນຜູ້ເລືອກຈັງຫວະເອງ — ກົດ Buy ຫຼື Sell ຈາກມືຖື
+                ແລ້ວລະບົບຈະແກ້ໄມ້ ແລະປິດ basket ໃຫ້ເມື່ອເປັນກຳໄລ
+              </p>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginBottom: 26 }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Strategy</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#22D3EE", marginTop: 3 }}>Semi Grid</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Pair</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginTop: 3 }}>XAUUSD · M5</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Control</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#4ADE80", marginTop: 3 }}>Manual · Semi · Auto</div>
+                </div>
               </div>
 
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 100,
+              <Link href="/ea-system/semi" style={{
+                display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none",
                 background: "linear-gradient(135deg,#4ADE80,#22D3EE,#60A5FA)",
-                padding: "11px 22px", fontSize: 13.5, fontWeight: 700, color: "#04070F",
+                color: "#04070F", padding: "14px 26px", borderRadius: 10,
+                fontSize: 14, fontWeight: 700, fontFamily: "Noto Sans Lao, sans-serif",
+                boxShadow: "0 8px 28px rgba(34,211,238,0.22)",
               }}>
+                <Rocket size={15} strokeWidth={2.5} />
                 ເບິ່ງລາຍລະອຽດ →
-              </span>
+              </Link>
             </div>
-          </Link>
+
+            {/* node map — the three things that make it different, wired together */}
+            <div style={{
+              background: "radial-gradient(110% 110% at 70% 0%, rgba(34,211,238,0.10) 0%, transparent 60%), rgba(255,255,255,0.03)",
+              border: "1px solid rgba(34,211,238,0.22)", borderRadius: 8, padding: 20,
+            }}>
+              <svg viewBox="0 0 320 272" style={{ width: "100%", height: "auto", display: "block" }}
+                   role="img" aria-label="ສາມໂໝດ · ຄວບຄຸມຈາກມືຖື · ມິເຕີສົດ">
+                <defs>
+                  <linearGradient id="nodeCore" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#4ADE80" />
+                    <stop offset="0.6" stopColor="#22D3EE" />
+                    <stop offset="1" stopColor="#60A5FA" />
+                  </linearGradient>
+                </defs>
+
+                {/* wires first so the discs sit on top of them */}
+                <g stroke="rgba(34,211,238,0.45)" strokeWidth="1.5" strokeDasharray="3 5">
+                  <line x1="160" y1="136" x2="64" y2="62" />
+                  <line x1="160" y1="136" x2="262" y2="74" />
+                  <line x1="160" y1="136" x2="168" y2="226" />
+                </g>
+
+                {/* core */}
+                <circle cx="160" cy="136" r="52" fill="rgba(34,211,238,0.10)" stroke="url(#nodeCore)" strokeWidth="2" />
+                <text x="160" y="130" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="800">RocketMagi</text>
+                <text x="160" y="150" textAnchor="middle" fill="#22D3EE" fontSize="15" fontWeight="800">Semi</text>
+
+                {/* satellites */}
+                <circle cx="64" cy="62" r="40" fill="rgba(74,222,128,0.10)" stroke="rgba(74,222,128,0.5)" strokeWidth="1.5" />
+                <text x="64" y="58" textAnchor="middle" fill="#4ADE80" fontSize="16" fontWeight="800">3</text>
+                <text x="64" y="76" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="11"
+                      fontFamily="Noto Sans Lao, sans-serif">ໂໝດ</text>
+
+                <circle cx="262" cy="74" r="42" fill="rgba(96,165,250,0.10)" stroke="rgba(96,165,250,0.5)" strokeWidth="1.5" />
+                <text x="262" y="70" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="11"
+                      fontFamily="Noto Sans Lao, sans-serif">ຄວບຄຸມຈາກ</text>
+                <text x="262" y="88" textAnchor="middle" fill="#60A5FA" fontSize="13" fontWeight="800"
+                      fontFamily="Noto Sans Lao, sans-serif">ມືຖື</text>
+
+                <circle cx="168" cy="226" r="40" fill="rgba(34,211,238,0.10)" stroke="rgba(34,211,238,0.5)" strokeWidth="1.5" />
+                <text x="168" y="222" textAnchor="middle" fill="#22D3EE" fontSize="13" fontWeight="800"
+                      fontFamily="Noto Sans Lao, sans-serif">ມິເຕີ</text>
+                <text x="168" y="240" textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="11"
+                      fontFamily="Noto Sans Lao, sans-serif">ສົດ</text>
+              </svg>
+
+              <div style={{
+                marginTop: 12, textAlign: "center", fontSize: 11.5,
+                color: "rgba(255,255,255,0.45)", fontFamily: "Noto Sans Lao, sans-serif",
+              }}>
+                ທຸກຢ່າງເຊື່ອມເຖິງກັນ · ສັ່ງຈາກບ່ອນໃດກໍໄດ້
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

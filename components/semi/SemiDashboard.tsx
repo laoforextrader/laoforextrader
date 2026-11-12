@@ -132,12 +132,12 @@ export default function SemiDashboard({ account }: { account: string }) {
       <div className="text-[9px] font-bold uppercase tracking-[0.09em] text-fg-4">{label}</div>
       <div className="mt-1 flex items-center justify-between gap-1">
         <button disabled={busy} onClick={() => send(cmd, Math.max(min, +(value - step).toFixed(2)))}
-          className="h-6 w-6 rounded-md border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">−</button>
+          className="h-6 w-6 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">−</button>
         <span className="min-w-0 flex-1 font-mono text-[12.5px] font-bold tabular-nums">
           {cmd === "SET_GRID" ? `${value}p` : cmd === "SET_GUARD" ? `${value}%` : value.toFixed(2)}
         </span>
         <button disabled={busy} onClick={() => send(cmd, Math.min(max, +(value + step).toFixed(2)))}
-          className="h-6 w-6 rounded-md border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">+</button>
+          className="h-6 w-6 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">+</button>
       </div>
     </div>
   )
@@ -169,9 +169,9 @@ export default function SemiDashboard({ account }: { account: string }) {
         )}
         <div className="flex gap-1.5 px-2.5 pb-2.5">
           <button disabled={busy} onClick={() => send(isBuy ? "CLOSE_BUY" : "CLOSE_SELL")}
-            className="flex-1 rounded-md border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.close}</button>
+            className="flex-1 rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.close}</button>
           <button disabled={busy} onClick={() => send(isBuy ? "STOP_BUY" : "STOP_SELL")}
-            className="flex-1 rounded-md border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.stop}</button>
+            className="flex-1 rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.stop}</button>
         </div>
       </details>
     )
@@ -193,7 +193,7 @@ export default function SemiDashboard({ account }: { account: string }) {
         <div className="flex gap-0.5 rounded-bk border border-bk-line bg-bk-sunken p-0.5">
           {LANGS.map(l => (
             <button key={l} onClick={() => chooseLang(l)}
-              className={`rounded-md px-2.5 py-1 text-[12px] font-bold ${lang === l ? "bg-accent text-white" : "text-bk-muted"}`}>
+              className={`rounded-bk px-2.5 py-1 text-[12px] font-bold ${lang === l ? "bg-accent text-white" : "text-bk-muted"}`}>
               {LANG_LABEL[l]}
             </button>
           ))}
@@ -268,7 +268,7 @@ export default function SemiDashboard({ account }: { account: string }) {
                     const want = ["MANUAL", "SEMI", "AUTO"][i]
                     return (
                       <button key={want} disabled={busy} onClick={() => send(`MODE_${want}`)}
-                        className={`flex-1 rounded-md py-2 text-[12.5px] font-bold disabled:opacity-40 ${
+                        className={`flex-1 rounded-bk py-2 text-[12.5px] font-bold disabled:opacity-40 ${
                           mode === want ? "bg-accent text-white" : "text-bk-muted"}`}>{label}</button>
                     )
                   })}
