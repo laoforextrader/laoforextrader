@@ -45,11 +45,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid json" }, { status: 400 })
   }
 
-  // Replay guard. The EA stamps server time; allow a wide skew because broker
-  // server time is not the web server's clock, only the window matters.
+  // Replay guard. The EA stamps UTC (TimeGMT, not TimeCurrent — broker server
+  // time runs hours off UTC and silently failed every push here). The window
+  // is wide enough to tolerate a user's clock being out by half an hour, which
+  // is common on home machines, while still refusing a captured old body.
   const ts = Number(body?.ts) * 1000
-  if (ts && Math.abs(Date.now() - ts) > 10 * 60 * 1000) {
-    return NextResponse.json({ error: "stale timestamp" }, { status: 400 })
+  const skew = ts ? Math.abs(Date.now() - ts) : 0
+  if (ts && skew > 30 * 60 * 1000) {
+    return NextResponse.json({
+      error: "stale timestamp — send ts as UTC (TimeGMT), or fix the clock",
+      skewMinutes: Math.round(skew / 60000),
+    }, { status: 400 })
   }
 
   const rounds: SemiRound[] = Array.isArray(body?.rounds)
