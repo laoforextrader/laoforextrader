@@ -14,5 +14,6 @@ import { chatSessionSchema } from "./chatSession"
 import { adminMessageSchema } from "./adminMessage"
 import { supportThreadSchema } from "./supportThread"
 import { clickStatSchema } from "./clickStat"
+import { semiAccountSchema } from "./semiAccount"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, brokerNewsSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema, clickStatSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, brokerNewsSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema, clickStatSchema, semiAccountSchema]
