@@ -395,3 +395,7 @@ html.dark:not(:has([data-force-light])) img:not([data-no-dim]) { filter: brightn
   .bk-bar, .bk-pop { animation: none; }
   .bk-panel { transition: none; }
 }
+
+/* RocketMagi Semi teaser card on /ea-system */
+.semi-card-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 640px) { .semi-card-grid { grid-template-columns: repeat(3, 1fr); } }

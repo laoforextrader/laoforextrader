@@ -147,8 +147,8 @@ function EaNext() {
           ເບິ່ງຜົນງານ EA
           <ArrowIcon size={15} />
         </Link>
-        <Link href="/ea" className={`${btnOutline} w-full sm:w-auto`}>
-          ສະຖິຕິສົດ
+        <Link href="/ea-system/semi" className={`${btnOutline} w-full sm:w-auto`}>
+          EA ເຄິ່ງອັດຕະໂນມັດ
         </Link>
       </div>
     </Shell>

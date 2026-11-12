@@ -79,6 +79,86 @@ export default function EASystemPage() {
         </div>
       </section>
 
+      {/* ── EA #0 — RocketMagi Semi (teaser card, no live stats yet) ───── */}
+      {/* Unlike the three below this one has no live account to quote, so the
+          card sells what it *is* rather than what it has returned: the one
+          thing none of the others do, which is let a human pick the entry. */}
+      <section style={{ background: "linear-gradient(180deg,#0B1230 0%,#050816 100%)", borderBottom: "1px solid #1E1B4B" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "40px 24px" }}>
+          <Link href="/ea-system/semi" style={{ textDecoration: "none", display: "block" }}>
+            <div style={{
+              position: "relative", overflow: "hidden",
+              background: "radial-gradient(120% 140% at 85% 0%, rgba(34,211,238,0.14) 0%, transparent 55%), rgba(255,255,255,0.03)",
+              border: "1px solid rgba(34,211,238,0.28)", borderRadius: 20, padding: 24,
+            }}>
+              <div style={{
+                position: "absolute", inset: 0, bottom: "auto", height: 2,
+                background: "linear-gradient(90deg,#4ADE80,#22D3EE,#60A5FA)",
+              }} />
+
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 100,
+                  background: "rgba(74,222,128,0.12)", border: "0.5px solid rgba(74,222,128,0.35)",
+                  padding: "4px 12px", fontSize: 11, fontWeight: 600, color: "#4ADE80",
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 9999, background: "#4ADE80" }} />
+                  NEW · Semi-automatic
+                </span>
+                <span style={{
+                  borderRadius: 100, background: "rgba(96,165,250,0.10)",
+                  border: "0.5px solid rgba(96,165,250,0.3)", padding: "4px 12px",
+                  fontSize: 11, fontWeight: 600, color: "#93C5FD",
+                }}>
+                  XAUUSD · M5
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.15, marginBottom: 8 }}>
+                <span style={{ color: "#fff" }}>RocketMagi </span>
+                <span style={{
+                  background: "linear-gradient(135deg,#4ADE80,#22D3EE,#60A5FA)",
+                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                }}>Semi</span>
+              </h3>
+
+              <p style={{
+                fontSize: 13.5, lineHeight: 1.75, color: "rgba(255,255,255,0.58)",
+                fontFamily: "Noto Sans Lao, sans-serif", maxWidth: 620, marginBottom: 18,
+              }}>
+                EA ຕົວດຽວໃນຊຸດນີ້ທີ່ <strong style={{ color: "#fff", fontWeight: 700 }}>ທ່ານເປັນຜູ້ເລືອກຈັງຫວະເອງ</strong> —
+                ກົດ Buy ຫຼື Sell ຈາກມືຖື ແລ້ວລະບົບຈະຖົວ ແລະປິດກະຕ່າໃຫ້ເມື່ອເປັນກຳໄລ
+                ພ້ອມແດຊບອດສົດທີ່ຄວບຄຸມໄດ້ຈາກທຸກບ່ອນ
+              </p>
+
+              <div className="semi-card-grid" style={{ marginBottom: 20 }}>
+                {[
+                  ["3 ໂໝດ", "Manual · Semi · Auto"],
+                  ["ຄວບຄຸມຈາກມືຖື", "ເປີດ ປິດ ປ່ຽນຄ່າ ໄດ້ທຸກບ່ອນ"],
+                  ["ມິເຕີສົດ", "Trend · Speed · ATR · Spread"],
+                ].map(([t, sub]) => (
+                  <div key={t} style={{
+                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 12, padding: "12px 14px",
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "Noto Sans Lao, sans-serif" }}>{t}</div>
+                    <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", marginTop: 2, fontFamily: "Noto Sans Lao, sans-serif" }}>{sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 100,
+                background: "linear-gradient(135deg,#4ADE80,#22D3EE,#60A5FA)",
+                padding: "11px 22px", fontSize: 13.5, fontWeight: 700, color: "#04070F",
+              }}>
+                ເບິ່ງລາຍລະອຽດ →
+              </span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* ── EA #1 — SGride (Galaxy) ────────────────────────────────────── */}
       <EAShowcaseSection
         eaId="sgride"
