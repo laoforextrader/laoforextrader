@@ -43,6 +43,11 @@ const PROSE = {
     overCap: "Ladder is larger than this balance supports",
     guardHit: "Equity guard stopped new baskets",
     algoOff: "Algo Trading is off in MT5 — the EA cannot send orders",
+    notifyTitle: "Phone alerts",
+    notifyOn: "Alerts are sent to the MT5 app on your phone",
+    notifyOff: "Alerts are off",
+    notifyNoId: "No MetaQuotes ID in MT5 — add it under Tools → Options → Notifications",
+    whyIdle: "Why it is not opening",
   },
   th: {
     dash: "แดชบอร์ด", history: "ประวัติ", owner: "เจ้าของบัญชี",
@@ -61,6 +66,11 @@ const PROSE = {
     overCap: "บันไดใหญ่เกินทุนที่มี",
     guardHit: "Equity guard หยุดการเปิดตะกร้าใหม่แล้ว",
     algoOff: "ปุ่ม Algo Trading ใน MT5 ปิดอยู่ — EA ส่งคำสั่งไม่ได้",
+    notifyTitle: "แจ้งเตือนเข้ามือถือ",
+    notifyOn: "ส่งแจ้งเตือนเข้าแอป MT5 บนมือถือ",
+    notifyOff: "ปิดการแจ้งเตือนอยู่",
+    notifyNoId: "ยังไม่ได้ใส่ MetaQuotes ID ใน MT5 — ใส่ที่ Tools → Options → Notifications",
+    whyIdle: "ทำไมยังไม่เปิดไม้",
   },
   lo: {
     dash: "ແດຊບອດ", history: "ປະຫວັດ", owner: "ເຈົ້າຂອງບັນຊີ",
@@ -79,6 +89,11 @@ const PROSE = {
     overCap: "ຂັ້ນໄດໃຫຍ່ເກີນທຶນທີ່ມີ",
     guardHit: "Equity guard ຢຸດການເປີດກະຕ່າໃໝ່ແລ້ວ",
     algoOff: "ປຸ່ມ Algo Trading ໃນ MT5 ປິດຢູ່ — EA ສົ່ງຄຳສັ່ງບໍ່ໄດ້",
+    notifyTitle: "ແຈ້ງເຕືອນເຂົ້າມືຖື",
+    notifyOn: "ສົ່ງແຈ້ງເຕືອນເຂົ້າແອັບ MT5 ເທິງມືຖື",
+    notifyOff: "ປິດການແຈ້ງເຕືອນຢູ່",
+    notifyNoId: "ຍັງບໍ່ໄດ້ໃສ່ MetaQuotes ID ໃນ MT5 — ໃສ່ທີ່ Tools → Options → Notifications",
+    whyIdle: "ເປັນຫຍັງຍັງບໍ່ເປີດໄມ້",
   },
 }
 

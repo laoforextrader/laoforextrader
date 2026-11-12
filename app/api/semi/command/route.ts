@@ -14,7 +14,7 @@ const ACTIONS = new Set([
   "CLOSE_BUY", "CLOSE_SELL", "CLOSE_ALL",
   "STOP_BUY", "STOP_SELL",
   "MODE_MANUAL", "MODE_SEMI", "MODE_AUTO",
-  "SET_LOT", "SET_GRID", "SET_GUARD", "RESET",
+  "SET_LOT", "SET_GRID", "SET_GUARD", "RESET", "SET_NOTIFY",
 ])
 
 // Commands whose number means something, with the same bounds the EA clamps
@@ -26,6 +26,7 @@ const RANGES: Record<string, [number, number]> = {
   SET_LOT:   [0.01, 100],
   SET_GRID:  [10, 5000],
   SET_GUARD: [0, 95],
+  SET_NOTIFY: [0, 1],   // 1 = phone alerts on, 0 = off
 }
 
 export async function POST(req: Request) {

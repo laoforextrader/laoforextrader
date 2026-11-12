@@ -21,6 +21,7 @@ type Snapshot = {
   state?: {
     mode?: string; guardPct?: number; guardHit?: boolean; firstLot?: number
     gridPips?: number; scale?: number; fullBasketLots?: number; overCap?: boolean
+    notify?: boolean; notifyReady?: boolean; gateBuy?: string; gateSell?: string
   }
   meters?: { trend?: string; trendForce?: number; trendMeter?: number; speed?: number; atr?: number; spread?: number }
   sides?: Side[]
@@ -290,6 +291,31 @@ export default function SemiDashboard({ account }: { account: string }) {
                     {t.reset}
                   </button>
                   {st.overCap && <p className="mt-1.5 text-[11px] font-semibold text-warn">{t.overCap}</p>}
+
+                  {/* Phone alerts — the same switch as the checkbox on the MT5 panel,
+                      so flipping it here flips it there within one heartbeat. */}
+                  <label className="mt-1.5 flex cursor-pointer items-start gap-2 rounded-bk border border-bk-line bg-bk-sunken p-2.5">
+                    <input type="checkbox" checked={st.notify !== false} disabled={busy}
+                      onChange={e => send("SET_NOTIFY", e.target.checked ? 1 : 0)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent)]" />
+                    <span className="min-w-0">
+                      <span className="block text-[12px] font-bold">{t.notifyTitle}</span>
+                      <span className={`block text-[10.5px] leading-snug ${
+                        st.notify !== false && st.notifyReady === false ? "text-warn" : "text-bk-muted"}`}>
+                        {st.notify === false
+                          ? t.notifyOff
+                          : st.notifyReady === false ? t.notifyNoId : t.notifyOn}
+                      </span>
+                    </span>
+                  </label>
+
+                  {(st.gateBuy || st.gateSell) && (
+                    <div className="mt-1.5 rounded-bk border border-bk-line bg-bk-sunken p-2.5">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.whyIdle}</div>
+                      {st.gateBuy && <p className="mt-1 text-[11px] text-warn"><b className="text-ok">BUY</b> — {st.gateBuy}</p>}
+                      {st.gateSell && <p className="mt-1 text-[11px] text-warn"><b className="text-bad">SELL</b> — {st.gateSell}</p>}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
