@@ -41,7 +41,85 @@ type Feed = {
 // phases are what the button shows instead of freezing: the press registers at
 // once ("sending"), then the bar waits out the EA's heartbeat ("queued"), then
 // it closes. Nothing here blocks on a promise the user cannot see.
-type Pending = { cmd: string; at: number; phase: "sending" | "queued" | "done" }
+type Pending = {
+  cmd: string; lot: number; at: number
+  phase: "sending" | "queued" | "applying" | "done"
+}
+
+// Has the EA's own state caught up with what the command asked for?
+// true/false where the answer is in the snapshot, null where it is not — the
+// ring must not claim "done" off the queue emptying alone, because that only
+// proves the EA was handed the command, not that the panel on the VPS shows
+// the new value.
+function applied(p: Pending, st: any, sides: Side[]): boolean | null {
+  const side = (s: "BUY" | "SELL") => sides.find(d => d.side === s)
+  const near = (a?: number, b?: number) =>
+    a !== undefined && a !== null && Math.abs(a - b!) < 1e-6
+  if (p.cmd.startsWith("MODE_")) return (st.mode ?? "").toUpperCase() === p.cmd.slice(5)
+  switch (p.cmd) {
+    case "SET_LOT":    return near(st.firstLot, p.lot)
+    case "SET_GRID":   return near(st.gridPips, p.lot)
+    case "SET_GUARD":  return near(st.guardPct, p.lot)
+    case "SET_NOTIFY": return (st.notify !== false) === (p.lot === 1)
+    case "BUY":        return (side("BUY")?.level ?? 0) > 0
+    case "SELL":       return (side("SELL")?.level ?? 0) > 0
+    case "CLOSE_BUY":  return (side("BUY")?.level ?? 0) === 0
+    case "CLOSE_SELL": return (side("SELL")?.level ?? 0) === 0
+    case "CLOSE_ALL":  return (side("BUY")?.level ?? 0) === 0 && (side("SELL")?.level ?? 0) === 0
+    case "STOP_BUY":   return side("BUY")?.state === "STOPPED"
+    case "STOP_SELL":  return side("SELL")?.state === "STOPPED"
+    default:           return null      // RESET: no single value to watch
+  }
+}
+
+// Typed in, not only stepped. Defined out here on purpose: inside the
+// dashboard it would be a new component on every 3-second poll, and React
+// would throw away the half-typed number with it.
+function Stepper({ label, value, cmd, step, min, max, dp, unit, busy, onSend }: {
+  label: string; value: number; cmd: string; step: number; min: number; max: number
+  dp: number; unit: string; busy: boolean; onSend: (cmd: string, lot: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const clamp = (n: number) => Math.min(max, Math.max(min, Number(n.toFixed(dp))))
+
+  function commit() {
+    const raw = draft
+    setDraft(null)
+    if (raw === null || raw.trim() === "") return
+    const n = Number(raw.replace(",", "."))
+    if (!Number.isFinite(n)) return
+    const v = clamp(n)
+    if (Math.abs(v - value) < 1e-9) return
+    onSend(cmd, v)
+  }
+
+  return (
+    <div className="rounded-bk border border-bk-line bg-bk-sunken p-2 text-center">
+      <div className="text-[9px] font-bold uppercase tracking-[0.09em] text-fg-4">{label}</div>
+      <div className="mt-1 flex items-center justify-between gap-1">
+        <button type="button" disabled={busy} onClick={() => onSend(cmd, clamp(value - step))}
+          className="h-6 w-6 shrink-0 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">−</button>
+        {draft === null ? (
+          <button type="button" disabled={busy} onClick={() => setDraft(value.toFixed(dp))}
+            className="min-w-0 flex-1 font-mono text-[12.5px] font-bold tabular-nums underline decoration-dotted decoration-from-font underline-offset-4 disabled:opacity-40">
+            {value.toFixed(dp)}{unit}
+          </button>
+        ) : (
+          <input autoFocus type="text" inputMode="decimal" value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={e => {
+              if (e.key === "Enter") { e.currentTarget.blur() }
+              if (e.key === "Escape") { setDraft(null) }
+            }}
+            className="min-w-0 w-full flex-1 rounded-bk border border-accent bg-bk-surface px-1 py-0.5 text-center font-mono text-[12.5px] font-bold tabular-nums outline-none" />
+        )}
+        <button type="button" disabled={busy} onClick={() => onSend(cmd, clamp(value + step))}
+          className="h-6 w-6 shrink-0 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">+</button>
+      </div>
+    </div>
+  )
+}
 
 const money = (n: number | undefined, d = 2) =>
   n === undefined || n === null || Number.isNaN(n)
@@ -97,7 +175,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
 
   async function send(cmd: string, lot = 0) {
     if (busy) return                       // one in flight is the whole point
-    setPending({ cmd, at: Date.now(), phase: "sending" })
+    setPending({ cmd, lot, at: Date.now(), phase: "sending" })
     try {
       const r = await fetch("/api/semi/command", {
         method: "POST",
@@ -127,23 +205,28 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   //  honest "it arrived", so the bar closes on it and not on a timer.
   useEffect(() => {
     if (!feed || !pending) return
-    if (pending.phase === "queued") {
-      //  Two ways to know it landed: the queue emptied, or the state the
-      //  command asked for is already on screen. The second covers the case
-      //  where the clearing write has not become readable yet.
-      const wantMode = pending.cmd.startsWith("MODE_") ? pending.cmd.slice(5) : null
-      const arrived = !feed.pendingCmd ||
-        (wantMode !== null && (feed.state?.state?.mode ?? "").toUpperCase() === wantMode)
-      if (arrived) {
+    //  Step one: the EA collected it. The queue emptying is the proof.
+    if (pending.phase === "queued" && !feed.pendingCmd) {
+      setPending({ ...pending, phase: "applying" })
+      return
+    }
+    //  Step two: the EA's own report shows the new value. Only now is the
+    //  number on this screen the same as the number on the VPS panel, which is
+    //  the point at which the ring is allowed to stop.
+    if (pending.phase === "applying") {
+      const ok = applied(pending, feed.state?.state ?? {}, feed.state?.sides ?? [])
+      //  null = nothing in the snapshot to check (RESET); collection is all
+      //  the certainty there is, so take it.
+      if (ok !== false) {
         setPending({ ...pending, phase: "done" })
-        const id = setTimeout(() => setPending(null), 1300)
+        const id = setTimeout(() => setPending(null), 1200)
         return () => clearTimeout(id)
       }
     }
-    //  The EA beats every 3s while the dashboard is open, so 20s without it
-    //  collecting the command means something is wrong — say so and let go of
-    //  the buttons instead of spinning on.
-    if (pending.phase !== "done" && Date.now() - pending.at > 20_000) {
+    //  The EA beats every 3s while the dashboard is open. 30s without the
+    //  value coming back means it did not take — say so and release the
+    //  buttons instead of spinning on.
+    if (pending.phase !== "done" && Date.now() - pending.at > 30_000) {
       setPending(null)
       setToast(t.noAnswer)
       setTimeout(() => setToast(null), 4000)
@@ -199,23 +282,6 @@ export default function SemiDashboard({ account, email }: { account: string; ema
       </div>
     )
   }
-
-  const Stepper = ({ label, value, cmd, step, min, max }: {
-    label: string; value: number; cmd: string; step: number; min: number; max: number
-  }) => (
-    <div className="rounded-bk border border-bk-line bg-bk-sunken p-2 text-center">
-      <div className="text-[9px] font-bold uppercase tracking-[0.09em] text-fg-4">{label}</div>
-      <div className="mt-1 flex items-center justify-between gap-1">
-        <button disabled={busy} onClick={() => send(cmd, Math.max(min, +(value - step).toFixed(2)))}
-          className="h-6 w-6 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">−</button>
-        <span className="min-w-0 flex-1 font-mono text-[12.5px] font-bold tabular-nums">
-          {cmd === "SET_GRID" ? `${value}p` : cmd === "SET_GUARD" ? `${value}%` : value.toFixed(2)}
-        </span>
-        <button disabled={busy} onClick={() => send(cmd, Math.min(max, +(value + step).toFixed(2)))}
-          className="h-6 w-6 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">+</button>
-      </div>
-    </div>
-  )
 
   const SideCard = ({ d }: { d: Side }) => {
     const isBuy = d.side === "BUY"
@@ -405,9 +471,12 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
-                    <Stepper label={t.firstLot} value={lot}   cmd="SET_LOT"   step={0.01} min={0.01} max={100} />
-                    <Stepper label={t.grid}     value={grid}  cmd="SET_GRID"  step={10}   min={10}   max={5000} />
-                    <Stepper label={t.guard}    value={guard} cmd="SET_GUARD" step={5}    min={0}    max={95} />
+                    <Stepper label={t.firstLot} value={lot}   cmd="SET_LOT"   step={0.01} min={0.01} max={100}
+                             dp={2} unit=""  busy={busy} onSend={send} />
+                    <Stepper label={t.grid}     value={grid}  cmd="SET_GRID"  step={10}   min={10}   max={5000}
+                             dp={0} unit="p" busy={busy} onSend={send} />
+                    <Stepper label={t.guard}    value={guard} cmd="SET_GUARD" step={5}    min={0}    max={95}
+                             dp={0} unit="%" busy={busy} onSend={send} />
                   </div>
                   {st.overCap && <p className="mt-1.5 text-[11px] font-semibold text-warn">{t.overCap}</p>}
 
