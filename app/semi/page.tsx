@@ -34,7 +34,7 @@ export default async function SemiPage({
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-      <SemiDashboard account={picked} />
+      <SemiDashboard account={picked} email={email} />
     </div>
   )
 }

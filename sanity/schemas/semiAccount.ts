@@ -71,6 +71,9 @@ export const semiAccountSchema = {
       ],
     },
 
+    // ເສັ້ນ equity / balance ທີ່ເຊີບເວີເກັບຕົວຢ່າງເອງຈາກທຸກ heartbeat
+    { name: "series", title: "ເສັ້ນ Equity / Balance (JSON)", type: "text", rows: 3, readOnly: true },
+
     // ເວັບບອກ EA ວ່າມີຄົນເປີດແດຊບອດຢູ່ -> EA ສົ່ງຖີ່ຂຶ້ນເປັນ 3 ວິນາທີ
     { name: "watchUntil", title: "ມີຄົນເບິ່ງຢູ່ເຖິງ", type: "datetime", readOnly: true },
   ],

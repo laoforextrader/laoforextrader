@@ -1,7 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { signIn, signOut } from "next-auth/react"
 import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/semi/i18n"
+import EquityChart, { type Sample } from "./EquityChart"
 
 // The control panel. Polls /api/semi/state, which doubles as the "someone is
 // watching" signal — the EA sees it in its next reply and speeds up to a
@@ -31,21 +33,34 @@ type Round = { id: number; side: string; opened: number; closed: number; depth: 
 type Feed = {
   account: string; owner: string | null; online: boolean; ageSec: number | null
   state: Snapshot | null; rounds: Round[]; pendingCmd: string | null
+  series?: Sample[]
 }
+
+// One command may be in flight at a time, because the server queues one. The
+// phases are what the button shows instead of freezing: the press registers at
+// once ("sending"), then the bar waits out the EA's heartbeat ("queued"), then
+// it closes. Nothing here blocks on a promise the user cannot see.
+type Pending = { cmd: string; at: number; phase: "sending" | "queued" | "done" }
 
 const money = (n: number | undefined, d = 2) =>
   n === undefined || n === null || Number.isNaN(n)
     ? "—"
     : (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })
 
-export default function SemiDashboard({ account }: { account: string }) {
+export default function SemiDashboard({ account, email }: { account: string; email?: string | null }) {
   const [lang, setLang] = useState<Lang>("en")
   const [feed, setFeed] = useState<Feed | null>(null)
-  const [busy, setBusy] = useState(false)
+  // The sign-in can expire while this tab sits open. The poll is what finds
+  // out (401), and until the user signs in again every control is dead — so
+  // say so on screen instead of letting presses fail one by one.
+  const [authLost, setAuthLost] = useState(false)
+  const [pending, setPending] = useState<Pending | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [tab, setTab] = useState<"dash" | "hist">("dash")
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const t = DICT[lang]
+  //  every control reads this, so the name stays `busy`
+  const busy = pending !== null && pending.phase !== "done"
 
   useEffect(() => {
     try { setLang(pickLang(localStorage.getItem("semi.lang"))) } catch {}
@@ -58,7 +73,8 @@ export default function SemiDashboard({ account }: { account: string }) {
   const poll = useCallback(async () => {
     try {
       const r = await fetch(`/api/semi/state?acc=${encodeURIComponent(account)}`, { cache: "no-store" })
-      if (r.ok) setFeed(await r.json())
+      if (r.status === 401) setAuthLost(true)
+      else if (r.ok) { setAuthLost(false); setFeed(await r.json()) }
     } catch {
       /* a dropped poll is not an error worth showing — the next one recovers */
     }
@@ -73,7 +89,8 @@ export default function SemiDashboard({ account }: { account: string }) {
   }, [poll])
 
   async function send(cmd: string, lot = 0) {
-    setBusy(true)
+    if (busy) return                       // one in flight is the whole point
+    setPending({ cmd, at: Date.now(), phase: "sending" })
     try {
       const r = await fetch("/api/semi/command", {
         method: "POST",
@@ -81,16 +98,37 @@ export default function SemiDashboard({ account }: { account: string }) {
         body: JSON.stringify({ account, cmd, lot }),
       })
       const j = await r.json()
-      setToast(r.ok ? (j.online ? t.sent : t.offlineNote) : (j.error ?? t.failed))
+      if (r.status === 401) setAuthLost(true)
+      if (!r.ok) {
+        setToast(j.error ?? t.failed)
+        setPending(null)
+        return
+      }
+      if (!j.online) setToast(t.offlineNote)
+      setPending(p => (p && p.cmd === cmd ? { ...p, phase: "queued" } : p))
     } catch {
       setToast(t.failed)
+      setPending(null)
     } finally {
-      setBusy(false)
       setTimeout(() => setToast(null), 4000)
       if (timer.current) clearTimeout(timer.current)
       poll()
     }
   }
+
+  //  The EA clears the queue when it takes the command — that is the only
+  //  honest "it arrived", so the bar closes on it and not on a timer.
+  useEffect(() => {
+    if (!feed || !pending) return
+    if (pending.phase === "queued" && !feed.pendingCmd) {
+      setPending({ ...pending, phase: "done" })
+      const id = setTimeout(() => setPending(null), 1300)
+      return () => clearTimeout(id)
+    }
+    //  A command the EA never collects expires server-side at 60s; release the
+    //  buttons just after that rather than leaving them locked forever.
+    if (pending.phase !== "done" && Date.now() - pending.at > 65_000) setPending(null)
+  }, [feed, pending])
 
   const s = feed?.state ?? null
   const st = s?.state ?? {}
@@ -98,6 +136,10 @@ export default function SemiDashboard({ account }: { account: string }) {
   const money_ = s?.money ?? {}
   const sides = s?.sides ?? []
   const mode = (st.mode ?? "SEMI").toUpperCase()
+  //  No EA on the other end, or no session on this end = nothing may be pressed.
+  //  Offline is the important one: a command queued now expires in 60 s, so a
+  //  press that looks accepted would quietly do nothing.
+  const locked = !feed?.online || authLost
   const lot = st.firstLot ?? 0.01
   const grid = st.gridPips ?? 150
   const guard = st.guardPct ?? 0
@@ -190,24 +232,44 @@ export default function SemiDashboard({ account }: { account: string }) {
             </button>
           ))}
         </div>
-        <div className="flex gap-0.5 rounded-bk border border-bk-line bg-bk-sunken p-0.5">
-          {LANGS.map(l => (
-            <button key={l} onClick={() => chooseLang(l)}
-              className={`rounded-bk px-2.5 py-1 text-[12px] font-bold ${lang === l ? "bg-accent text-white" : "text-bk-muted"}`}>
-              {LANG_LABEL[l]}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5">
+          <div className="flex gap-0.5 rounded-bk border border-bk-line bg-bk-sunken p-0.5">
+            {LANGS.map(l => (
+              <button key={l} onClick={() => chooseLang(l)}
+                className={`rounded-bk px-2.5 py-1 text-[12px] font-bold ${lang === l ? "bg-accent text-white" : "text-bk-muted"}`}>
+                {LANG_LABEL[l]}
+              </button>
+            ))}
+          </div>
+          {/* Signing out and back in is the way out of a stuck session, so the
+              door has to be on this screen — not only in the site navbar. */}
+          <button onClick={() => signOut({ callbackUrl: "/semi" })} title={email ?? ""}
+            className="rounded-bk border border-bk-line bg-bk-surface px-2.5 py-1.5 text-[12px] font-bold text-bk-muted">
+            {t.signOut}
+          </button>
         </div>
       </div>
 
-      {!feed && <p className="py-10 text-center text-[13px] text-fg-3">{t.waiting}</p>}
+      {email && <p className="-mt-1 truncate text-[10.5px] text-fg-4">{email}</p>}
+
+      {authLost && (
+        <div className="rounded-bk border border-bad bg-bad-soft p-3 text-center">
+          <p className="text-[12.5px] font-semibold text-bad">{t.sessionLost}</p>
+          <button onClick={() => signIn("google", { callbackUrl: "/semi" })}
+            className="mt-2 rounded-bk bg-accent px-4 py-2 text-[12.5px] font-bold text-white">
+            {t.signIn}
+          </button>
+        </div>
+      )}
+
+      {!feed && !authLost && <p className="py-10 text-center text-[13px] text-fg-3">{t.waiting}</p>}
 
       {feed && (
         <div className="grid gap-2.5 lg:grid-cols-3 lg:items-start">
           {/* ── account + money ── */}
           <div className="overflow-hidden rounded-bk border border-bk-line bg-bk-surface">
             <div className="h-[3px] bg-gradient-to-r from-ok to-accent" />
-            <div className="p-3">
+            <div className="p-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="truncate text-[13px] font-extrabold">{feed.owner ?? t.owner}</div>
@@ -220,10 +282,10 @@ export default function SemiDashboard({ account }: { account: string }) {
                   <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase text-accent-ink">{mode}</span>
                 </div>
               </div>
-              <div className="mt-2 flex items-end justify-between gap-3">
+              <div className="mt-1.5 flex items-end justify-between gap-3">
                 <div>
                   <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.equity}</div>
-                  <div className="font-mono text-[25px] font-extrabold leading-tight tabular-nums tracking-tight">{money(money_.equity)}</div>
+                  <div className="font-mono text-[22px] font-extrabold leading-tight tabular-nums tracking-tight">{money(money_.equity)}</div>
                 </div>
                 <div className="text-right">
                   <div className={`font-mono text-[13px] font-bold tabular-nums ${(money_.floating ?? 0) >= 0 ? "text-ok" : "text-bad"}`}>
@@ -232,10 +294,10 @@ export default function SemiDashboard({ account }: { account: string }) {
                   <div className="text-[10px] font-bold uppercase tracking-wider text-fg-4">{t.floating}</div>
                 </div>
               </div>
-              <div className="mt-2 flex justify-between border-t border-bk-line pt-2 text-[11.5px] text-bk-muted">
+              <div className="mt-1.5 flex justify-between border-t border-bk-line pt-1.5 text-[11.5px] text-bk-muted">
                 <span>{t.balance} <b className="font-mono text-fg">{money(money_.balance, 0)}</b></span>
                 <span>{t.free} <b className="font-mono text-fg">{money(money_.freeMargin, 0)}</b></span>
-                <span className="font-mono text-fg-4">{feed.ageSec ?? "—"}{t.secAgo}</span>
+                <span className={`font-mono ${feed.online ? "text-fg-4" : "text-bad"}`}>{feed.ageSec ?? "—"}{t.secAgo}</span>
               </div>
               {s?.acct?.algoOn === false && (
                 <p className="mt-2 rounded-bk bg-bad-soft px-2 py-1.5 text-[11px] font-semibold text-bad">{t.algoOff}</p>
@@ -249,9 +311,20 @@ export default function SemiDashboard({ account }: { account: string }) {
           {tab === "dash" ? (
             <>
               {/* ── meters ── */}
-              <div className="rounded-bk border border-bk-line bg-bk-surface p-3">
-                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.meters}</div>
-                <div className="flex flex-col gap-1.5">
+              {/* Collapsed by default: the summary already carries the three
+                  numbers that get looked at, and on a phone the open card cost
+                  a third of the screen before anything could be pressed. */}
+              <details className={`rounded-bk border border-bk-line bg-bk-surface ${
+                feed.online ? "" : "opacity-50"}`}>
+                <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.meters}</span>
+                  <span className="ml-auto flex gap-2.5 font-mono text-[10.5px] tabular-nums text-bk-muted">
+                    <span>{(m.trendForce ?? 0).toFixed(2)}x</span>
+                    <span>ATR {(m.atr ?? 0).toFixed(2)}</span>
+                    <span>{(m.spread ?? 0).toFixed(0)}p</span>
+                  </span>
+                </summary>
+                <div className="flex flex-col gap-1.5 px-3 pb-3">
                   <Meter label={t.trend} bipolar frac={m.trendMeter ?? 0} color="var(--danger)"
                     value={`${(m.trendForce ?? 0).toFixed(2)}x`} />
                   <Meter label={t.speed} frac={(m.speed ?? 0) / 30} color="var(--accent)" value={`${(m.speed ?? 0).toFixed(1)} p/s`} />
@@ -259,10 +332,40 @@ export default function SemiDashboard({ account }: { account: string }) {
                   <Meter label={t.spread} frac={(m.spread ?? 0) / 120} color="var(--warn)" value={`${(m.spread ?? 0).toFixed(0)}p`} />
                   <Meter label={t.guard} frac={guard / 100} color="var(--success)" value={`${guard.toFixed(0)}%`} />
                 </div>
-              </div>
+              </details>
 
               {/* ── mode → setup → engines → actions ── */}
-              <div className="flex flex-col gap-2.5">
+              <div className="flex min-w-0 flex-col gap-2.5">
+                {locked && !authLost && (
+                  <p className="rounded-bk border border-bk-line bg-bk-sunken px-3 py-2 text-[11.5px] font-semibold text-warn">
+                    {t.offlineLock}
+                  </p>
+                )}
+                {pending && (
+                  <div className="rounded-bk border border-accent-line bg-accent-soft px-2.5 py-2">
+                    <div className="flex items-center gap-2 text-[11px] font-bold text-accent-ink">
+                      <span className={`h-3 w-3 shrink-0 rounded-full border-2 ${
+                        pending.phase === "done"
+                          ? "border-ok bg-ok"
+                          : "animate-spin border-accent border-t-transparent"}`} />
+                      <span>{pending.phase === "sending" ? t.sending
+                           : pending.phase === "queued" ? t.queued : t.doneSent}</span>
+                      <code className="ml-auto font-mono text-[10px] opacity-80">{pending.cmd}</code>
+                    </div>
+                    <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-bk-track">
+                      <i className="block h-full rounded-full" style={{
+                        background: pending.phase === "done" ? "var(--success)" : "var(--accent)",
+                        width: pending.phase === "sending" ? "18%" : pending.phase === "queued" ? "88%" : "100%",
+                        transition: pending.phase === "queued" ? "width 3s ease-out" : "width .2s ease-out",
+                      }} />
+                    </span>
+                  </div>
+                )}
+                {/* A disabled fieldset turns off every control inside it, so a new
+                    button added later is locked too without anyone remembering to
+                    pass `locked` to it. The dimming is only how that reads on screen. */}
+                <fieldset disabled={locked}
+                  className={`flex min-w-0 flex-col gap-2.5 ${locked ? "opacity-60" : ""}`}>
                 <div className="flex gap-0.5 rounded-bk border border-bk-line bg-bk-sunken p-0.5">
                   {t.modes.map((label, i) => {
                     const want = ["MANUAL", "SEMI", "AUTO"][i]
@@ -275,10 +378,16 @@ export default function SemiDashboard({ account }: { account: string }) {
                 </div>
 
                 <div>
-                  <div className="mb-1 flex items-baseline justify-between gap-2">
+                  <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.setup}</span>
-                    <span className="font-mono text-[10px] text-bk-muted">
-                      {t.ladder} ×{(st.scale ?? 1).toFixed(2)} · {t.fullBasket} {(st.fullBasketLots ?? 0).toFixed(2)}
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-bk-muted">
+                        ×{(st.scale ?? 1).toFixed(2)} · {(st.fullBasketLots ?? 0).toFixed(2)} lot
+                      </span>
+                      <button disabled={busy} onClick={() => send("RESET")}
+                        className="rounded-bk border border-bk-line bg-bk-surface px-2 py-0.5 text-[10.5px] font-bold text-bk-muted disabled:opacity-40">
+                        {t.reset}
+                      </button>
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
@@ -286,26 +395,19 @@ export default function SemiDashboard({ account }: { account: string }) {
                     <Stepper label={t.grid}     value={grid}  cmd="SET_GRID"  step={10}   min={10}   max={5000} />
                     <Stepper label={t.guard}    value={guard} cmd="SET_GUARD" step={5}    min={0}    max={95} />
                   </div>
-                  <button disabled={busy} onClick={() => send("RESET")}
-                    className="mt-1.5 w-full rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold text-bk-muted disabled:opacity-40">
-                    {t.reset}
-                  </button>
                   {st.overCap && <p className="mt-1.5 text-[11px] font-semibold text-warn">{t.overCap}</p>}
 
                   {/* Phone alerts — the same switch as the checkbox on the MT5 panel,
                       so flipping it here flips it there within one heartbeat. */}
-                  <label className="mt-1.5 flex cursor-pointer items-start gap-2 rounded-bk border border-bk-line bg-bk-sunken p-2.5">
+                  <label className="mt-1.5 flex cursor-pointer items-center gap-2 rounded-bk border border-bk-line bg-bk-sunken px-2.5 py-2">
                     <input type="checkbox" checked={st.notify !== false} disabled={busy}
                       onChange={e => send("SET_NOTIFY", e.target.checked ? 1 : 0)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent)]" />
-                    <span className="min-w-0">
-                      <span className="block text-[12px] font-bold">{t.notifyTitle}</span>
-                      <span className={`block text-[10.5px] leading-snug ${
-                        st.notify !== false && st.notifyReady === false ? "text-warn" : "text-bk-muted"}`}>
-                        {st.notify === false
-                          ? t.notifyOff
-                          : st.notifyReady === false ? t.notifyNoId : t.notifyOn}
-                      </span>
+                      className="h-4 w-4 shrink-0 accent-[var(--accent)]" />
+                    <span className="shrink-0 text-[11.5px] font-bold">{t.notifyTitle}</span>
+                    <span className={`ml-auto truncate text-[10px] ${
+                      st.notify !== false && st.notifyReady === false ? "text-warn" : "text-bk-muted"}`}>
+                      {st.notify === false ? t.notifyOff
+                        : st.notifyReady === false ? t.notifyNoId : t.notifyOn}
                     </span>
                   </label>
 
@@ -319,7 +421,6 @@ export default function SemiDashboard({ account }: { account: string }) {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.engines}</div>
                   {sides.map(d => <SideCard key={d.side} d={d} />)}
                 </div>
 
@@ -338,11 +439,19 @@ export default function SemiDashboard({ account }: { account: string }) {
                   className="rounded-bk border border-bad bg-bad-soft py-2.5 text-[12.5px] font-bold text-bad disabled:opacity-40">
                   {t.closeAll}
                 </button>
+                </fieldset>
               </div>
             </>
           ) : (
             <>
-              {/* ── open positions first, then history ── */}
+              {/* ── curve, then what is open, then a short list of rounds ── */}
+              <div className="rounded-bk border border-bk-line bg-bk-surface p-3 lg:col-span-2">
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.curve}</div>
+                <EquityChart series={feed.series ?? []} labelEquity={t.equity}
+                             labelBalance={t.balance} empty={t.collecting} />
+              </div>
+
+
               <div className="overflow-hidden rounded-bk border border-bk-line bg-bk-surface">
                 <div className="h-[3px] bg-gradient-to-r from-ok to-accent" />
                 <div className="p-3">
@@ -371,7 +480,7 @@ export default function SemiDashboard({ account }: { account: string }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {feed.rounds.map(r => (
+                      {feed.rounds.slice(0, 8).map(r => (
                         <tr key={r.id} className="border-b border-bk-line font-mono text-[11.5px] tabular-nums">
                           <td className="py-1.5">{new Date(r.opened * 1000).toLocaleString(undefined, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</td>
                           <td className={r.side === "BUY" ? "text-ok" : "text-bad"}>{r.side}</td>

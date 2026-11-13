@@ -48,6 +48,11 @@ const PROSE = {
     notifyOff: "Alerts are off",
     notifyNoId: "No MetaQuotes ID in MT5 — add it under Tools → Options → Notifications",
     whyIdle: "Why it is not opening",
+    signOut: "Sign out", signIn: "Sign in again",
+    sessionLost: "Your sign-in has expired. Sign in again to control the EA.",
+    offlineLock: "EA offline — the controls are locked until it reports again.",
+    sending: "Sending…", queued: "Waiting for the EA to pick it up…", doneSent: "Done",
+    curve: "Equity curve", collecting: "Collecting — the curve starts after a few minutes",
   },
   th: {
     dash: "แดชบอร์ด", history: "ประวัติ", owner: "เจ้าของบัญชี",
@@ -71,6 +76,11 @@ const PROSE = {
     notifyOff: "ปิดการแจ้งเตือนอยู่",
     notifyNoId: "ยังไม่ได้ใส่ MetaQuotes ID ใน MT5 — ใส่ที่ Tools → Options → Notifications",
     whyIdle: "ทำไมยังไม่เปิดไม้",
+    signOut: "ออกจากระบบ", signIn: "เข้าสู่ระบบอีกครั้ง",
+    sessionLost: "การเข้าสู่ระบบหมดอายุ เข้าสู่ระบบใหม่เพื่อสั่งงาน EA",
+    offlineLock: "EA ไม่ได้เชื่อมต่อ — ล็อกปุ่มควบคุมไว้จนกว่าจะส่งข้อมูลกลับมา",
+    sending: "กำลังส่ง…", queued: "รอ EA มารับคำสั่ง…", doneSent: "สำเร็จ",
+    curve: "เส้นการเติบโต", collecting: "กำลังเก็บข้อมูล เส้นจะขึ้นหลังผ่านไปไม่กี่นาที",
   },
   lo: {
     dash: "ແດຊບອດ", history: "ປະຫວັດ", owner: "ເຈົ້າຂອງບັນຊີ",
@@ -94,6 +104,11 @@ const PROSE = {
     notifyOff: "ປິດການແຈ້ງເຕືອນຢູ່",
     notifyNoId: "ຍັງບໍ່ໄດ້ໃສ່ MetaQuotes ID ໃນ MT5 — ໃສ່ທີ່ Tools → Options → Notifications",
     whyIdle: "ເປັນຫຍັງຍັງບໍ່ເປີດໄມ້",
+    signOut: "ອອກຈາກລະບົບ", signIn: "ເຂົ້າລະບົບອີກຄັ້ງ",
+    sessionLost: "ການເຂົ້າລະບົບໝົດອາຍຸ ເຂົ້າລະບົບໃໝ່ເພື່ອສັ່ງງານ EA",
+    offlineLock: "EA ບໍ່ໄດ້ເຊື່ອມຕໍ່ — ລັອກປຸ່ມຄວບຄຸມໄວ້ຈົນກວ່າຈະສົ່ງຂໍ້ມູນກັບມາ",
+    sending: "ກຳລັງສົ່ງ…", queued: "ລໍຖ້າ EA ມາຮັບຄຳສັ່ງ…", doneSent: "ສຳເລັດ",
+    curve: "ເສັ້ນການເຕີບໂຕ", collecting: "ກຳລັງເກັບຂໍ້ມູນ ເສັ້ນຈະຂຶ້ນຫຼັງຜ່ານໄປບໍ່ຫຼາຍນາທີ",
   },
 }
 

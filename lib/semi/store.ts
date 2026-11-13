@@ -26,6 +26,17 @@ const WATCH_MS = 20_000          // how long one dashboard poll counts as "watch
 const MAX_ROUNDS = 200           // closed rounds kept per account
 const CMD_TTL_MS = 60_000        // a queued command older than this is dropped
 
+// Equity/balance curve. The EA already sends both numbers on every heartbeat,
+// so the server samples them here instead of asking the EA for history it does
+// not keep. One sample every SERIES_MS, capped at MAX_SERIES points — that is
+// ~14 hours of curve in about 13 KB of JSON, small enough to live in the same
+// document as everything else.
+const SERIES_MS = 120_000
+const MAX_SERIES = 420
+
+/** One point of the equity curve: [unix seconds, equity, balance]. */
+export type SemiSample = [number, number, number]
+
 export interface SemiRound {
   id: number; side: string; opened: number; closed: number
   depth: number; lots: number; pl: number; by: string
@@ -46,6 +57,7 @@ export interface SemiDoc {
   cmdBy?: string
   ackRound?: number
   rounds?: SemiRound[]
+  series?: string          // JSON of SemiSample[] — see SERIES_MS above
   watchUntil?: string
 }
 
@@ -72,7 +84,7 @@ async function fetchDoc(account: string): Promise<SemiDoc | null> {
   return sanityWrite.fetch<SemiDoc | null>(
     `*[_id == $id][0]{
        _id, account, ownerEmail, ownerName, dashKey, state, lastSeen,
-       cmdId, cmd, cmdLot, cmdAt, cmdBy, ackRound, rounds, watchUntil
+       cmdId, cmd, cmdLot, cmdAt, cmdBy, ackRound, rounds, series, watchUntil
      }`,
     { id: docId(account) }
   )
@@ -124,6 +136,21 @@ export async function saveState(
   e.doc.lastSeen = new Date().toISOString()
   e.dirty = true
 
+  // Sample the curve. Equity without balance is half the story — the gap
+  // between the two lines IS the floating P/L, which is what the owner is
+  // looking for when they ask "how is it going".
+  const eq = state?.money?.equity
+  const bal = state?.money?.balance
+  if (typeof eq === "number" && typeof bal === "number") {
+    const series = readSeries(e)
+    const now = Math.floor(Date.now() / 1000)
+    const last = series.length ? series[series.length - 1] : null
+    if (!last || now - last[0] >= SERIES_MS / 1000) {
+      series.push([now, +eq.toFixed(2), +bal.toFixed(2)])
+      e.doc.series = JSON.stringify(series.slice(-MAX_SERIES))
+    }
+  }
+
   if (newRounds.length) {
     const have = e.doc.rounds ?? []
     const known = new Set(have.map(r => r.id))
@@ -151,6 +178,7 @@ async function flush(account: string, e: CacheEntry): Promise<void> {
         mode: s?.state?.mode ?? null,
         equity: typeof s?.money?.equity === "number" ? s.money.equity : null,
         ackRound: e.doc.ackRound ?? 0,
+        series: e.doc.series ?? null,
         rounds: (e.doc.rounds ?? []).map((r, i) => ({ _key: `r${r.id ?? i}`, _type: "semiRound", ...r })),
       })
       .commit({ visibility: "async" })
@@ -159,6 +187,16 @@ async function flush(account: string, e: CacheEntry): Promise<void> {
     // holds the newest state and the next flush will carry it.
     console.error("[semi] flush failed", err)
     e.dirty = true
+  }
+}
+
+/** The equity curve stored on this account, oldest first. Never throws. */
+export function readSeries(e: CacheEntry): SemiSample[] {
+  try {
+    const v = e.doc.series ? JSON.parse(e.doc.series) : []
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
   }
 }
 
