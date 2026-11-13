@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { signIn, signOut } from "next-auth/react"
+import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/semi/i18n"
 import EquityChart, { type Sample } from "./EquityChart"
 
@@ -58,6 +59,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   const [toast, setToast] = useState<string | null>(null)
   const [tab, setTab] = useState<"dash" | "hist">("dash")
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const router = useRouter()
   const t = DICT[lang]
   //  every control reads this, so the name stays `busy`
   const busy = pending !== null && pending.phase !== "done"
@@ -87,6 +89,11 @@ export default function SemiDashboard({ account, email }: { account: string; ema
     document.addEventListener("visibilitychange", onVis)
     return () => { if (timer.current) clearTimeout(timer.current); document.removeEventListener("visibilitychange", onVis) }
   }, [poll])
+
+  async function exitDashboard() {
+    try { await fetch("/api/semi/logout", { method: "POST" }) } catch {}
+    router.refresh()
+  }
 
   async function send(cmd: string, lot = 0) {
     if (busy) return                       // one in flight is the whole point
@@ -150,6 +157,19 @@ export default function SemiDashboard({ account, email }: { account: string; ema
       <i className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-ok" : "bg-fg-4"}`} />{children}
     </span>
   )
+
+  //  The whole report of a command in flight: one ring next to LIVE. A banner
+  //  across the controls was read as the page itself being slow, when the wait
+  //  is just the EA's next heartbeat. Failures still speak — as a toast.
+  const Spin = () => {
+    if (!pending) return null
+    const done = pending.phase === "done"
+    return (
+      <span title={pending.cmd}
+        className={`h-3.5 w-3.5 shrink-0 rounded-full border-2 ${
+          done ? "border-ok bg-ok" : "animate-spin border-accent border-t-transparent"}`} />
+    )
+  }
 
   const Meter = ({ label, frac, value, color, bipolar }: {
     label: string; frac: number; value: string; color: string; bipolar?: boolean
@@ -241,9 +261,9 @@ export default function SemiDashboard({ account, email }: { account: string; ema
               </button>
             ))}
           </div>
-          {/* Signing out and back in is the way out of a stuck session, so the
-              door has to be on this screen — not only in the site navbar. */}
-          <button onClick={() => signOut({ callbackUrl: "/semi" })} title={email ?? ""}
+          {/* Leaves the control panel, not the website: it drops the dashboard
+              cookie and lands back on the key form, still signed in with Google. */}
+          <button onClick={exitDashboard} title={t.exitNote}
             className="rounded-bk border border-bk-line bg-bk-surface px-2.5 py-1.5 text-[12px] font-bold text-bk-muted">
             {t.signOut}
           </button>
@@ -277,7 +297,8 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                     #{feed.account} · {s?.acct?.broker ?? ""}
                   </div>
                 </div>
-                <div className="flex shrink-0 gap-1.5">
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Spin />
                   <Chip ok={feed.online}>{feed.online ? t.online : t.offline}</Chip>
                   <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase text-accent-ink">{mode}</span>
                 </div>
@@ -340,26 +361,6 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                   <p className="rounded-bk border border-bk-line bg-bk-sunken px-3 py-2 text-[11.5px] font-semibold text-warn">
                     {t.offlineLock}
                   </p>
-                )}
-                {pending && (
-                  <div className="rounded-bk border border-accent-line bg-accent-soft px-2.5 py-2">
-                    <div className="flex items-center gap-2 text-[11px] font-bold text-accent-ink">
-                      <span className={`h-3 w-3 shrink-0 rounded-full border-2 ${
-                        pending.phase === "done"
-                          ? "border-ok bg-ok"
-                          : "animate-spin border-accent border-t-transparent"}`} />
-                      <span>{pending.phase === "sending" ? t.sending
-                           : pending.phase === "queued" ? t.queued : t.doneSent}</span>
-                      <code className="ml-auto font-mono text-[10px] opacity-80">{pending.cmd}</code>
-                    </div>
-                    <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-bk-track">
-                      <i className="block h-full rounded-full" style={{
-                        background: pending.phase === "done" ? "var(--success)" : "var(--accent)",
-                        width: pending.phase === "sending" ? "18%" : pending.phase === "queued" ? "88%" : "100%",
-                        transition: pending.phase === "queued" ? "width 3s ease-out" : "width .2s ease-out",
-                      }} />
-                    </span>
-                  </div>
                 )}
                 {/* A disabled fieldset turns off every control inside it, so a new
                     button added later is locked too without anyone remembering to

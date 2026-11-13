@@ -13,6 +13,9 @@ export default function LinkAccount() {
   })
   const [account, setAccount] = useState("")
   const [key, setKey] = useState("")
+  //  Default on: this is the owner's own phone in almost every case, and the
+  //  alternative is retyping the key off the MT5 panel every single visit.
+  const [remember, setRemember] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const router = useRouter()
@@ -25,7 +28,7 @@ export default function LinkAccount() {
       const r = await fetch("/api/semi/link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ account, key }),
+        body: JSON.stringify({ account, key, remember }),
       })
       const j = await r.json()
       if (!r.ok) { setErr(j.error ?? "failed"); return }
@@ -68,6 +71,12 @@ export default function LinkAccount() {
           </label>
 
           <p className="text-[11.5px] leading-relaxed text-bk-muted">{t.keyHelp}</p>
+
+          <label className="flex cursor-pointer items-center gap-2 rounded-bk border border-bk-line bg-bk-sunken px-3 py-2.5">
+            <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+              className="h-4 w-4 shrink-0 accent-[var(--accent)]" />
+            <span className="text-[12px] font-semibold">{t.remember}</span>
+          </label>
           {err && <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{err}</p>}
 
           <button type="submit" disabled={busy || !account || !key}

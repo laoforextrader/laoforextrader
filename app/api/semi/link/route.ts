@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { linkAccount, accountsOf } from "@/lib/semi/store"
+import { openDashSession } from "@/lib/semi/session"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   const email = session?.user?.email
   if (!email) return NextResponse.json({ error: "sign in first" }, { status: 401 })
 
-  let body: { account?: string; key?: string }
+  let body: { account?: string; key?: string; remember?: boolean }
   try {
     body = await req.json()
   } catch {
@@ -44,6 +45,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: msg, reason: res.reason }, { status: 409 })
   }
 
+  // The key was right, so this browser may now drive this account.
+  await openDashSession(account, body.remember === true)
   return NextResponse.json({ ok: true, account })
 }
 

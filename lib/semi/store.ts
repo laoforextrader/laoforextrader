@@ -246,18 +246,28 @@ export async function linkAccount(
     return { ok: false, reason: "bad-key" }
   }
 
-  await sanityWrite.createOrReplace({
-    _id: id,
-    _type: "semiAccount",
-    account,
-    ownerEmail: email,
-    ownerName: name ?? doc?.ownerName ?? "",
-    dashKey: key,
-    state: doc?.state ?? "",
-    lastSeen: doc?.lastSeen,
-    ackRound: doc?.ackRound ?? 0,
-    rounds: doc?.rounds ?? [],
-  } as any)
+  if (doc) {
+    // Re-entering the key is now routine — it happens after every "Exit
+    // dashboard" and when the 30-day cookie lapses. createOrReplace would
+    // silently drop every field not listed here, taking the equity curve and
+    // any queued command with it, so an existing account is patched instead.
+    await sanityWrite
+      .patch(id)
+      .set({ ownerEmail: email, dashKey: key, ownerName: name ?? doc.ownerName ?? "" })
+      .commit({ visibility: "async" })
+  } else {
+    await sanityWrite.createOrReplace({
+      _id: id,
+      _type: "semiAccount",
+      account,
+      ownerEmail: email,
+      ownerName: name ?? "",
+      dashKey: key,
+      state: "",
+      ackRound: 0,
+      rounds: [],
+    } as any)
+  }
   mem.delete(account)
   return { ok: true }
 }

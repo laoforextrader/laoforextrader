@@ -15,7 +15,7 @@ import { signIn } from "next-auth/react"
 // localStorage and picked up by OptInSync once the session exists.
 export const OPT_IN_PENDING_KEY = "trs-newsletter-optin-v1"
 
-export function LoginButton() {
+export function LoginButton({ callbackUrl = "/dashboard" }: { callbackUrl?: string } = {}) {
   const [optIn, setOptIn] = useState(false)
 
   function handleSignIn() {
@@ -25,7 +25,7 @@ export function LoginButton() {
     } catch {
       // Private mode / storage disabled — sign-in still has to work.
     }
-    signIn("google", { callbackUrl: "/dashboard" })
+    signIn("google", { callbackUrl })
   }
 
   return (

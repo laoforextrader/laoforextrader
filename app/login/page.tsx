@@ -11,9 +11,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 }
 
-export default async function LoginPage() {
+// Where to land after Google comes back. /semi sends people here with
+// ?callbackUrl=/semi and they must return to the control panel, not to the
+// site dashboard — an own-site path only, so the parameter cannot be used to
+// bounce someone off to another host.
+function safeNext(raw: string | undefined): string {
+  if (!raw) return "/dashboard"
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return "/dashboard"
+  return raw
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>
+}) {
+  const { callbackUrl } = await searchParams
+  const next = safeNext(callbackUrl)
   const session = await getServerSession(authOptions)
-  if (session) redirect("/dashboard")
+  if (session) redirect(next)
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -25,7 +41,7 @@ export default async function LoginPage() {
         <p style={{ fontSize: 13, color: "var(--fg)", marginBottom: 28, fontFamily: "'Noto Sans Lao', sans-serif" }}>
           ຮັບການອັບເດດຂໍ້ມູນຂ່າວສານການເທຣດທຸກວັນ
         </p>
-        <LoginButton />
+        <LoginButton callbackUrl={next} />
         <p style={{ fontSize: 11, color: "var(--fg)", marginTop: 20, fontFamily: "'Noto Sans Lao', sans-serif", lineHeight: 1.6 }}>
           ການ Login ຖືວ່າທ່ານຍອມຮັບ<br />ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວຂອງເຮົາ
         </p>
