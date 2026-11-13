@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/semi/i18n"
+import { DICT, LANGS, LANG_LABEL, pickLang, type Dict, type Lang } from "@/lib/semi/i18n"
 import EquityChart, { type Sample } from "./EquityChart"
 
 // The control panel. Polls /api/semi/state, which doubles as the "someone is
@@ -140,6 +140,86 @@ const money = (n: number | undefined, d = 2) =>
   n === undefined || n === null || Number.isNaN(n)
     ? "—"
     : (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })
+
+// These four live out here, not inside SemiDashboard, for the same reason
+// Stepper does: a component declared inside another is a *new component type*
+// on every render, so React throws the old subtree away and mounts a fresh
+// one. For <details> that meant the card snapped shut again the instant the
+// next poll landed — which, at 800ms, was immediately.
+function Chip({ ok, children }: { ok: boolean; children: React.ReactNode }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+      ok ? "bg-ok-soft text-ok" : "bg-bk-sunken text-fg-4 border border-bk-line"}`}>
+      <i className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-ok" : "bg-fg-4"}`} />{children}
+    </span>
+  )
+}
+
+//  The whole report of a command in flight: one ring next to LIVE. A banner
+//  across the controls was read as the page itself being slow, when the wait
+//  is just the EA's next heartbeat. Failures still speak — as a toast.
+function Spin({ pending }: { pending: Pending | null }) {
+  if (!pending) return null
+  const done = pending.phase === "done"
+  return (
+    <span title={pending.cmd}
+      className={`h-3.5 w-3.5 shrink-0 rounded-full border-2 ${
+        done ? "border-ok bg-ok" : "animate-spin border-accent border-t-transparent"}`} />
+  )
+}
+
+function Meter({ label, frac, value, color, bipolar }: {
+  label: string; frac: number; value: React.ReactNode; color: string; bipolar?: boolean
+}) {
+  const w = Math.min(Math.abs(frac), 1) * (bipolar ? 50 : 100)
+  const left = bipolar ? (frac >= 0 ? 50 : 50 - w) : 0
+  return (
+    <div className="grid grid-cols-[52px_1fr_84px] items-center gap-2">
+      <span className="text-[11px] text-bk-muted">{label}</span>
+      <span className="relative block h-1.5 overflow-hidden rounded-full bg-bk-track">
+        <i className="absolute inset-y-0 block rounded-full" style={{ left: `${left}%`, width: `${w}%`, background: color }} />
+      </span>
+      <span className="text-right font-mono text-[11px] tabular-nums">{value}</span>
+    </div>
+  )
+}
+
+function SideCard({ d, t, busy, onSend }: {
+  d: Side; t: Dict; busy: boolean; onSend: (cmd: string, lot?: number) => void
+}) {
+    const isBuy = d.side === "BUY"
+    const label = d.state === "ACTIVE" ? t.active : d.state === "STOPPED" ? t.stopped : t.idle
+    return (
+      <details className="rounded-bk border border-bk-line bg-bk-sunken">
+        <summary className="flex cursor-pointer list-none items-center gap-2 p-2.5">
+          <b className={`text-[11.5px] font-extrabold tracking-wider ${isBuy ? "text-ok" : "text-bad"}`}>{d.side}</b>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+            d.state === "ACTIVE" ? "bg-accent-soft text-accent-ink"
+            : d.state === "STOPPED" ? "bg-warn-soft text-warn" : "bg-bk-surface text-fg-4 border border-bk-line"}`}>{label}</span>
+          {d.level > 0
+            ? <>
+                <span className="font-mono text-[11.5px] tabular-nums">Lv{d.level} · {d.lots.toFixed(2)}L</span>
+                <span className={`ml-auto font-mono text-[11.5px] tabular-nums ${d.pl >= 0 ? "text-ok" : "text-bad"}`}>{money(d.pl)}</span>
+              </>
+            : <span className="ml-auto font-mono text-[11.5px] text-fg-4">{t.flat}</span>}
+        </summary>
+        {d.level > 0 && (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 px-2.5 pb-2 text-[11px] text-bk-muted">
+            <span className="flex justify-between">{t.be}<b className="font-mono text-fg">{d.be?.toFixed(2) ?? "—"}</b></span>
+            <span className="flex justify-between">{t.target}<b className="font-mono text-fg">{d.target?.toFixed(2) ?? money(d.targetUsd)}</b></span>
+            <span className="flex justify-between">{t.toGo}<b className="font-mono text-fg">{d.toGo != null ? `${d.toGo}p` : "—"}</b></span>
+            <span className="flex justify-between">{t.lots}<b className="font-mono text-fg">{d.lots.toFixed(2)}</b></span>
+          </div>
+        )}
+        <div className="flex gap-1.5 px-2.5 pb-2.5">
+          <button disabled={busy} onClick={() => onSend(isBuy ? "CLOSE_BUY" : "CLOSE_SELL")}
+            className="flex-1 rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.close}</button>
+          <button disabled={busy} onClick={() => onSend(isBuy ? "STOP_BUY" : "STOP_SELL")}
+            className="flex-1 rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.stop}</button>
+        </div>
+      </details>
+    )
+  }
 
 export default function SemiDashboard({ account, email }: { account: string; email?: string | null }) {
   const [lang, setLang] = useState<Lang>("en")
@@ -300,77 +380,11 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   const grid = wished("SET_GRID", st.gridPips ?? 150)
   const guard = wished("SET_GUARD", st.guardPct ?? 0)
   const notifyOn = wish?.cmd === "SET_NOTIFY" ? wish.lot === 1 : st.notify !== false
+  //  The EA already names the trend; showing only the multiplier made the
+  //  reader work it out from a sign.
+  const trendWord = (m.trend ?? "").toUpperCase() || "—"
+  const trendClr = trendWord === "UP" ? "text-ok" : trendWord === "DOWN" ? "text-bad" : "text-fg-4"
 
-  const Chip = ({ ok, children }: { ok: boolean; children: React.ReactNode }) => (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-      ok ? "bg-ok-soft text-ok" : "bg-bk-sunken text-fg-4 border border-bk-line"}`}>
-      <i className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-ok" : "bg-fg-4"}`} />{children}
-    </span>
-  )
-
-  //  The whole report of a command in flight: one ring next to LIVE. A banner
-  //  across the controls was read as the page itself being slow, when the wait
-  //  is just the EA's next heartbeat. Failures still speak — as a toast.
-  const Spin = () => {
-    if (!pending) return null
-    const done = pending.phase === "done"
-    return (
-      <span title={pending.cmd}
-        className={`h-3.5 w-3.5 shrink-0 rounded-full border-2 ${
-          done ? "border-ok bg-ok" : "animate-spin border-accent border-t-transparent"}`} />
-    )
-  }
-
-  const Meter = ({ label, frac, value, color, bipolar }: {
-    label: string; frac: number; value: string; color: string; bipolar?: boolean
-  }) => {
-    const w = Math.min(Math.abs(frac), 1) * (bipolar ? 50 : 100)
-    const left = bipolar ? (frac >= 0 ? 50 : 50 - w) : 0
-    return (
-      <div className="grid grid-cols-[54px_1fr_62px] items-center gap-2">
-        <span className="text-[11px] text-bk-muted">{label}</span>
-        <span className="relative block h-1.5 overflow-hidden rounded-full bg-bk-track">
-          <i className="absolute inset-y-0 block rounded-full" style={{ left: `${left}%`, width: `${w}%`, background: color }} />
-        </span>
-        <span className="text-right font-mono text-[11px] tabular-nums">{value}</span>
-      </div>
-    )
-  }
-
-  const SideCard = ({ d }: { d: Side }) => {
-    const isBuy = d.side === "BUY"
-    const label = d.state === "ACTIVE" ? t.active : d.state === "STOPPED" ? t.stopped : t.idle
-    return (
-      <details className="rounded-bk border border-bk-line bg-bk-sunken">
-        <summary className="flex cursor-pointer list-none items-center gap-2 p-2.5">
-          <b className={`text-[11.5px] font-extrabold tracking-wider ${isBuy ? "text-ok" : "text-bad"}`}>{d.side}</b>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-            d.state === "ACTIVE" ? "bg-accent-soft text-accent-ink"
-            : d.state === "STOPPED" ? "bg-warn-soft text-warn" : "bg-bk-surface text-fg-4 border border-bk-line"}`}>{label}</span>
-          {d.level > 0
-            ? <>
-                <span className="font-mono text-[11.5px] tabular-nums">Lv{d.level} · {d.lots.toFixed(2)}L</span>
-                <span className={`ml-auto font-mono text-[11.5px] tabular-nums ${d.pl >= 0 ? "text-ok" : "text-bad"}`}>{money(d.pl)}</span>
-              </>
-            : <span className="ml-auto font-mono text-[11.5px] text-fg-4">{t.flat}</span>}
-        </summary>
-        {d.level > 0 && (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 px-2.5 pb-2 text-[11px] text-bk-muted">
-            <span className="flex justify-between">{t.be}<b className="font-mono text-fg">{d.be?.toFixed(2) ?? "—"}</b></span>
-            <span className="flex justify-between">{t.target}<b className="font-mono text-fg">{d.target?.toFixed(2) ?? money(d.targetUsd)}</b></span>
-            <span className="flex justify-between">{t.toGo}<b className="font-mono text-fg">{d.toGo != null ? `${d.toGo}p` : "—"}</b></span>
-            <span className="flex justify-between">{t.lots}<b className="font-mono text-fg">{d.lots.toFixed(2)}</b></span>
-          </div>
-        )}
-        <div className="flex gap-1.5 px-2.5 pb-2.5">
-          <button disabled={busy} onClick={() => send(isBuy ? "CLOSE_BUY" : "CLOSE_SELL")}
-            className="flex-1 rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.close}</button>
-          <button disabled={busy} onClick={() => send(isBuy ? "STOP_BUY" : "STOP_SELL")}
-            className="flex-1 rounded-bk border border-bk-line bg-bk-surface py-1.5 text-[11.5px] font-bold disabled:opacity-40">{t.stop}</button>
-        </div>
-      </details>
-    )
-  }
 
   return (
     <div className="mx-auto flex max-w-[520px] flex-col gap-2.5 px-4 py-4 lg:max-w-[1100px]">
@@ -431,7 +445,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
-                  <Spin />
+                  <Spin pending={pending} />
                   <Chip ok={feed.online}>{feed.online ? t.online : t.offline}</Chip>
                   <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase text-accent-ink">{mode}</span>
                 </div>
@@ -472,15 +486,17 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                 feed.online ? "" : "opacity-50"}`}>
                 <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-fg-4">{t.meters}</span>
-                  <span className="ml-auto flex gap-2.5 font-mono text-[10.5px] tabular-nums text-bk-muted">
+                  <span className="ml-auto flex items-baseline gap-2.5 font-mono text-[10.5px] tabular-nums text-bk-muted">
+                    <b className={trendClr}>{trendWord}</b>
                     <span>{(m.trendForce ?? 0).toFixed(2)}x</span>
                     <span>ATR {(m.atr ?? 0).toFixed(2)}</span>
                     <span>{(m.spread ?? 0).toFixed(0)}p</span>
                   </span>
                 </summary>
                 <div className="flex flex-col gap-1.5 px-3 pb-3">
-                  <Meter label={t.trend} bipolar frac={m.trendMeter ?? 0} color="var(--danger)"
-                    value={`${(m.trendForce ?? 0).toFixed(2)}x`} />
+                  <Meter label={t.trend} bipolar frac={m.trendMeter ?? 0}
+                    color={(m.trendMeter ?? 0) >= 0 ? "var(--success)" : "var(--danger)"}
+                    value={<><b className={trendClr}>{trendWord}</b> {(m.trendForce ?? 0).toFixed(2)}x</>} />
                   <Meter label={t.speed} frac={(m.speed ?? 0) / 30} color="var(--accent)" value={`${(m.speed ?? 0).toFixed(1)} p/s`} />
                   <Meter label={t.atr} frac={(m.atr ?? 0) / 12} color="var(--accent)" value={(m.atr ?? 0).toFixed(2)} />
                   <Meter label={t.spread} frac={(m.spread ?? 0) / 120} color="var(--warn)" value={`${(m.spread ?? 0).toFixed(0)}p`} />
@@ -567,7 +583,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  {sides.map(d => <SideCard key={d.side} d={d} />)}
+                  {sides.map(d => <SideCard key={d.side} d={d} t={t} busy={busy} onSend={send} />)}
                 </div>
 
                 <div className="flex gap-2">
