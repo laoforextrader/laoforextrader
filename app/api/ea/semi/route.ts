@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { load, saveState, pendingCommand, isWatched, signBody, type SemiRound } from "@/lib/semi/store"
+import { load, saveState, takeCommand, isWatched, signBody, type SemiRound } from "@/lib/semi/store"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   const saved = await saveState(account, body, rounds)
   if (!saved) return NextResponse.json({ error: "account not linked" }, { status: 404 })
 
-  const cmd = pendingCommand(saved)
+  const cmd = await takeCommand(account, saved)
   return NextResponse.json({
     id: cmd?.id ?? 0,
     cmd: cmd?.cmd ?? "",

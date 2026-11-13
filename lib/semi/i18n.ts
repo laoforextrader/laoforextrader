@@ -54,6 +54,7 @@ const PROSE = {
     sessionLost: "Your sign-in has expired. Sign in again to control the EA.",
     offlineLock: "EA offline — the controls are locked until it reports again.",
     sending: "Sending…", queued: "Waiting for the EA to pick it up…", doneSent: "Done",
+    noAnswer: "The EA has not collected that command yet.",
     curve: "Equity curve", collecting: "Collecting — the curve starts after a few minutes",
   },
   th: {
@@ -84,6 +85,7 @@ const PROSE = {
     sessionLost: "การเข้าสู่ระบบหมดอายุ เข้าสู่ระบบใหม่เพื่อสั่งงาน EA",
     offlineLock: "EA ไม่ได้เชื่อมต่อ — ล็อกปุ่มควบคุมไว้จนกว่าจะส่งข้อมูลกลับมา",
     sending: "กำลังส่ง…", queued: "รอ EA มารับคำสั่ง…", doneSent: "สำเร็จ",
+    noAnswer: "EA ยังไม่ได้มารับคำสั่งนี้",
     curve: "เส้นการเติบโต", collecting: "กำลังเก็บข้อมูล เส้นจะขึ้นหลังผ่านไปไม่กี่นาที",
   },
   lo: {
@@ -114,6 +116,7 @@ const PROSE = {
     sessionLost: "ການເຂົ້າລະບົບໝົດອາຍຸ ເຂົ້າລະບົບໃໝ່ເພື່ອສັ່ງງານ EA",
     offlineLock: "EA ບໍ່ໄດ້ເຊື່ອມຕໍ່ — ລັອກປຸ່ມຄວບຄຸມໄວ້ຈົນກວ່າຈະສົ່ງຂໍ້ມູນກັບມາ",
     sending: "ກຳລັງສົ່ງ…", queued: "ລໍຖ້າ EA ມາຮັບຄຳສັ່ງ…", doneSent: "ສຳເລັດ",
+    noAnswer: "EA ຍັງບໍ່ທັນມາຮັບຄຳສັ່ງນີ້",
     curve: "ເສັ້ນການເຕີບໂຕ", collecting: "ກຳລັງເກັບຂໍ້ມູນ ເສັ້ນຈະຂຶ້ນຫຼັງຜ່ານໄປບໍ່ຫຼາຍນາທີ",
   },
 }

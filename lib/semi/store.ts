@@ -224,12 +224,55 @@ export async function queueCommand(
   return id
 }
 
-/** EA confirmed it ran the command — clear the queue. */
-export async function clearCommand(account: string, id: number): Promise<void> {
-  const e = await load(account)
-  if (!e || e.doc.cmdId !== id) return
+/**
+ * Re-read the command fields from Sanity into this instance's cache.
+ *
+ * The cache cannot be trusted for these four fields, and only for these four.
+ * Everything else in the document is written by whoever holds the cache; the
+ * command is the one thing written by a *different* lambda — the browser that
+ * queued it is almost never the instance the EA's next heartbeat lands on, and
+ * `load()` returns a cached entry without ever re-reading. A command queued on
+ * instance A was therefore invisible to the EA whenever its push went to
+ * instance B, and the dashboard polling a third instance would keep showing it
+ * as pending forever.
+ */
+async function syncCommand(account: string, e: CacheEntry): Promise<void> {
+  try {
+    const fresh = await sanityWrite.fetch<Partial<SemiDoc> | null>(
+      `*[_id == $id][0]{ cmdId, cmd, cmdLot, cmdAt }`,
+      { id: docId(account) }
+    )
+    if (fresh) Object.assign(e.doc, fresh)
+  } catch {
+    // A read hiccup must not stop the heartbeat; the cached copy still answers.
+  }
+}
+
+/**
+ * The command for the EA, taken out of the queue in the same step.
+ *
+ * Handing it over IS the acknowledgement. The EA applies it on the tick it
+ * arrives, and leaving it queued is what made the dashboard spin forever —
+ * worse, an EA restarted inside the 60s TTL would have re-run it, because the
+ * EA only remembers the last command id in memory.
+ */
+export async function takeCommand(
+  account: string, e: CacheEntry
+): Promise<{ id: number; cmd: string; lot: number } | null> {
+  await syncCommand(account, e)
+  const cmd = pendingCommand(e)
+  if (!cmd) return null
   e.doc.cmd = ""
-  await sanityWrite.patch(docId(account)).set({ cmd: "" }).commit({ visibility: "async" })
+  // sync, not async: the dashboard's very next poll reads this field to decide
+  // the command has landed, and the EA must not be handed it twice.
+  await sanityWrite.patch(docId(account)).set({ cmd: "" }).commit({ visibility: "sync" })
+  return cmd
+}
+
+/** What the dashboard is still waiting on, expiry included. */
+export async function watchedCommand(account: string, e: CacheEntry): Promise<string | null> {
+  await syncCommand(account, e)
+  return pendingCommand(e)?.cmd ?? null
 }
 
 /** Link an account to a signed-in owner. Returns false if someone else owns it. */

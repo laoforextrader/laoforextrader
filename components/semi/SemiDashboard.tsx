@@ -127,15 +127,28 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   //  honest "it arrived", so the bar closes on it and not on a timer.
   useEffect(() => {
     if (!feed || !pending) return
-    if (pending.phase === "queued" && !feed.pendingCmd) {
-      setPending({ ...pending, phase: "done" })
-      const id = setTimeout(() => setPending(null), 1300)
-      return () => clearTimeout(id)
+    if (pending.phase === "queued") {
+      //  Two ways to know it landed: the queue emptied, or the state the
+      //  command asked for is already on screen. The second covers the case
+      //  where the clearing write has not become readable yet.
+      const wantMode = pending.cmd.startsWith("MODE_") ? pending.cmd.slice(5) : null
+      const arrived = !feed.pendingCmd ||
+        (wantMode !== null && (feed.state?.state?.mode ?? "").toUpperCase() === wantMode)
+      if (arrived) {
+        setPending({ ...pending, phase: "done" })
+        const id = setTimeout(() => setPending(null), 1300)
+        return () => clearTimeout(id)
+      }
     }
-    //  A command the EA never collects expires server-side at 60s; release the
-    //  buttons just after that rather than leaving them locked forever.
-    if (pending.phase !== "done" && Date.now() - pending.at > 65_000) setPending(null)
-  }, [feed, pending])
+    //  The EA beats every 3s while the dashboard is open, so 20s without it
+    //  collecting the command means something is wrong — say so and let go of
+    //  the buttons instead of spinning on.
+    if (pending.phase !== "done" && Date.now() - pending.at > 20_000) {
+      setPending(null)
+      setToast(t.noAnswer)
+      setTimeout(() => setToast(null), 4000)
+    }
+  }, [feed, pending, t])
 
   const s = feed?.state ?? null
   const st = s?.state ?? {}

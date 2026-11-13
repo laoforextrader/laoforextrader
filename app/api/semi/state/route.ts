@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { load, markWatching, readSeries } from "@/lib/semi/store"
+import { load, markWatching, readSeries, watchedCommand } from "@/lib/semi/store"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -39,6 +39,6 @@ export async function GET(req: Request) {
     state: entry.state ?? null,
     rounds: (entry.doc.rounds ?? []).slice(-50).reverse(),
     series: readSeries(entry),
-    pendingCmd: entry.doc.cmd || null,
+    pendingCmd: await watchedCommand(account, entry),
   })
 }
