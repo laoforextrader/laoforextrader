@@ -41,17 +41,29 @@ type Feed = {
 // phases are what the button shows instead of freezing: the press registers at
 // once ("sending"), then the bar waits out the EA's heartbeat ("queued"), then
 // it closes. Nothing here blocks on a promise the user cannot see.
-type Pending = {
-  cmd: string; lot: number; at: number
-  phase: "sending" | "queued" | "applying" | "done"
-}
+// A command that must not be sent twice. Only actions get one: they open or
+// close real trades, so the button stays locked and the ring spins until the
+// EA has taken the command off the queue.
+type Pending = { cmd: string; lot: number; at: number; phase: "sending" | "queued" | "done" }
+
+// What we are still waiting for the EA to echo back, for EVERY command. A
+// setting shows its new value here immediately and reconciles in silence; if
+// the echo never comes, this is what puts the real value back and says so.
+type Wish = { cmd: string; lot: number; at: number }
+
+// Settings can be optimistic — the worst case is a number on screen that goes
+// back to what it was. Everything else moves money and cannot be.
+const SETTINGS = new Set([
+  "SET_LOT", "SET_GRID", "SET_GUARD", "SET_NOTIFY",
+  "MODE_MANUAL", "MODE_SEMI", "MODE_AUTO",
+])
 
 // Has the EA's own state caught up with what the command asked for?
 // true/false where the answer is in the snapshot, null where it is not — the
 // ring must not claim "done" off the queue emptying alone, because that only
 // proves the EA was handed the command, not that the panel on the VPS shows
 // the new value.
-function applied(p: Pending, st: any, sides: Side[]): boolean | null {
+function applied(p: Wish, st: any, sides: Side[]): boolean | null {
   const side = (s: "BUY" | "SELL") => sides.find(d => d.side === s)
   const near = (a?: number, b?: number) =>
     a !== undefined && a !== null && Math.abs(a - b!) < 1e-6
@@ -75,9 +87,10 @@ function applied(p: Pending, st: any, sides: Side[]): boolean | null {
 // Typed in, not only stepped. Defined out here on purpose: inside the
 // dashboard it would be a new component on every 3-second poll, and React
 // would throw away the half-typed number with it.
-function Stepper({ label, value, cmd, step, min, max, dp, unit, busy, onSend }: {
+function Stepper({ label, value, cmd, step, min, max, dp, unit, busy, dirty, onSend }: {
   label: string; value: number; cmd: string; step: number; min: number; max: number
-  dp: number; unit: string; busy: boolean; onSend: (cmd: string, lot: number) => void
+  dp: number; unit: string; busy: boolean; dirty: boolean
+  onSend: (cmd: string, lot: number) => void
 }) {
   const [draft, setDraft] = useState<string | null>(null)
   const clamp = (n: number) => Math.min(max, Math.max(min, Number(n.toFixed(dp))))
@@ -101,7 +114,9 @@ function Stepper({ label, value, cmd, step, min, max, dp, unit, busy, onSend }: 
           className="h-6 w-6 shrink-0 rounded-bk border border-bk-line bg-bk-surface text-[14px] leading-none disabled:opacity-40">−</button>
         {draft === null ? (
           <button type="button" disabled={busy} onClick={() => setDraft(value.toFixed(dp))}
-            className="min-w-0 flex-1 font-mono text-[12.5px] font-bold tabular-nums underline decoration-dotted decoration-from-font underline-offset-4 disabled:opacity-40">
+            title={dirty ? "waiting for the EA to confirm" : undefined}
+            className={`min-w-0 flex-1 font-mono text-[12.5px] font-bold tabular-nums underline decoration-dotted decoration-from-font underline-offset-4 disabled:opacity-40 ${
+              dirty ? "text-accent" : ""}`}>
             {value.toFixed(dp)}{unit}
           </button>
         ) : (
@@ -134,10 +149,15 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   // say so on screen instead of letting presses fail one by one.
   const [authLost, setAuthLost] = useState(false)
   const [pending, setPending] = useState<Pending | null>(null)
+  const [wish, setWish] = useState<Wish | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [tab, setTab] = useState<"dash" | "hist">("dash")
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
+  //  Right after a command, look more often: the answer usually lands inside
+  //  two beats and 3-second polling was adding a second of nothing to every
+  //  press. Back to the normal rate on its own.
+  const fastUntil = useRef(0)
   const t = DICT[lang]
   //  every control reads this, so the name stays `busy`
   const busy = pending !== null && pending.phase !== "done"
@@ -158,7 +178,9 @@ export default function SemiDashboard({ account, email }: { account: string; ema
     } catch {
       /* a dropped poll is not an error worth showing — the next one recovers */
     }
-    timer.current = setTimeout(poll, document.visibilityState === "visible" ? 3000 : 20000)
+    const hidden = document.visibilityState !== "visible"
+    const rate = hidden ? 20000 : (Date.now() < fastUntil.current ? 800 : 3000)
+    timer.current = setTimeout(poll, rate)
   }, [account])
 
   useEffect(() => {
@@ -174,8 +196,12 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   }
 
   async function send(cmd: string, lot = 0) {
-    if (busy) return                       // one in flight is the whole point
-    setPending({ cmd, lot, at: Date.now(), phase: "sending" })
+    const setting = SETTINGS.has(cmd)
+    if (!setting && busy) return           // one action in flight is the point
+    const at = Date.now()
+    setWish({ cmd, lot, at })              // shows the new value at once
+    if (!setting) setPending({ cmd, lot, at, phase: "sending" })
+    fastUntil.current = at + 12_000
     try {
       const r = await fetch("/api/semi/command", {
         method: "POST",
@@ -187,6 +213,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
       if (!r.ok) {
         setToast(j.error ?? t.failed)
         setPending(null)
+        setWish(w => (w && w.at === at ? null : w))
         return
       }
       if (!j.online) setToast(t.offlineNote)
@@ -194,6 +221,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
     } catch {
       setToast(t.failed)
       setPending(null)
+      setWish(w => (w && w.at === at ? null : w))
     } finally {
       setTimeout(() => setToast(null), 4000)
       if (timer.current) clearTimeout(timer.current)
@@ -203,49 +231,54 @@ export default function SemiDashboard({ account, email }: { account: string; ema
 
   //  The EA clears the queue when it takes the command — that is the only
   //  honest "it arrived", so the bar closes on it and not on a timer.
+  //  The ring: an action is finished the moment the EA takes it off the queue.
+  //  Waiting past that for the value to come back added seconds without adding
+  //  certainty — the watcher below covers the case where it never arrives.
   useEffect(() => {
     if (!feed || !pending) return
-    //  Step one: the EA collected it. The queue emptying is the proof.
     if (pending.phase === "queued" && !feed.pendingCmd) {
-      setPending({ ...pending, phase: "applying" })
-      return
+      setPending({ ...pending, phase: "done" })
+      const id = setTimeout(() => setPending(null), 900)
+      return () => clearTimeout(id)
     }
-    //  Step two: the EA's own report shows the new value. Only now is the
-    //  number on this screen the same as the number on the VPS panel, which is
-    //  the point at which the ring is allowed to stop.
-    if (pending.phase === "applying") {
-      const ok = applied(pending, feed.state?.state ?? {}, feed.state?.sides ?? [])
-      //  null = nothing in the snapshot to check (RESET); collection is all
-      //  the certainty there is, so take it.
-      if (ok !== false) {
-        setPending({ ...pending, phase: "done" })
-        const id = setTimeout(() => setPending(null), 1200)
-        return () => clearTimeout(id)
-      }
-    }
-    //  The EA beats every 3s while the dashboard is open. 30s without the
-    //  value coming back means it did not take — say so and release the
-    //  buttons instead of spinning on.
-    if (pending.phase !== "done" && Date.now() - pending.at > 30_000) {
-      setPending(null)
+    if (pending.phase !== "done" && Date.now() - pending.at > 30_000) setPending(null)
+  }, [feed, pending])
+
+  //  The quiet watcher, for every command. It clears itself when the EA
+  //  reports the value we asked for, and only speaks when it does not: the
+  //  screen goes back to the real value and says so, rather than leaving a
+  //  number up that nothing on the VPS agrees with.
+  useEffect(() => {
+    if (!feed || !wish) return
+    const ok = applied(wish, feed.state?.state ?? {}, feed.state?.sides ?? [])
+    if (ok === true) { setWish(null); return }
+    if (ok === null && !feed.pendingCmd) { setWish(null); return }
+    if (Date.now() - wish.at > 10_000) {
+      setWish(null)
       setToast(t.noAnswer)
       setTimeout(() => setToast(null), 4000)
     }
-  }, [feed, pending, t])
+  }, [feed, wish, t])
 
   const s = feed?.state ?? null
   const st = s?.state ?? {}
   const m = s?.meters ?? {}
   const money_ = s?.money ?? {}
   const sides = s?.sides ?? []
-  const mode = (st.mode ?? "SEMI").toUpperCase()
+  //  What the screen shows: the value you asked for while it is still in
+  //  flight, the EA's own value the rest of the time.
+  const wished = (c: string, real: number) => (wish?.cmd === c ? wish.lot : real)
+  const mode = wish?.cmd.startsWith("MODE_")
+    ? wish.cmd.slice(5)
+    : (st.mode ?? "SEMI").toUpperCase()
   //  No EA on the other end, or no session on this end = nothing may be pressed.
   //  Offline is the important one: a command queued now expires in 60 s, so a
   //  press that looks accepted would quietly do nothing.
   const locked = !feed?.online || authLost
-  const lot = st.firstLot ?? 0.01
-  const grid = st.gridPips ?? 150
-  const guard = st.guardPct ?? 0
+  const lot = wished("SET_LOT", st.firstLot ?? 0.01)
+  const grid = wished("SET_GRID", st.gridPips ?? 150)
+  const guard = wished("SET_GUARD", st.guardPct ?? 0)
+  const notifyOn = wish?.cmd === "SET_NOTIFY" ? wish.lot === 1 : st.notify !== false
 
   const Chip = ({ ok, children }: { ok: boolean; children: React.ReactNode }) => (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
@@ -450,7 +483,7 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                   {t.modes.map((label, i) => {
                     const want = ["MANUAL", "SEMI", "AUTO"][i]
                     return (
-                      <button key={want} disabled={busy} onClick={() => send(`MODE_${want}`)}
+                      <button key={want} onClick={() => send(`MODE_${want}`)}
                         className={`flex-1 rounded-bk py-2 text-[12.5px] font-bold disabled:opacity-40 ${
                           mode === want ? "bg-accent text-white" : "text-bk-muted"}`}>{label}</button>
                     )
@@ -472,24 +505,24 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
                     <Stepper label={t.firstLot} value={lot}   cmd="SET_LOT"   step={0.01} min={0.01} max={100}
-                             dp={2} unit=""  busy={busy} onSend={send} />
+                             dp={2} unit=""  busy={busy} dirty={wish?.cmd === "SET_LOT"} onSend={send} />
                     <Stepper label={t.grid}     value={grid}  cmd="SET_GRID"  step={10}   min={10}   max={5000}
-                             dp={0} unit="p" busy={busy} onSend={send} />
+                             dp={0} unit="p" busy={busy} dirty={wish?.cmd === "SET_GRID"} onSend={send} />
                     <Stepper label={t.guard}    value={guard} cmd="SET_GUARD" step={5}    min={0}    max={95}
-                             dp={0} unit="%" busy={busy} onSend={send} />
+                             dp={0} unit="%" busy={busy} dirty={wish?.cmd === "SET_GUARD"} onSend={send} />
                   </div>
                   {st.overCap && <p className="mt-1.5 text-[11px] font-semibold text-warn">{t.overCap}</p>}
 
                   {/* Phone alerts — the same switch as the checkbox on the MT5 panel,
                       so flipping it here flips it there within one heartbeat. */}
                   <label className="mt-1.5 flex cursor-pointer items-center gap-2 rounded-bk border border-bk-line bg-bk-sunken px-2.5 py-2">
-                    <input type="checkbox" checked={st.notify !== false} disabled={busy}
+                    <input type="checkbox" checked={notifyOn} disabled={busy}
                       onChange={e => send("SET_NOTIFY", e.target.checked ? 1 : 0)}
                       className="h-4 w-4 shrink-0 accent-[var(--accent)]" />
                     <span className="shrink-0 text-[11.5px] font-bold">{t.notifyTitle}</span>
                     <span className={`ml-auto truncate text-[10px] ${
-                      st.notify !== false && st.notifyReady === false ? "text-warn" : "text-bk-muted"}`}>
-                      {st.notify === false ? t.notifyOff
+                      notifyOn && st.notifyReady === false ? "text-warn" : "text-bk-muted"}`}>
+                      {!notifyOn ? t.notifyOff
                         : st.notifyReady === false ? t.notifyNoId : t.notifyOn}
                     </span>
                   </label>
