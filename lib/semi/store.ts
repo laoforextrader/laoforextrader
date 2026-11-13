@@ -132,6 +132,16 @@ export async function saveState(
   const e = await load(account)
   if (!e) return null
 
+  //  Taken before the snapshot is replaced: a change in mode or in either
+  //  side's state has to reach Sanity now, not at the next 15-second flush.
+  //  Other lambda instances read the document when their own cache is older,
+  //  and a dashboard that polls one of those would otherwise be shown the
+  //  previous mode — which looks exactly like the panel flipping back.
+  const sig = (v: any) =>
+    String(v?.state?.mode ?? "") + "|" +
+    (Array.isArray(v?.sides) ? v.sides.map((d: any) => `${d?.side}:${d?.state}`).join(",") : "")
+  const before = sig(e.state)
+
   e.state = state
   e.doc.lastSeen = new Date().toISOString()
   e.dirty = true
@@ -159,7 +169,8 @@ export async function saveState(
     e.doc.ackRound = Math.max(e.doc.ackRound ?? 0, ...newRounds.map(r => r.id))
   }
 
-  const mustFlush = newRounds.length > 0 || Date.now() - e.lastFlush >= FLUSH_MS
+  const mustFlush = newRounds.length > 0 || before !== sig(state)
+                 || Date.now() - e.lastFlush >= FLUSH_MS
   if (mustFlush) await flush(account, e)
   return e
 }

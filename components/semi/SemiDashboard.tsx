@@ -158,6 +158,12 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   //  two beats and 3-second polling was adding a second of nothing to every
   //  press. Back to the normal rate on its own.
   const fastUntil = useRef(0)
+  //  The newest EA stamp this screen has shown. A snapshot older than this is
+  //  thrown away: the live state lives in whichever serverless instance the
+  //  EA last pushed to, so two polls a second apart can legitimately come back
+  //  with two different ages, and letting the older one through is what made
+  //  the mode and the side cards flip back and forth.
+  const seenTs = useRef(0)
   const t = DICT[lang]
   //  every control reads this, so the name stays `busy`
   const busy = pending !== null && pending.phase !== "done"
@@ -174,7 +180,20 @@ export default function SemiDashboard({ account, email }: { account: string; ema
     try {
       const r = await fetch(`/api/semi/state?acc=${encodeURIComponent(account)}`, { cache: "no-store" })
       if (r.status === 401) setAuthLost(true)
-      else if (r.ok) { setAuthLost(false); setFeed(await r.json()) }
+      else if (r.ok) {
+        setAuthLost(false)
+        const j: Feed & { state?: (Snapshot & { ts?: number }) | null } = await r.json()
+        const ts = Number(j.state?.ts ?? 0)
+        if (ts && ts < seenTs.current) {
+          //  An older copy of the account. The command queue is read from the
+          //  shared store on every request, so that part is still current and
+          //  worth taking; the stale snapshot behind it is not.
+          setFeed(f => (f ? { ...f, pendingCmd: j.pendingCmd } : j))
+        } else {
+          if (ts) seenTs.current = ts
+          setFeed(j)
+        }
+      }
     } catch {
       /* a dropped poll is not an error worth showing — the next one recovers */
     }
@@ -182,6 +201,8 @@ export default function SemiDashboard({ account, email }: { account: string; ema
     const rate = hidden ? 20000 : (Date.now() < fastUntil.current ? 800 : 3000)
     timer.current = setTimeout(poll, rate)
   }, [account])
+
+  useEffect(() => { seenTs.current = 0 }, [account])
 
   useEffect(() => {
     poll()
@@ -482,10 +503,19 @@ export default function SemiDashboard({ account, email }: { account: string; ema
                 <div className="flex gap-0.5 rounded-bk border border-bk-line bg-bk-sunken p-0.5">
                   {t.modes.map((label, i) => {
                     const want = ["MANUAL", "SEMI", "AUTO"][i]
+                    //  The highlighted button is always the mode this screen
+                    //  believes in; the ring on it says the EA has not echoed
+                    //  that belief back yet. Never two highlights at once.
+                    const confirming = wish?.cmd === `MODE_${want}`
                     return (
                       <button key={want} onClick={() => send(`MODE_${want}`)}
-                        className={`flex-1 rounded-bk py-2 text-[12.5px] font-bold disabled:opacity-40 ${
-                          mode === want ? "bg-accent text-white" : "text-bk-muted"}`}>{label}</button>
+                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-bk py-2 text-[12.5px] font-bold disabled:opacity-40 ${
+                          mode === want ? "bg-accent text-white" : "text-bk-muted"}`}>
+                        {label}
+                        {confirming && (
+                          <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />
+                        )}
+                      </button>
                     )
                   })}
                 </div>
