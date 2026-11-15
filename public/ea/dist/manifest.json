@@ -41,6 +41,26 @@
       ]
     },
     {
+      "id": "megihedge",
+      "name": "TheRocket MegiHedge v2.0",
+      "blurb": "Hedge rider + partial close - 3 settings, factory 50k",
+      "version": "2.00",
+      "file": "TheRocketMegiHedge.ex5",
+      "url": "/ea/dist/megihedge/2.00/TheRocketMegiHedge.ex5",
+      "sha256": "b5acf321ca359ac18beaca8fc4cfe650f9214d96ae5c67422c232e1dc5751936",
+      "size": 173546,
+      "presetDir": "TheRocketMegiHedge",
+      "presets": [],
+      "docs": [
+        {
+          "file": "INSTALL.txt",
+          "url": "/ea/dist/megihedge/2.00/INSTALL.txt",
+          "sha256": "03839e16fadd521297270b45656abba9cb8cd11e716a3a4c4ff476344017578e",
+          "size": 2352
+        }
+      ]
+    },
+    {
       "id": "semi",
       "name": "TheRocketMagi Semi",
       "blurb": "Semi-automatic - chart buttons, phone, web dashboard",
