@@ -20,7 +20,8 @@ export default function EAStatsCompact({ stats }: Props) {
   const daily = stats.dailyReturns ?? []
   const todayPct = daily.length ? daily[daily.length - 1].profitPct : undefined
   const monthly = (stats.monthlyReturns ?? []).slice(-12)
-  const monthlyMax = Math.max(1, ...monthly.map(m => Math.abs(m.profitPct)))
+  //  one scale for both sides here - see the note on the bars below
+  const sparkPeak = Math.max(1, ...monthly.map(m => Math.abs(m.profitPct)))
 
   return (
     <Link
@@ -60,16 +61,23 @@ export default function EAStatsCompact({ stats }: Props) {
 
       {monthly.length > 0 && (
         <div className="px-5 py-3">
-          <div className="flex items-end gap-1 h-[36px]">
+          {/* This one keeps a single honest scale, unlike the big charts: at
+              36px there is no room to print the value on each bar, and a
+              squashed bar without its number is just a lie. A zero line so a
+              red bar reads as below zero, and the value in the tooltip. */}
+          <div className="flex items-stretch gap-1" style={{ height: 36 }}>
             {monthly.map(m => {
-              const h = (Math.abs(m.profitPct) / monthlyMax) * 100
+              const up = m.profitPct >= 0
+              const barPct = (Math.abs(m.profitPct) / sparkPeak) * 100
               return (
-                <div key={m._key ?? m.month} className="flex-1 flex flex-col justify-end">
-                  <div className="rounded-t" style={{
-                    height: `${Math.max(h, 4)}%`,
-                    background: m.profitPct >= 0 ? "#10B981" : "#EF4444",
-                    opacity: 0.8,
-                  }} />
+                <div key={m._key ?? m.month} className="flex-1 flex flex-col" title={`${m.month}: ${fmtPct(m.profitPct)}`}>
+                  <div className="flex flex-col justify-end" style={{ height: 17 }}>
+                    {up && <div className="rounded-t" style={{ height: `${Math.max(barPct, 6)}%`, background: "#10B981", opacity: 0.8 }} />}
+                  </div>
+                  <div style={{ height: 1, background: "var(--line)" }} />
+                  <div style={{ height: 18 }}>
+                    {!up && <div className="rounded-b" style={{ height: `${Math.max(barPct, 6)}%`, background: "#EF4444", opacity: 0.8 }} />}
+                  </div>
                 </div>
               )
             })}

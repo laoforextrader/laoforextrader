@@ -1,5 +1,6 @@
 import Link from "next/link"
 import InstallCommand from "@/components/ea/InstallCommand"
+import { LOSS_BAR_PX, monthlyBars } from "@/lib/eaChart"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { capitalBase, fmtMoney, fmtMoneyPlain, pctMoney, toRealMoney } from "@/lib/eaMoney"
 import type { EAStats } from "@/types"
@@ -94,7 +95,12 @@ export default async function EADownloadPage({
   const positive = values.filter((v) => v > 0).length
   const best = values.length ? Math.max(...values) : null
   const worst = values.length ? Math.min(...values) : null
-  const peak = values.length ? Math.max(...values.map((v) => Math.abs(v))) : 1
+  //  Winners scaled, losers a fixed stub - the same convention as the Daily
+  //  Profit strip. lib/eaChart.ts explains why that is honest and what this
+  //  page owes in return (the number on every bar, and the zero line).
+  const bars = monthlyBars(values)
+  const POS_H = 132
+  const NEG_H = bars.hasLoss ? LOSS_BAR_PX + 4 : 0
 
   // Money beside each percentage. Cent accounts arrive 100x too big and every
   // % is measured against lifetime deposits, so both conversions live in
@@ -178,33 +184,81 @@ export default async function EADownloadPage({
               ຕົວເລກດຶງມາຈາກບັນຊີຈິງໂດຍກົງ ອັບເດດອັດຕະໂນມັດ
             </p>
 
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 170 }}>
+            {/* A losing month draws a short stub of a fixed depth, never a
+                proportional bar: one -60% month on a shared scale flattens a
+                whole year of winners into nothing. Every bar carries its real
+                number, and the stubs are all the same height so there is no
+                length to misread. Same convention as the Daily Profit strip. */}
+            {/* maxWidth per column: a two-month-old account would otherwise draw
+                two half-screen blocks instead of a chart. */}
+            <div style={{ position: "relative" }}>
+            {bars.hasLoss && (
+              <div style={{ position: "absolute", left: 0, right: 0, top: POS_H, height: 1.5, background: "var(--fg-4)", opacity: 0.5, borderRadius: 1 }} />
+            )}
+            <div style={{ display: "flex", alignItems: "stretch", gap: 6, justifyContent: months.length < 6 ? "center" : "flex-start" }}>
               {months.map((m) => {
                 const mMoney = pctMoney(m.profitPct, stats ?? {})
+                const up = m.profitPct >= 0
+                const barH = bars.barPx(m.profitPct, POS_H)
                 return (
-                  <div key={m.month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 0 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success-ink)", fontFamily: "Arial,sans-serif" }}>
-                      {m.profitPct.toFixed(0)}%
-                    </span>
-                    {mMoney && (
-                      <span style={{ fontSize: 8, fontWeight: 600, color: "var(--fg-4)", fontFamily: "Arial,sans-serif", whiteSpace: "nowrap" }}>
-                        {fmtMoney(mMoney.amount, mMoney.currency, 0)}
+                  <div key={m.month} style={{ flex: 1, maxWidth: 76, display: "flex", flexDirection: "column", alignItems: "center", minWidth: 0 }}>
+                    {/* above zero */}
+                    <div style={{ height: POS_H, width: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", gap: 3 }}>
+                      {up && (
+                        <>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success-ink)", fontFamily: "Arial,sans-serif" }}>
+                            {m.profitPct.toFixed(0)}%
+                          </span>
+                          {mMoney && (
+                            <span style={{ fontSize: 8, fontWeight: 600, color: "var(--fg-4)", fontFamily: "Arial,sans-serif", whiteSpace: "nowrap" }}>
+                              {fmtMoney(mMoney.amount, mMoney.currency, 0)}
+                            </span>
+                          )}
+                          <div
+                            title={`${m.month}: ${pct(m.profitPct)}${mMoney ? ` (${fmtMoney(mMoney.amount, mMoney.currency)})` : ""}`}
+                            style={{
+                              width: "100%", height: barH,
+                              background: "linear-gradient(180deg,#4ADE80,#16A34A)",
+                              borderRadius: "5px 5px 0 0",
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
+
+
+                    {/* below zero: fixed-depth stub, not a measurement */}
+                    <div style={{ height: NEG_H, width: "100%" }}>
+                      {!up && (
+                        <div
+                          title={`${m.month}: ${pct(m.profitPct)}${mMoney ? ` (${fmtMoney(mMoney.amount, mMoney.currency)})` : ""}`}
+                          style={{
+                            width: "100%", height: barH,
+                            background: "linear-gradient(180deg,#DC2626,#F87171)",
+                            borderRadius: "0 0 5px 5px",
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {!up && (
+                      <span style={{ fontSize: 9, fontWeight: 700, color: "var(--danger-ink,#DC2626)", fontFamily: "Arial,sans-serif" }}>
+                        {m.profitPct.toFixed(0)}%
                       </span>
                     )}
-                    <div
-                      title={`${m.month}: ${pct(m.profitPct)}${mMoney ? ` (${fmtMoney(mMoney.amount, mMoney.currency)})` : ""}`}
-                      style={{
-                        width: "100%",
-                        height: `${Math.max(4, (Math.abs(m.profitPct) / peak) * 110)}px`,
-                        background: m.profitPct >= 0 ? "linear-gradient(180deg,#4ADE80,#16A34A)" : "linear-gradient(180deg,#F87171,#DC2626)",
-                        borderRadius: 5,
-                      }}
-                    />
-                    <span className="font-lao" style={{ fontSize: 8, color: "var(--fg-4)", whiteSpace: "nowrap" }}>{monthLabel(m.month)}</span>
+                    <span className="font-lao" style={{ fontSize: 8, color: "var(--fg-4)", whiteSpace: "nowrap", marginTop: 2 }}>{monthLabel(m.month)}</span>
                   </div>
                 )
               })}
             </div>
+            </div>
+
+            {bars.hasLoss && (
+              <p className="font-lao" style={{ fontSize: 10.5, color: "var(--fg-4)", margin: "10px 0 0", lineHeight: 1.7 }}>
+                ເດືອນທີ່ຂາດທຶນສະແດງເປັນແທ່ງແດງສັ້ນເທົ່າກັນໝົດ ບໍ່ໄດ້ແທນຂະໜາດ —
+                <b> ໃຫ້ອ່ານຕົວເລກ</b> ເດືອນຕ່ຳສຸດຄື {worst != null ? pct(worst) : "—"}
+              </p>
+            )}
           </section>
         )}
 

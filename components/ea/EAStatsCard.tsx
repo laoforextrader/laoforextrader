@@ -1,3 +1,4 @@
+import { LOSS_BAR_PX, monthlyBars } from "@/lib/eaChart"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import {
   capitalBase,
@@ -44,7 +45,11 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
 
   const monthly = (stats.monthlyReturns ?? []).slice(-12)
   const daily   = (stats.dailyReturns ?? []).slice(-30)
-  const monthlyMax = Math.max(1, ...monthly.map(m => Math.abs(m.profitPct)))
+  //  Winners scaled, losers a fixed stub (lib/eaChart.ts). Every bar here
+  //  already prints its percentage above it, which is what makes that fair.
+  const monthBars = monthlyBars(monthly.map(m => m.profitPct))
+  const CARD_POS  = 56
+  const CARD_NEG  = monthBars.hasLoss ? LOSS_BAR_PX + 2 : 0
   const dailyMax   = Math.max(1, ...daily.map(d => Math.abs(d.profitPct)))
   const totalPct = stats.profitTotalPct
   const todayPct = daily.length ? daily[daily.length - 1].profitPct : undefined
@@ -161,24 +166,25 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
       {monthly.length > 0 && (
         <div className="px-6 py-5 border-b border-line-2">
           <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-3">ລາຍເດືອນ (12 ເດືອນຫຼ້າສຸດ)</div>
-          <div className="flex items-end gap-1.5 h-[100px]">
+          <div className="flex items-stretch gap-1.5">
             {monthly.map(m => {
-              const h = (Math.abs(m.profitPct) / monthlyMax) * 100
               const positive = m.profitPct >= 0
+              const barPx = monthBars.barPx(m.profitPct, CARD_POS)
               return (
                 <div key={m._key ?? m.month} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                   <div className="text-[9px] font-bold tabular-nums" style={{ color: pctColor(m.profitPct) }}>
                     {m.profitPct > 0 ? "+" : ""}{m.profitPct.toFixed(1)}
                   </div>
-                  <div className="w-full flex flex-col justify-end" style={{ height: 60 }}>
-                    <div
-                      className="w-full rounded-t"
-                      style={{
-                        height: `${Math.max(h, 2)}%`,
-                        background: positive ? "#10B981" : "#EF4444",
-                        opacity: 0.85,
-                      }}
-                    />
+                  <div className="w-full flex flex-col justify-end" style={{ height: CARD_POS }}>
+                    {positive && (
+                      <div className="w-full rounded-t" style={{ height: barPx, background: "#10B981", opacity: 0.85 }} />
+                    )}
+                  </div>
+                  <div className="w-full" style={{ height: 1, background: "var(--line)" }} />
+                  <div className="w-full" style={{ height: CARD_NEG }}>
+                    {!positive && (
+                      <div className="w-full rounded-b" style={{ height: barPx, background: "#EF4444", opacity: 0.85 }} />
+                    )}
                   </div>
                   <div className="text-[9px] text-fg-4 font-mono truncate w-full text-center">
                     {m.month.slice(-2)}/{m.month.slice(2,4)}
@@ -187,6 +193,11 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
               )
             })}
           </div>
+          {monthBars.hasLoss && (
+            <div className="text-[9.5px] text-fg-4 mt-2 leading-relaxed">
+              ເດືອນຂາດທຶນເປັນແທ່ງແດງສັ້ນເທົ່າກັນ ບໍ່ແທນຂະໜາດ · ໃຫ້ອ່ານຕົວເລກ
+            </div>
+          )}
         </div>
       )}
 
