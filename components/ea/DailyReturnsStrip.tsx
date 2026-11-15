@@ -1,3 +1,4 @@
+import { scaledBars } from "@/lib/eaChart"
 import { fmtMoney, type Money } from "@/lib/eaMoney"
 import DailyReturnsScroller from "./DailyReturnsScroller"
 import styles from "./DailyReturnsStrip.module.css"
@@ -34,7 +35,11 @@ const LOSS_BAR_PX = 10
 export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
   if (rows.length === 0) return null
 
-  const peak = Math.max(...rows.map(r => Math.abs(r.pct)), 0.01)
+  //  Winners set the scale; losers are already drawn as a fixed stub below.
+  //  Scaling by Math.abs() over every row let one -21.27% day own the scale and
+  //  squeezed a +3.41% day into 9px of the 56 available - the loss was shrinking
+  //  the chart twice over. (Owner spotted it on /ea-system, 2026-11-15.)
+  const bars = scaledBars(rows.map(r => r.pct))
 
   return (
     <div className={styles.wrap}>
@@ -49,7 +54,7 @@ export default function DailyReturnsStrip({ rows }: { rows: DailyRow[] }) {
           const down = r.pct < 0
           const color = up ? "#4ADE80" : down ? "#F87171" : "rgba(255,255,255,0.35)"
           const pctText = `${up ? "+" : ""}${r.pct.toFixed(2)}%`
-          const height = up ? Math.max(3, (Math.abs(r.pct) / peak) * MAX_BAR_PX) : 0
+          const height = up ? bars.barPx(r.pct, MAX_BAR_PX) : 0
 
           return (
             <div key={r.date} className={styles.col} title={`${r.date} · ${pctText}`}>

@@ -1,4 +1,4 @@
-// Monthly-return bars: winners are scaled, losers are a fixed stub.
+// EA return bars (monthly and daily): winners are scaled, losers are a stub.
 //
 // The problem (2026-11-15, owner): MegiHedge has one month near -60% against
 // winning months around +20%. On one shared scale that month takes the whole
@@ -26,7 +26,7 @@ export const LOSS_BAR_PX = 12
 /** Smallest winning bar, so a +0.2% month is still a mark rather than nothing. */
 const MIN_WIN_PX = 3
 
-export interface MonthlyBars {
+export interface ScaledBars {
   /** Largest winning month; 0 when every month lost. */
   posMax: number
   /** True when at least one month lost - the plot needs its lower band. */
@@ -35,7 +35,7 @@ export interface MonthlyBars {
   barPx(value: number, areaPx: number): number
 }
 
-export function monthlyBars(values: number[]): MonthlyBars {
+export function scaledBars(values: number[]): ScaledBars {
   const wins = values.filter((v) => v > 0)
   const posMax = wins.length ? Math.max(...wins) : 0
   const hasLoss = values.some((v) => v < 0)

@@ -1,4 +1,4 @@
-import { LOSS_BAR_PX, monthlyBars } from "@/lib/eaChart"
+import { LOSS_BAR_PX, scaledBars } from "@/lib/eaChart"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import {
   capitalBase,
@@ -47,10 +47,14 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
   const daily   = (stats.dailyReturns ?? []).slice(-30)
   //  Winners scaled, losers a fixed stub (lib/eaChart.ts). Every bar here
   //  already prints its percentage above it, which is what makes that fair.
-  const monthBars = monthlyBars(monthly.map(m => m.profitPct))
+  const monthBars = scaledBars(monthly.map(m => m.profitPct))
   const CARD_POS  = 56
   const CARD_NEG  = monthBars.hasLoss ? LOSS_BAR_PX + 2 : 0
-  const dailyMax   = Math.max(1, ...daily.map(d => Math.abs(d.profitPct)))
+  //  Same rule as the monthly bars above: a -21% day must not shrink every
+  //  winning day to a sliver. 25 SVG units above the zero line for winners,
+  //  a 5-unit stub below it for losers, value in the tooltip.
+  const dayBars    = scaledBars(daily.map(d => d.profitPct))
+  const DAY_STUB   = 5
   const totalPct = stats.profitTotalPct
   const todayPct = daily.length ? daily[daily.length - 1].profitPct : undefined
 
@@ -207,8 +211,8 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
           <div className="text-[10px] uppercase tracking-widest text-fg-4 font-bold mb-3">ລາຍວັນ (30 ວັນ)</div>
           <svg viewBox={`0 0 ${daily.length * 10} 60`} className="w-full" preserveAspectRatio="none" style={{ height: 60 }}>
             {daily.map((d, i) => {
-              const h = (Math.abs(d.profitPct) / dailyMax) * 25
               const positive = d.profitPct >= 0
+              const h = positive ? dayBars.barPx(d.profitPct, 25) : DAY_STUB
               const x = i * 10
               const y = positive ? 30 - h : 30
               return (

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import InstallCommand from "@/components/ea/InstallCommand"
-import { LOSS_BAR_PX, monthlyBars } from "@/lib/eaChart"
+import { LOSS_BAR_PX, scaledBars } from "@/lib/eaChart"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { capitalBase, fmtMoney, fmtMoneyPlain, pctMoney, toRealMoney } from "@/lib/eaMoney"
 import type { EAStats } from "@/types"
@@ -98,7 +98,7 @@ export default async function EADownloadPage({
   //  Winners scaled, losers a fixed stub - the same convention as the Daily
   //  Profit strip. lib/eaChart.ts explains why that is honest and what this
   //  page owes in return (the number on every bar, and the zero line).
-  const bars = monthlyBars(values)
+  const bars = scaledBars(values)
   const POS_H = 132
   const NEG_H = bars.hasLoss ? LOSS_BAR_PX + 4 : 0
 
