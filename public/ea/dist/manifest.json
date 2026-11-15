@@ -15,7 +15,7 @@
         {
           "file": "INSTALL.txt",
           "url": "/ea/dist/sgrid/1.10/INSTALL.txt",
-          "sha256": "3814c47986b258c26fb620ef0f02d381f84dc149afff97a7c1d4a69000b323d6",
+          "sha256": "166ad3577bdc00cae274ebd82d82ec57cb305a0e9fd4e173131e84644072ea6c",
           "size": 2165
         }
       ]
@@ -62,20 +62,20 @@
     },
     {
       "id": "semi",
-      "name": "TheRocket MagiSemi",
+      "name": "TheRocket MegiSemi",
       "blurb": "Semi-automatic - chart buttons, phone, web dashboard",
       "version": "1.00",
-      "file": "TheRocketMagiSemi.ex5",
-      "url": "/ea/dist/semi/1.00/TheRocketMagiSemi.ex5",
-      "sha256": "926c867cdf9d18212c099a4d6ba52dd35821f071cce31619cc1d97c7748cddb6",
-      "size": 289862,
-      "presetDir": "TheRocketMagiSemi",
+      "file": "TheRocketMegiSemi.ex5",
+      "url": "/ea/dist/semi/1.00/TheRocketMegiSemi.ex5",
+      "sha256": "835937a347d4b1d3ec563309728646574b5b365a2cb6e1f8ee181cea6e83a9f3",
+      "size": 289930,
+      "presetDir": "TheRocketMegiSemi",
       "presets": [],
       "docs": [
         {
           "file": "INSTALL.txt",
           "url": "/ea/dist/semi/1.00/INSTALL.txt",
-          "sha256": "be27c262a4346e023ec07a555266552f1e63428262415010237a234518e0e317",
+          "sha256": "ac86a2bbec72f152b4f8b89c974fc286b174e2b2751ed52f95674a8485de05bb",
           "size": 2951
         },
         {

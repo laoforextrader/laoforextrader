@@ -79,7 +79,7 @@ export default function EASystemPage() {
         </div>
       </section>
 
-      {/* ── EA #0 — RocketMagi Semi ────────────────────────────────────
+      {/* ── EA #0 — RocketMegi Semi ────────────────────────────────────
           Same two-column anatomy as the three EAs below, but the right-hand
           panel holds a node map instead of live stats: this one has no track
           record to quote yet, so it shows what it IS. ─────────────────────── */}
@@ -104,7 +104,7 @@ export default function EASystemPage() {
                 fontSize: 32, fontWeight: 800, letterSpacing: "-0.025em",
                 lineHeight: 1.12, marginBottom: 8, color: "#fff",
               }}>
-                RocketMagi{" "}
+                RocketMegi{" "}
                 <span style={{
                   background: "linear-gradient(135deg,#4ADE80,#22D3EE,#60A5FA)",
                   WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
@@ -179,7 +179,7 @@ export default function EASystemPage() {
 
                 {/* core */}
                 <circle cx="160" cy="136" r="52" fill="rgba(34,211,238,0.10)" stroke="url(#nodeCore)" strokeWidth="2" />
-                <text x="160" y="130" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="800">RocketMagi</text>
+                <text x="160" y="130" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="800">RocketMegi</text>
                 <text x="160" y="150" textAnchor="middle" fill="#22D3EE" fontSize="15" fontWeight="800">Semi</text>
 
                 {/* satellites */}

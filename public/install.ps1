@@ -348,10 +348,11 @@ foreach ($t in $pick) {
             continue
         }
 
-        #  The Semi build was renamed on 2026-11-15 (TheRocketMagiSemi_REL.ex5 ->
-        #  TheRocketMagiSemi.ex5). Leaving the old file behind would show the
+        #  The Semi build was renamed twice on 2026-11-15:
+        #  TheRocketMagiSemi_REL.ex5 -> TheRocketMagiSemi.ex5 -> TheRocketMegiSemi.ex5.
+        #  Leaving an old file behind would show the
         #  customer two entries in Navigator, one of them stale for good.
-        foreach ($stale in @("TheRocketMagiSemi_REL.ex5")) {
+        foreach ($stale in @("TheRocketMagiSemi_REL.ex5", "TheRocketMagiSemi.ex5")) {
             $old = Join-Path $expertDir $stale
             if ((Test-Path $old) -and ($stale -ne $b.file)) {
                 try { Remove-Item $old -Force; '      removed the old {0}' -f $stale | Write-Host -ForegroundColor DarkGray } catch {}

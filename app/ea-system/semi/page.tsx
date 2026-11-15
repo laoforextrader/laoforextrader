@@ -5,11 +5,11 @@ import Reveal from "@/components/semi/Reveal"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "RocketMagi Semi — EA ເຄິ່ງອັດຕະໂນມັດ",
+  title: "RocketMegi Semi — EA ເຄິ່ງອັດຕະໂນມັດ",
   description: "ທ່ານເລືອກຈັງຫວະ ລະບົບເຮັດທີ່ເຫຼືອ — ກຣິດຄຳເທິງ XAUUSD M5 ທີ່ທ່ານເປັນຜູ້ເລີ່ມ ແລ້ວ EA ແກ້ໄມ້ ແລະປິດ basket ໃຫ້ ພ້ອມ Dashboard ສົດເທິງມືຖື.",
   alternates: { canonical: "https://www.laoforextrader.com/ea-system/semi" },
   openGraph: {
-    title: "RocketMagi Semi — EA ເຄິ່ງອັດຕະໂນມັດ | LaoForexTrader",
+    title: "RocketMegi Semi — EA ເຄິ່ງອັດຕະໂນມັດ | LaoForexTrader",
     description: "ຄົນເລີ່ມ · ເຄື່ອງເຮັດຕໍ່ — ຄວບຄຸມຈາກມືຖືໄດ້ທຸກບ່ອນ",
     url: "https://www.laoforextrader.com/ea-system/semi",
     type: "website",
@@ -148,7 +148,7 @@ export default function SemiLandingPage() {
                      style={{ background: "rgba(34,211,238,0.20)" }} />
                 <Image
                   src="/ea/semi-mockup.webp"
-                  alt="RocketMagi Semi — Dashboard ເທິງມືຖືແລະຄອມພິວເຕີ"
+                  alt="RocketMegi Semi — Dashboard ເທິງມືຖືແລະຄອມພິວເຕີ"
                   width={1535}
                   height={1024}
                   priority
@@ -228,7 +228,7 @@ export default function SemiLandingPage() {
               What you get
             </div>
             <h2 className="mb-8 text-[24px] font-extrabold tracking-[-0.025em] text-white sm:text-[30px]">
-              ສິ່ງທີ່ຢູ່ໃນ <Gradient>RocketMagi Semi</Gradient>
+              ສິ່ງທີ່ຢູ່ໃນ <Gradient>RocketMegi Semi</Gradient>
             </h2>
           </Reveal>
 

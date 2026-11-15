@@ -4,9 +4,9 @@ import EADownloadPage, { ACCENTS, type DownloadFile } from "@/components/ea/EADo
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: "ດາວໂຫຼດ TheRocket MagiSemi",
+  title: "ດາວໂຫຼດ TheRocket MegiSemi",
   description:
-    "ດາວໂຫຼດ TheRocket MagiSemi — EA ເຄິ່ງອັດຕະໂນມັດ ສັ່ງເປີດ-ປິດເອງຈາກປຸ່ມເທິງຊາດ ຈາກມືຖື ຫຼື ຈາກ Dashboard ເທິງເວັບ.",
+    "ດາວໂຫຼດ TheRocket MegiSemi — EA ເຄິ່ງອັດຕະໂນມັດ ສັ່ງເປີດ-ປິດເອງຈາກປຸ່ມເທິງຊາດ ຈາກມືຖື ຫຼື ຈາກ Dashboard ເທິງເວັບ.",
   alternates: { canonical: "https://www.laoforextrader.com/ea-system/semi-download" },
 }
 
@@ -19,9 +19,9 @@ const DIST = "/ea/dist/semi/1.00"
 
 const FILES: DownloadFile[] = [
   {
-    label: "TheRocketMagiSemi.ex5",
+    label: "TheRocketMegiSemi.ex5",
     note: "ໄຟລ໌ EA ສຳລັບ MetaTrader 5 · 282 KB",
-    href: `${DIST}/TheRocketMagiSemi.ex5`,
+    href: `${DIST}/TheRocketMegiSemi.ex5`,
     ready: true,
   },
   {
@@ -50,7 +50,7 @@ export default function SemiDownloadPage() {
     <EADownloadPage
       eaId="semi"
       installId="semi"
-      badge="🎮 TheRocket MagiSemi"
+      badge="🎮 TheRocket MegiSemi"
       headline="ດາວໂຫຼດ EA ເຄິ່ງອັດຕະໂນມັດ"
       blurb="ທ່ານເປັນຄົນເລືອກວ່າຈະເປີດເທື່ອໃດ ແລະ ຂ້າງໃດ ແລ້ວ EA ດູແລບັນໄດຕໍ່ໃຫ້ຈົນປິດ. ສັ່ງໄດ້ຈາກປຸ່ມເທິງຊາດ ຈາກແອັບ MT5 ເທິງມືຖື ຫຼື ຈາກ Dashboard ເທິງເວັບ."
       files={FILES}

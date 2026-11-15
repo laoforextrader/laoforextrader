@@ -1,4 +1,4 @@
-// One document per MT5 account running TheRocketMagi Semi.
+// One document per MT5 account running TheRocketMegi Semi.
 //
 // Why a Sanity doc and not a cache: the command queue has to survive between
 // two different serverless instances — the browser that queues a command and

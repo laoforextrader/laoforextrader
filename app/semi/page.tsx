@@ -10,7 +10,7 @@ import LinkAccount from "@/components/semi/LinkAccount"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "RocketMagi Semi — Dashboard",
+  title: "RocketMegi Semi — Dashboard",
   robots: { index: false, follow: false },   // a private control panel, not a page to rank
 }
 
