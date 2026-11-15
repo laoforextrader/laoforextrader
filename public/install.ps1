@@ -37,6 +37,82 @@ try {
 }
 if (-not $man.builds) { Say '  The download list came back empty. Please tell support.' 'Red'; return }
 
+
+# ------------------------------------------------------------------ picker -
+#  A checkbox list driven by the arrow keys. Owner asked for this on
+#  2026-11-15: typing numbers is the wrong shape for the real job, which is
+#  "install these two EAs into those three terminals".
+#
+#  It needs a real console. Piped or redirected input (a CI job, a scheduled
+#  task, ROCKET_MT5 set) falls back to the typed list further down, so the
+#  script never hangs waiting for a key that cannot arrive.
+function Test-CanPick {
+    try {
+        if ([Console]::IsInputRedirected) { return $false }
+        $null = [Console]::CursorTop
+        $null = [Console]::WindowWidth
+        return $true
+    } catch { return $false }
+}
+
+function Select-Items {
+    param(
+        [Parameter(Mandatory)] [array]  $Items,
+        [Parameter(Mandatory)] [string] $Title,
+        [scriptblock] $Line,
+        [switch] $AllOn
+    )
+
+    $sel = New-Object bool[] $Items.Count
+    for ($i = 0; $i -lt $Items.Count; $i++) { $sel[$i] = [bool]$AllOn }
+    $cur = 0
+
+    Write-Host ''
+    Write-Host "  $Title" -ForegroundColor Cyan
+    Write-Host '    up/down move   space select   a all   enter confirm   esc cancel' -ForegroundColor DarkGray
+    Write-Host ''
+
+    $top = [Console]::CursorTop
+    $width = [Math]::Max(40, [Console]::WindowWidth - 2)
+
+    while ($true) {
+        [Console]::SetCursorPosition(0, $top)
+        for ($i = 0; $i -lt $Items.Count; $i++) {
+            $box = if ($sel[$i]) { '[x]' } else { '[ ]' }
+            $arrow = if ($i -eq $cur) { '>' } else { ' ' }
+            $text = "  $arrow $box " + (& $Line $Items[$i])
+            if ($text.Length -gt $width) { $text = $text.Substring(0, $width - 1) + '~' }
+            $colour = if ($i -eq $cur) { 'White' } elseif ($sel[$i]) { 'Green' } else { 'Gray' }
+            Write-Host $text.PadRight($width) -ForegroundColor $colour
+        }
+
+        $k = [Console]::ReadKey($true)
+        switch ($k.Key) {
+            'UpArrow'   { $cur = ($cur - 1 + $Items.Count) % $Items.Count }
+            'DownArrow' { $cur = ($cur + 1) % $Items.Count }
+            'Spacebar'  { $sel[$cur] = -not $sel[$cur] }
+            'Enter'     {
+                $out = @()
+                for ($i = 0; $i -lt $Items.Count; $i++) { if ($sel[$i]) { $out += $Items[$i] } }
+                #  Enter on an empty list means "the one I am standing on" - the
+                #  common case is one terminal, one EA, and no urge to press space.
+                if ($out.Count -eq 0) { $out = @($Items[$cur]) }
+                Write-Host ''
+                return $out
+            }
+            'Escape'    { Write-Host ''; return @() }
+            default {
+                $ch = "$($k.KeyChar)".ToLower()
+                if ($ch -eq 'a') {
+                    $on = $false
+                    foreach ($s in $sel) { if (-not $s) { $on = $true; break } }
+                    for ($i = 0; $i -lt $Items.Count; $i++) { $sel[$i] = $on }
+                } elseif ($ch -eq 'q') { Write-Host ''; return @() }
+            }
+        }
+    }
+}
+
 # ------------------------------------------------------------ find MetaTrader
 # Two shapes exist and both are real:
 #   normal    %APPDATA%\MetaQuotes\Terminal\<hash>\MQL5\...   (origin.txt names the install)
@@ -91,20 +167,16 @@ if ($targets.Count -eq 0) {
     return
 }
 
-Head '  MetaTrader 5 found on this PC'
-for ($i = 0; $i -lt $targets.Count; $i++) {
-    '    [{0}] {1,-34} {2}' -f ($i + 1), $targets[$i].Name, $targets[$i].Kind | Write-Host
-    '        {0}' -f $targets[$i].Data | Write-Host -ForegroundColor DarkGray
-}
-
 $pick = @()
-if ($targets.Count -eq 1) {
-    $pick = @($targets[0])
-    Say ''
-    Say "  Installing into: $($targets[0].Name)"
-} elseif ($env:ROCKET_MT5) {
+
+if ($env:ROCKET_MT5) {
     # Unattended install (VPS, or a second PC set up the same way):
     #   $env:ROCKET_MT5='all'; $env:ROCKET_EA='sgrid'; irm laoforextrader.com/go | iex
+    Head '  MetaTrader 5 found on this PC'
+    for ($i = 0; $i -lt $targets.Count; $i++) {
+        '    [{0}] {1,-34} {2}' -f ($i + 1), $targets[$i].Name, $targets[$i].Kind | Write-Host
+        '        {0}' -f $targets[$i].Data | Write-Host -ForegroundColor DarkGray
+    }
     if ($env:ROCKET_MT5 -match '^(?i)all$') {
         $pick = $targets
     } else {
@@ -127,7 +199,17 @@ if ($targets.Count -eq 1) {
     }
     Say ''
     Say ("  ROCKET_MT5=" + $env:ROCKET_MT5 + " -> " + (($pick | ForEach-Object { $_.Name }) -join ', '))
+} elseif (Test-CanPick) {
+    $pick = @(Select-Items -Items $targets -Title ("Install into which MetaTrader 5?  (" + $targets.Count + " found)") -Line {
+        param($x)
+        '{0,-32} {1,-13} {2}' -f $x.Name, $x.Kind, $x.Data
+    })
 } else {
+    Head '  MetaTrader 5 found on this PC'
+    for ($i = 0; $i -lt $targets.Count; $i++) {
+        '    [{0}] {1,-34} {2}' -f ($i + 1), $targets[$i].Name, $targets[$i].Kind | Write-Host
+        '        {0}' -f $targets[$i].Data | Write-Host -ForegroundColor DarkGray
+    }
     Write-Host ''
     $ans = Read-Host "  Which one? (1-$($targets.Count), or a for all)"
     if ($ans -match '^[Aa]') {
@@ -137,36 +219,56 @@ if ($targets.Count -eq 1) {
             if ($n -match '^\d+$' -and [int]$n -ge 1 -and [int]$n -le $targets.Count) { $pick += $targets[[int]$n - 1] }
         }
     }
-    if ($pick.Count -eq 0) { Say '  Nothing selected - stopping here.' 'Yellow'; return }
 }
 
+if ($pick.Count -eq 0) { Say '  Nothing selected - stopping here.' 'Yellow'; return }
+Say ("  MetaTrader 5: " + (($pick | ForEach-Object { $_.Name }) -join ', ')) 'DarkGray'
+
 # ----------------------------------------------------------------- builds ---
-Head '  Which EA?'
-for ($i = 0; $i -lt $man.builds.Count; $i++) {
-    $b = $man.builds[$i]
-    '    [{0}] {1,-20} {2,-8} {3}' -f ($i + 1), $b.name, $b.version, $b.blurb | Write-Host
-}
-Write-Host ''
+$builds = @()
+
 if ($env:ROCKET_EA) {
     $bans = $env:ROCKET_EA
+    Say ''
     Say ("  ROCKET_EA=" + $bans)
+    if ($bans -match '^(?i)a(ll)?$') {
+        $builds = $man.builds
+    } else {
+        foreach ($n in ($bans -split '[,\s]+')) {
+            if ($n -match '^\d+$' -and [int]$n -ge 1 -and [int]$n -le $man.builds.Count) {
+                $builds += $man.builds[[int]$n - 1]
+            } else {
+                # an id from the manifest (sgrid / sgridpro / megihedge / semi)
+                $builds += $man.builds | Where-Object { $_.id -eq $n }
+            }
+        }
+    }
+} elseif (Test-CanPick) {
+    $builds = @(Select-Items -Items $man.builds -Title 'Which EA?  (pick as many as you want)' -Line {
+        param($x)
+        '{0,-26} {1,-6} {2}' -f $x.name, $x.version, $x.blurb
+    })
 } else {
+    Head '  Which EA?'
+    for ($i = 0; $i -lt $man.builds.Count; $i++) {
+        $b = $man.builds[$i]
+        '    [{0}] {1,-26} {2,-6} {3}' -f ($i + 1), $b.name, $b.version, $b.blurb | Write-Host
+    }
+    Write-Host ''
     $bans = Read-Host "  Which EA? (1-$($man.builds.Count), or a for all)"
-}
-$builds = @()
-if ($bans -match '^(?i)a(ll)?$' -or $bans -eq '') {
-    $builds = $man.builds
-} else {
-    foreach ($n in ($bans -split '[,\s]+')) {
-        if ($n -match '^\d+$' -and [int]$n -ge 1 -and [int]$n -le $man.builds.Count) {
-            $builds += $man.builds[[int]$n - 1]
-        } else {
-            # an id from the manifest (sgrid / sgridpro / semi), for unattended runs
-            $builds += $man.builds | Where-Object { $_.id -eq $n }
+    if ($bans -match '^(?i)a(ll)?$' -or $bans -eq '') {
+        $builds = $man.builds
+    } else {
+        foreach ($n in ($bans -split '[,\s]+')) {
+            if ($n -match '^\d+$' -and [int]$n -ge 1 -and [int]$n -le $man.builds.Count) {
+                $builds += $man.builds[[int]$n - 1]
+            }
         }
     }
 }
+
 if ($builds.Count -eq 0) { Say '  Nothing selected - stopping here.' 'Yellow'; return }
+Say ("  EA: " + (($builds | ForEach-Object { $_.name }) -join ', ')) 'DarkGray'
 
 # ------------------------------------------------------------------ helpers -
 function Get-Remote([string]$url, [string]$dest) {
@@ -239,6 +341,16 @@ foreach ($t in $pick) {
         if (-not (Test-Sha $tmp $b.sha256)) {
             Say '      the downloaded file does not match its published fingerprint - skipped' 'Red'
             continue
+        }
+
+        #  The Semi build was renamed on 2026-11-15 (TheRocketMagiSemi_REL.ex5 ->
+        #  TheRocketMagiSemi.ex5). Leaving the old file behind would show the
+        #  customer two entries in Navigator, one of them stale for good.
+        foreach ($stale in @("TheRocketMagiSemi_REL.ex5")) {
+            $old = Join-Path $expertDir $stale
+            if ((Test-Path $old) -and ($stale -ne $b.file)) {
+                try { Remove-Item $old -Force; '      removed the old {0}' -f $stale | Write-Host -ForegroundColor DarkGray } catch {}
+            }
         }
 
         try {

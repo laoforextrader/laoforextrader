@@ -1,15 +1,15 @@
-TheRocketMagi Semi - release build
+TheRocket MagiSemi - release build
 ==================================
 
 FILES
-  TheRocketMagiSemi_REL.ex5   the Expert Advisor - this is the only file to install
+  TheRocketMagiSemi.ex5   the Expert Advisor - this is the only file to install
   Manual-EN.pdf               user manual, English
   Manual-LO.pdf               user manual, Lao
   INSTALL.txt                 this file
 
 INSTALL
   1. In MT5: File > Open Data Folder > MQL5 > Experts
-  2. Copy TheRocketMagiSemi_REL.ex5 into that folder
+  2. Copy TheRocketMagiSemi.ex5 into that folder
   3. Back in MT5: right-click Navigator > Refresh
 
 FIRST RUN

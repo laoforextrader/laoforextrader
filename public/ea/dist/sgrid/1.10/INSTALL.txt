@@ -3,7 +3,7 @@ TheRocket SGrid - release build
 
   Automatic XAUUSD grid. It runs on its own: you set three things and leave it.
   For the version where every filter is exposed, ask for TheRocket SGrid Pro.
-  For the one you drive by hand from your phone, ask for TheRocketMagi Semi.
+  For the one you drive by hand from your phone, ask for TheRocket MagiSemi.
 
 FILES
   TheRocketSGrid.ex5   the Expert Advisor - this is the only file to install
