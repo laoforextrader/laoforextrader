@@ -1,5 +1,5 @@
 # TheRocket EA installer
-#   irm laoforextrader.com/go | iex
+#   irm https://www.laoforextrader.com/go | iex
 #
 # Finds every MetaTrader 5 on this PC, downloads the builds you pick, checks
 # each file against its published SHA-256, keeps a backup of what it replaces,
@@ -12,6 +12,11 @@
 # Published by Tools/mk_publish.py - do not edit the copy on the website.
 
 $ErrorActionPreference = 'Stop'
+#  Windows Server 2016/2019 still default to TLS 1.0, which our host refuses.
+#  Without this the first download dies with "could not create SSL/TLS secure
+#  channel" on exactly the machines that matter most - the VPS boxes people
+#  run the EA on. Harmless on newer Windows, which already negotiates 1.2/1.3.
+try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
 $BASE = 'https://www.laoforextrader.com'
 $UA   = 'TheRocketInstaller/1.0'
 
@@ -171,7 +176,7 @@ $pick = @()
 
 if ($env:ROCKET_MT5) {
     # Unattended install (VPS, or a second PC set up the same way):
-    #   $env:ROCKET_MT5='all'; $env:ROCKET_EA='sgrid'; irm laoforextrader.com/go | iex
+    #   $env:ROCKET_MT5='all'; $env:ROCKET_EA='sgrid'; irm https://www.laoforextrader.com/go | iex
     Head '  MetaTrader 5 found on this PC'
     for ($i = 0; $i -lt $targets.Count; $i++) {
         '    [{0}] {1,-34} {2}' -f ($i + 1), $targets[$i].Name, $targets[$i].Kind | Write-Host

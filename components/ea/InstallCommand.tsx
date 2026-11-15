@@ -4,7 +4,7 @@ import { useState } from "react"
 
 // The one-line installer, shown above the manual download list.
 //
-// `irm laoforextrader.com/go | iex` fetches app/go/route.ts, which re-serves
+// `irm https://www.laoforextrader.com/go | iex` fetches app/go/route.ts, which re-serves
 // public/install.ps1 as text/plain. The script finds every MT5 on the PC,
 // downloads what the customer picks, verifies each SHA-256 against
 // /api/dl/manifest, backs up whatever it replaces, and remembers versions so a
@@ -18,12 +18,25 @@ interface Props {
   eaId?: string
 }
 
+type Shell = "ps" | "cmd"
+
 export default function InstallCommand({ eaId }: Props) {
   const [copied, setCopied] = useState(false)
+  const [shell, setShell] = useState<Shell>("ps")
 
-  const cmd = eaId
-    ? `$env:ROCKET_EA='${eaId}'; irm laoforextrader.com/go | iex`
-    : `irm laoforextrader.com/go | iex`
+  const psCmd = eaId
+    ? `$env:ROCKET_EA='${eaId}'; irm https://www.laoforextrader.com/go | iex`
+    : `irm https://www.laoforextrader.com/go | iex`
+
+  //  Two reasons this is not just the PowerShell line with a prefix:
+  //  `irm` does not exist in cmd.exe, which is where a VPS session lands, and
+  //  Windows Server 2016/2019 still negotiate TLS 1.0 by default, so the very
+  //  first download fails on exactly those machines unless we ask for 1.2.
+  const cmdCmd = eaId
+    ? `powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol='Tls12'; $env:ROCKET_EA='${eaId}'; irm https://www.laoforextrader.com/go | iex"`
+    : `powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol='Tls12'; irm https://www.laoforextrader.com/go | iex"`
+
+  const cmd = shell === "ps" ? psCmd : cmdCmd
 
   async function copy() {
     try {
@@ -62,11 +75,39 @@ export default function InstallCommand({ eaId }: Props) {
         ສຳຮອງໄຟລ໌ເກົ່າໄວ້ກ່ອນທຸກເທື່ອ. ຖ້າມີຮຸ່ນເກົ່າຢູ່ແລ້ວ ມັນຈະອັບເດດໃຫ້ ແລະ ຖ້າໃໝ່ຢູ່ແລ້ວ ມັນຈະຂ້າມ.
       </p>
 
+      {/* Which shell the person is actually sitting in. Default PowerShell;
+          cmd is one tap away because that is what a fresh VPS opens with. */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        {([["ps", "PowerShell"], ["cmd", "Command Prompt (cmd)"]] as [Shell, string][]).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => { setShell(k); setCopied(false) }}
+            className="font-lao"
+            style={{
+              padding: "6px 14px",
+              borderRadius: 999,
+              border: `1px solid ${shell === k ? "var(--accent)" : "var(--line)"}`,
+              background: shell === k ? "var(--accent)" : "transparent",
+              color: shell === k ? "#fff" : "var(--fg-3)",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <ol
         className="font-lao"
         style={{ margin: "0 0 16px", paddingLeft: 20, fontSize: 13, lineHeight: 2, color: "var(--fg-2)" }}
       >
-        <li>ກົດຂວາປຸ່ມ Start ເລືອກ <b>Terminal</b> ຫຼື <b>Windows PowerShell</b></li>
+        {shell === "ps" ? (
+          <li>ກົດຂວາປຸ່ມ Start ເລືອກ <b>Terminal</b> ຫຼື <b>Windows PowerShell</b></li>
+        ) : (
+          <li>ເປີດ <b>Command Prompt</b> (ຫຼື Remote Desktop ເຂົ້າ VPS ແລ້ວເປີດ cmd)</li>
+        )}
         <li>ວາງຄຳສັ່ງຂ້າງລຸ່ມ ແລ້ວກົດ Enter</li>
         <li>ເລືອກ MT5 ທີ່ຈະຕິດຕັ້ງ ຖ້າມີຫຼາຍຕົວ</li>
       </ol>
@@ -86,7 +127,7 @@ export default function InstallCommand({ eaId }: Props) {
           style={{
             flex: 1,
             padding: "14px 16px",
-            fontSize: 12.5,
+            fontSize: shell === "cmd" ? 11 : 12.5,
             fontFamily: "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace",
             color: "var(--fg)",
             overflowX: "auto",
@@ -115,6 +156,12 @@ export default function InstallCommand({ eaId }: Props) {
       </div>
 
       <p className="font-lao" style={{ fontSize: 11.5, color: "var(--fg-4)", margin: "12px 0 0", lineHeight: 1.8 }}>
+        {shell === "cmd" && (
+          <>
+            ຄຳສັ່ງ cmd ຍາວກວ່າເພາະຕ້ອງເອີ້ນ PowerShell ແລະ ບັງຄັບ TLS 1.2 ໃຫ້ Windows Server ລຸ້ນເກົ່າ
+            <br />
+          </>
+        )}
         ຢາກເບິ່ງວ່າສະຄຣິບເຮັດຫຍັງແດ່ກ່ອນຮັນບໍ່?{" "}
         <a href="/go" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", fontWeight: 700 }}>
           ເປີດເບິ່ງສະຄຣິບ
