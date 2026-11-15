@@ -1,0 +1,126 @@
+"use client"
+
+import { useState } from "react"
+
+// The one-line installer, shown above the manual download list.
+//
+// `irm laoforextrader.com/go | iex` fetches app/go/route.ts, which re-serves
+// public/install.ps1 as text/plain. The script finds every MT5 on the PC,
+// downloads what the customer picks, verifies each SHA-256 against
+// /api/dl/manifest, backs up whatever it replaces, and remembers versions so a
+// second run only fetches what changed.
+//
+// ROCKET_EA pins the page's own EA so someone on the SGrid page does not end up
+// being asked about three products they did not come for.
+
+interface Props {
+  /** Manifest id: sgrid | sgridpro | semi. Omit to let the script ask. */
+  eaId?: string
+}
+
+export default function InstallCommand({ eaId }: Props) {
+  const [copied, setCopied] = useState(false)
+
+  const cmd = eaId
+    ? `$env:ROCKET_EA='${eaId}'; irm laoforextrader.com/go | iex`
+    : `irm laoforextrader.com/go | iex`
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(cmd)
+    } catch {
+      // Older browsers, and any page not served over https, reject the async
+      // clipboard. Fall back to the textarea trick rather than failing silently.
+      const ta = document.createElement("textarea")
+      ta.value = cmd
+      ta.style.position = "fixed"
+      ta.style.opacity = "0"
+      document.body.appendChild(ta)
+      ta.select()
+      try { document.execCommand("copy") } catch {}
+      document.body.removeChild(ta)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <section
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--line)",
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
+      }}
+    >
+      <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 4px" }}>
+        ຕິດຕັ້ງອັດຕະໂນມັດ
+      </h2>
+      <p className="font-lao" style={{ fontSize: 12, color: "var(--fg-3)", margin: "0 0 18px", lineHeight: 1.8 }}>
+        ສະຄຣິບຈະຫາ MetaTrader 5 ທຸກຕົວໃນເຄື່ອງເອງ ດາວໂຫຼດ EA ຮຸ່ນລ່າສຸດ ຕິດຕັ້ງໃຫ້ ແລະ
+        ສຳຮອງໄຟລ໌ເກົ່າໄວ້ກ່ອນທຸກເທື່ອ. ຖ້າມີຮຸ່ນເກົ່າຢູ່ແລ້ວ ມັນຈະອັບເດດໃຫ້ ແລະ ຖ້າໃໝ່ຢູ່ແລ້ວ ມັນຈະຂ້າມ.
+      </p>
+
+      <ol
+        className="font-lao"
+        style={{ margin: "0 0 16px", paddingLeft: 20, fontSize: 13, lineHeight: 2, color: "var(--fg-2)" }}
+      >
+        <li>ກົດຂວາປຸ່ມ Start ເລືອກ <b>Terminal</b> ຫຼື <b>Windows PowerShell</b></li>
+        <li>ວາງຄຳສັ່ງຂ້າງລຸ່ມ ແລ້ວກົດ Enter</li>
+        <li>ເລືອກ MT5 ທີ່ຈະຕິດຕັ້ງ ຖ້າມີຫຼາຍຕົວ</li>
+      </ol>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          gap: 0,
+          border: "1px solid var(--line)",
+          borderRadius: 12,
+          overflow: "hidden",
+          background: "var(--surface-2)",
+        }}
+      >
+        <code
+          style={{
+            flex: 1,
+            padding: "14px 16px",
+            fontSize: 12.5,
+            fontFamily: "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace",
+            color: "var(--fg)",
+            overflowX: "auto",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {cmd}
+        </code>
+        <button
+          onClick={copy}
+          className="font-lao"
+          style={{
+            flexShrink: 0,
+            padding: "0 18px",
+            border: "none",
+            borderLeft: "1px solid var(--line)",
+            background: copied ? "var(--success-ink)" : "var(--accent)",
+            color: "#fff",
+            fontSize: 12.5,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
+          {copied ? "ຄັດລອກແລ້ວ ✓" : "ຄັດລອກ"}
+        </button>
+      </div>
+
+      <p className="font-lao" style={{ fontSize: 11.5, color: "var(--fg-4)", margin: "12px 0 0", lineHeight: 1.8 }}>
+        ຢາກເບິ່ງວ່າສະຄຣິບເຮັດຫຍັງແດ່ກ່ອນຮັນບໍ່?{" "}
+        <a href="/go" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", fontWeight: 700 }}>
+          ເປີດເບິ່ງສະຄຣິບ
+        </a>{" "}
+        · ຕ້ອງເປີດ MT5 ຢ່າງໜ້ອຍໜຶ່ງເທື່ອກ່ອນ ສະຄຣິບຈຶ່ງຈະເຫັນມັນ
+      </p>
+    </section>
+  )
+}

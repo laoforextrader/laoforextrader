@@ -1,5 +1,5 @@
 // Orchestrator for the "ea-summary" template:
-//   1. Fetch live stats from Sanity (sgride + megihedge)
+//   1. Fetch live stats from Sanity (SGrid + MegiHedge)
 //   2. Build the Lao text caption
 //   3. Send as a single text-only LINE broadcast
 //
@@ -11,7 +11,7 @@
 // WHAT THE PERCENTAGES MEAN. Every profitPct in an `eaStats` doc is
 // `periodProfit / startBalance * 100`, where startBalance is the account's
 // lifetime deposits (see BuildPayload in mql/EAStatsReporter.mq5). So
-// SGride's "+24.7% in September" means September's profit equalled 24.7% of
+// SGrid's "+24.7% in September" means September's profit equalled 24.7% of
 // deposited capital — it is NOT the account's growth over that month. The
 // caption states the capital base so the figure can't be read as a monthly
 // rate of return.
@@ -43,8 +43,8 @@ interface EAConfig {
 const EAS: EAConfig[] = [
   {
     eaId: "sgride",
-    name: "TheRocket EA SGride",
-    shortName: "SGride",
+    name: "TheRocket SGrid",
+    shortName: "SGrid",
     icon: "rocket",
     theme: "blue",
     strategy: "Grid",
@@ -194,13 +194,13 @@ export async function runEaSummaryBroadcast(opts: RunOptions): Promise<Broadcast
   const dl = dateLabel(period, now)
 
   // Fetch stats for both EAs in parallel
-  const [sgrideStats, megiStats] = await Promise.all([
+  const [sgridStats, megiStats] = await Promise.all([
     fetchEAStats("sgride"),
     fetchEAStats("megihedge"),
   ])
 
   const textPreview = buildText(period, dl, [
-    buildEABlock(EAS[0], sgrideStats, period, now, false),
+    buildEABlock(EAS[0], sgridStats, period, now, false),
     buildEABlock(EAS[1], megiStats,   period, now, MEGI_COMING_SOON),
   ])
 

@@ -212,7 +212,7 @@ export default function EASystemPage() {
         </div>
       </section>
 
-      {/* ── EA #1 — SGride (Galaxy) ────────────────────────────────────── */}
+      {/* ── EA #1 — SGrid (Galaxy) ────────────────────────────────────── */}
       <EAShowcaseSection
         eaId="sgride"
         variant="galaxy"

@@ -1,4 +1,4 @@
-@keyframes easgridePulse {
+@keyframes easgridPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%     { opacity: 0.4; transform: scale(1.4); }
 }
@@ -97,7 +97,7 @@
   border-radius: 50%;
   background: #4ADE80;
   display: inline-block;
-  animation: easgridePulse 3s infinite;
+  animation: easgridPulse 3s infinite;
 }
 
 @media (max-width: 768px) {

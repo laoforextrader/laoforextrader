@@ -1,5 +1,5 @@
 // Single-EA broadcast card. One image per EA so each gets its own
-// background (galaxy for SGride, hyperspace for MegiHedge) — matching
+// background (galaxy for SGrid, hyperspace for MegiHedge) — matching
 // /ea-system. Shows just the two requested metrics: this period's
 // profit (big headline) and total profit (smaller, secondary).
 //
@@ -10,7 +10,7 @@ export type Theme = "blue" | "purple"
 
 export interface EACardInput {
   ea: {
-    name: string                  // "TheRocket EA SGride"
+    name: string                  // "TheRocket SGrid"
     icon: "rocket" | "zap"
     theme: Theme
   }

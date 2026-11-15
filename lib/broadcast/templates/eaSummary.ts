@@ -5,8 +5,8 @@
 export type Period = "daily" | "weekly" | "monthly"
 
 export interface EAEntry {
-  name: string                  // "TheRocket SGride"
-  shortName: string             // "SGride"
+  name: string                  // "TheRocket SGrid"
+  shortName: string             // "SGrid"
   icon: "rocket" | "zap"        // chosen by EA
   theme: "blue" | "purple"      // accent
   periodPct: string             // "+2.4%" — today's / this week's / this month's

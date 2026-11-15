@@ -38,7 +38,7 @@ import { BrokerSection } from "@/components/broker/BrokerSection"
 import { LessonsPreview } from "@/components/lessons/LessonsPreview"
 import MerchSection from "@/components/sections/MerchSection"
 import FounderSection from "@/components/sections/FounderSection"
-import EASGrideCTA from "@/components/sections/EASGrideCTA"
+import EASGridCTA from "@/components/sections/EASGridCTA"
 import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
 import { btnSolid, btnOutline, ArrowIcon } from "@/components/broker/review/BrokerBits"
 import type { Article, Broker, BrokerNewsDoc, HotNewsEntry } from "@/types"
@@ -428,7 +428,7 @@ export default async function HomePage() {
 
       {/* ── merch · EA · founder ────────────────────────────────────────── */}
       <MerchSection />
-      <EASGrideCTA />
+      <EASGridCTA />
       <FounderSection />
 
       {/* ── closing ─────────────────────────────────────────────────────── */}

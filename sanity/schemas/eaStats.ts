@@ -8,7 +8,11 @@ export const eaStatsSchema = {
       title: "EA ID (URL key)",
       type: "string",
       validation: (R: any) => R.required(),
-      description: "ID ສຳລັບເຊື່ອມກັບ EA — ເຊັ່ນ \"sgride\", \"megihgedge\" (ໃຊ້ໃນ webhook ແລະ URL)",
+      // The id is what the EA itself posts (lib eaSummary, /api/ea/stats).
+      // "sgride" is a misspelling we are stuck with: renaming it means
+      // editing the Sanity doc AND the EA running on the VPS in the same
+      // minute, or the stats stop arriving. The product is called SGrid.
+      description: "ID ສຳລັບເຊື່ອມກັບ EA — ເຊັ່ນ \"sgride\", \"megihedge\" (ໃຊ້ໃນ webhook ແລະ URL)",
     },
     {
       name: "title",

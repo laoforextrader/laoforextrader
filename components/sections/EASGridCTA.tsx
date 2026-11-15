@@ -1,6 +1,6 @@
 import { Rocket } from "lucide-react"
 import { GalaxyCanvas } from "@/components/ui/GalaxyCanvas"
-import styles from "./EASGrideCTA.module.css"
+import styles from "./EASGridCTA.module.css"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { EAStats } from "@/types"
 
@@ -15,7 +15,7 @@ function pctColor(n: number | undefined, fallback: string): string {
   return n >= 0 ? "#4ADE80" : "#EF4444"
 }
 
-export default async function EASGrideCTA() {
+export default async function EASGridCTA() {
   let stats: EAStats | null = null
   try {
     stats = await sanityClient.fetch<EAStats>(

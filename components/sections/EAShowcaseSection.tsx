@@ -4,7 +4,7 @@ import { GalaxyCanvas } from "@/components/ui/GalaxyCanvas"
 import { HyperspaceCanvas } from "@/components/ui/HyperspaceCanvas"
 import { AuroraCanvas } from "@/components/ui/AuroraCanvas"
 import { GalaxySpiralCanvas } from "@/components/ui/GalaxySpiralCanvas"
-import styles from "./EASGrideCTA.module.css"
+import styles from "./EASGridCTA.module.css"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import {
   capitalBase,

@@ -1,0 +1,76 @@
+{
+  "builds": [
+    {
+      "id": "sgrid",
+      "name": "TheRocket SGrid",
+      "blurb": "Automatic XAUUSD grid - 3 settings, factory 50k",
+      "version": "1.10",
+      "file": "TheRocketSGrid.ex5",
+      "url": "/ea/dist/sgrid/1.10/TheRocketSGrid.ex5",
+      "sha256": "05df5b6c440e58cd7e6b469e0cc2fd4b072c6b53343c9e97805187c5af349a80",
+      "size": 128724,
+      "presetDir": "TheRocketSGrid",
+      "presets": [],
+      "docs": [
+        {
+          "file": "INSTALL.txt",
+          "url": "/ea/dist/sgrid/1.10/INSTALL.txt",
+          "sha256": "05d7ff514a1854b17895cbf61321dd68663e56a89a465e35c2bf6c357e35af70",
+          "size": 2165
+        }
+      ]
+    },
+    {
+      "id": "sgridpro",
+      "name": "TheRocket SGrid Pro",
+      "blurb": "Same engine with all 71 settings exposed",
+      "version": "1.00",
+      "file": "TheRocketSGridPro.ex5",
+      "url": "/ea/dist/sgridpro/1.00/TheRocketSGridPro.ex5",
+      "sha256": "f0f781748d0243e6b87a72a2a1a8bc56539cdd73fa08d218c6d78c307de3ec60",
+      "size": 148404,
+      "presetDir": "TheRocketSGridPro",
+      "presets": [],
+      "docs": [
+        {
+          "file": "INSTALL.txt",
+          "url": "/ea/dist/sgridpro/1.00/INSTALL.txt",
+          "sha256": "9c8a9c0dce3349cd8e4457c248714e2543079e15912d10d1bcb37e59a84de5ab",
+          "size": 2088
+        }
+      ]
+    },
+    {
+      "id": "semi",
+      "name": "TheRocketMagi Semi",
+      "blurb": "Semi-automatic - chart buttons, phone, web dashboard",
+      "version": "1.00",
+      "file": "TheRocketMagiSemi_REL.ex5",
+      "url": "/ea/dist/semi/1.00/TheRocketMagiSemi_REL.ex5",
+      "sha256": "b5642d872744fefa7029d70e469d5d428b6756a8e509bb048715418324f83581",
+      "size": 288612,
+      "presetDir": "TheRocketMagiSemi",
+      "presets": [],
+      "docs": [
+        {
+          "file": "INSTALL.txt",
+          "url": "/ea/dist/semi/1.00/INSTALL.txt",
+          "sha256": "59b0f46998eb430ede88f9f907f9e62a1ce3c34d1e683f07c973b8f65db128b2",
+          "size": 2959
+        },
+        {
+          "file": "Manual-EN.pdf",
+          "url": "/ea/dist/semi/1.00/Manual-EN.pdf",
+          "sha256": "00205ff0d719014bea1b77681ba4f45cb4b2b1067f5595266e4df0ca84412c90",
+          "size": 282391
+        },
+        {
+          "file": "Manual-LO.pdf",
+          "url": "/ea/dist/semi/1.00/Manual-LO.pdf",
+          "sha256": "482491930bd1def9473ea15805e176f4e119fa62de0861e09a6228cd80be1043",
+          "size": 536857
+        }
+      ]
+    }
+  ]
+}

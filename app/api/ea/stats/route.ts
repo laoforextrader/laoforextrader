@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     // reach the funding deal (MT5 only had recent history downloaded) reports
     // totalDeposits = 0, and then startBal falls back to the balance: every
     // percentage is measured against the wrong number and profitTotal becomes
-    // the whole balance. SGride published "+0.00% = $6,596.90 profit" that
+    // the whole balance. SGrid published "+0.00% = $6,596.90 profit" that
     // way. Refuse the push instead of overwriting a known base with nothing.
     if (
       typeof doc.totalDeposits === "number" && doc.totalDeposits > 0 &&

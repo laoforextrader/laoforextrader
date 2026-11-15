@@ -183,7 +183,7 @@ export function periodPctNumber(
  *     amount = balance * pct / (100 + pct)
  *
  * which silently assumed pct was a return on the period's OPENING balance.
- * On SGride — $2,000 deposited, $9,000 withdrawn, $6,345 balance — that
+ * On SGrid — $2,000 deposited, $9,000 withdrawn, $6,345 balance — that
  * overstated every figure by 2.5-3x: September went out as $1,256.39
  * against an actual $493.80.
  */

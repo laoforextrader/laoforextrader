@@ -12,7 +12,7 @@ import ReadingProgress from "@/components/ui/ReadingProgress"
 import TableOfContents from "@/components/ui/TableOfContents"
 import BrokerAdsBanner from "@/components/ui/BrokerAdsBanner"
 import CTASelector from "@/components/cta/CTASelector"
-import EASGrideCTA from "@/components/sections/EASGrideCTA"
+import EASGridCTA from "@/components/sections/EASGridCTA"
 import QuizSidebar from "@/components/quiz/QuizSidebar"
 import ArticleSidebar, { articleHasSidebar, shouldRenderQuizInline } from "@/components/article/ArticleSidebar"
 import ViewTracker from "@/components/article/ViewTracker"
@@ -252,7 +252,7 @@ export default async function ArticleDetailPage({ params }: Props) {
         {hasSidebar && <ArticleSidebar article={article} />}
       </div>
 
-      <EASGrideCTA />
+      <EASGridCTA />
     </div>
   )
 }

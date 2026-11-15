@@ -1,0 +1,50 @@
+TheRocket SGrid Pro - release build
+===================================
+
+  The same grid engine as TheRocket SGrid, with every setting exposed:
+  grid, lot ladder, trading hours, velocity filter, stochastic filter,
+  trend filter and recovery - 71 settings in nine groups.
+  It is meant for someone who tunes and backtests their own configuration.
+  If you want it to just run, use TheRocket SGrid instead.
+
+FILES
+  TheRocketSGridPro.ex5   the Expert Advisor - this is the only file to install
+  INSTALL.txt             this file
+
+INSTALL
+  1. In MT5: File > Open Data Folder > MQL5 > Experts
+  2. Copy TheRocketSGridPro.ex5 into that folder
+  3. Back in MT5: right-click Navigator > Refresh
+
+FIRST RUN
+  1. Open a XAUUSD chart and switch it to M5.
+  2. Drag the EA onto the chart.
+  3. In the properties window tick:
+       Allow Algo Trading
+       Allow DLL imports        (needed for the licence check on a real account)
+  4. Press the Algo Trading button on the MT5 toolbar so it turns green.
+
+SETTINGS
+  The values the EA starts with are the ones that were tested. Change them only
+  against your own backtest, and change one at a time: this strategy is very
+  sensitive to the first entry, so two changes at once tell you nothing about
+  which one did what.
+
+LICENCE
+  Strategy Tester / Demo      free, no time limit
+  Real account                the account number must be on the licence list;
+                              there is no trial period on this build
+
+  To be licensed, send your MT5 account number. It unlocks within 5 minutes;
+  there is no new file to install.
+
+RISK
+  This EA averages down and has no stop loss by design. The risk it carries is
+  the whole account, not a fixed amount per trade. Use money you can afford to
+  lose entirely and keep the lots small. Past results do not describe the
+  future: testing was done on a window in which gold rose strongly, and the
+  same settings lost money in other periods.
+
+CONTACT
+  therocketea@gmail.com   -   WhatsApp +856 20 9233 3353
+  https://laoforextrader.com

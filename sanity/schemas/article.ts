@@ -46,7 +46,7 @@ export const articleSchema = {
               type: "string",
               options: {
                 list: [
-                  { title: "🤖 EA SGride", value: "ea-sgride" },
+                  { title: "🤖 EA SGrid", value: "ea-sgride" },
                   { title: "🤖 EA MegiHedge v2.0", value: "ea-megihgedge" },
                   { title: "🤖 EA ABS v2.0", value: "ea-abs" },
                   { title: "🏦 XM Global", value: "broker-xm" },

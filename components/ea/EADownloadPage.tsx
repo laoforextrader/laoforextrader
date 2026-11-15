@@ -1,4 +1,5 @@
 import Link from "next/link"
+import InstallCommand from "@/components/ea/InstallCommand"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { capitalBase, fmtMoney, fmtMoneyPlain, pctMoney, toRealMoney } from "@/lib/eaMoney"
 import type { EAStats } from "@/types"
@@ -65,10 +66,16 @@ interface Props {
   blurb: string
   files: DownloadFile[]
   accent: Accent
+  /**
+   * Manifest id (sgrid | sgridpro | semi) for the one-line installer block.
+   * Omit it and the page shows the download list alone — which is what a
+   * product that is not in the manifest yet should do.
+   */
+  installId?: string
 }
 
 export default async function EADownloadPage({
-  eaId, badge, headline, blurb, files, accent,
+  eaId, badge, headline, blurb, files, accent, installId,
 }: Props) {
   let stats: EAStats | null = null
   try {
@@ -224,9 +231,15 @@ export default async function EADownloadPage({
           </a>
         </section>
 
+        {/* ── install in one line ──────────────────────────────────────── */}
+        {installId !== undefined && <InstallCommand eaId={installId} />}
+
         {/* ── download ─────────────────────────────────────────────────── */}
         <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
-          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 16px" }}>ໄຟລ໌ດາວໂຫຼດ</h2>
+          <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 4px" }}>ໄຟລ໌ດາວໂຫຼດ</h2>
+          <p className="font-lao" style={{ fontSize: 12, color: "var(--fg-3)", margin: "0 0 16px" }}>
+            ສຳລັບຜູ້ທີ່ຢາກຕິດຕັ້ງເອງ ຫຼື ຕິດຕັ້ງໃສ່ VPS ທີ່ຮັນຄຳສັ່ງຂ້າງເທິງບໍ່ໄດ້
+          </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {files.map((f) => (
               <a

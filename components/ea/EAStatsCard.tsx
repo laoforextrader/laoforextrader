@@ -49,7 +49,7 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
   const totalPct = stats.profitTotalPct
   const todayPct = daily.length ? daily[daily.length - 1].profitPct : undefined
 
-  // Cent accounts (SGride is CNT) report every money figure in cents, so the
+  // Cent accounts (SGrid is CNT) report every money figure in cents, so the
   // raw numbers are 100x the real ones. Percentages are ratios and need no
   // conversion. See lib/eaMoney.ts.
   const cents = isCentAccount(stats.currency)

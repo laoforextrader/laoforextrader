@@ -5,7 +5,7 @@
 // USC / CNT / EUC and every money figure — balance, equity, deposits,
 // profit — is denominated in cents. MT5 reports those raw and
 // mql/EAStatsReporter.mq5 passes them through untouched, so anything that
-// prints a money value has to divide by 100 first. SGride is one of these
+// prints a money value has to divide by 100 first. SGrid is one of these
 // (account 20217728, CNT): its real $6,345.06 balance arrives as
 // 634505.67, and the public card used to render that as "$634,505.67".
 //
