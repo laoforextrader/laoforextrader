@@ -33,6 +33,11 @@ export default function RegisterForm({
   const t = DICT[lang]
 
   const [form, setForm] = useState({ displayName: "", contact: "", country: "", mtLogin: "", mtServer: "", investor: "" })
+  //  Almost every contestant is in Laos, where mobile numbers are 20 XXXX XXXX.
+  //  The prefix is shown rather than typed, so nobody has to think about the
+  //  country code — but anyone outside Laos can switch and type it in full.
+  const [lao, setLao] = useState(true)
+  const waNumber = lao ? "85620" + form.contact.replace(/\D/g, "") : form.contact.replace(/\D/g, "")
   const [done, setDone] = useState<{ code: string; entryNo: number; earlyBird: boolean } | null>(
     existing?.entryCode ? { code: existing.entryCode, entryNo: existing.entryNo ?? 0, earlyBird: (existing.entryNo ?? 99) <= earlyBirdCount } : null
   )
@@ -57,7 +62,7 @@ export default function RegisterForm({
       const r = await fetch("/api/contest/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, contact: waNumber }),
       })
       const j = await r.json()
       if (!r.ok) { setErr(errText(j.reason ?? "")); return }
@@ -163,7 +168,6 @@ export default function RegisterForm({
 
           {([
             ["displayName", t.name, "text", "Souk T."],
-            ["contact", t.contact, "text", "@username"],
             ["country", t.country, "text", "Laos"],
             ["mtLogin", t.mtLogin, "numeric", "530016764"],
             ["mtServer", t.mtServer, "text", "Exness-MT5Trial9"],
@@ -177,6 +181,33 @@ export default function RegisterForm({
               />
             </label>
           ))}
+
+          {/* WhatsApp, with the Lao country code and mobile prefix supplied.
+              Stored in full international form so a wa.me link just works. */}
+          <label className="flex flex-col gap-1.5">
+            <span className="flex items-baseline justify-between text-[12px] text-bk-muted">
+              {t.contact}
+              <button type="button" onClick={() => { setLao(!lao); setForm(f => ({ ...f, contact: "" })) }}
+                className="text-[11px] font-semibold text-accent underline underline-offset-2">
+                {lao ? t.intlNumber : t.laoNumber}
+              </button>
+            </span>
+            <div className="flex items-stretch gap-0">
+              {lao && (
+                <span className="flex items-center rounded-l-bk border border-r-0 border-bk-line bg-bk-sunken px-3 font-mono text-[15px] text-bk-muted">
+                  +856 20
+                </span>
+              )}
+              <input
+                value={form.contact}
+                onChange={e => setForm(f => ({ ...f, contact: e.target.value.replace(/[^\d+]/g, "") }))}
+                placeholder={lao ? "12345678" : "+66812345678"}
+                inputMode="tel" autoComplete="tel"
+                className={`w-full border border-bk-line bg-bk-surface px-3 py-2.5 font-mono text-[15px] outline-none focus:ring-2 focus:ring-accent ${lao ? "rounded-r-bk" : "rounded-bk"}`}
+              />
+            </div>
+            <span className="text-[11px] leading-relaxed text-bk-muted">{t.contactHelp}</span>
+          </label>
 
           {/* The read-only password. Asked for here rather than from the
               winners at the end: checking the account before the start is
@@ -195,7 +226,7 @@ export default function RegisterForm({
           {err && <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{err}</p>}
 
           <button type="submit"
-            disabled={busy || !open || !form.displayName || !form.contact || !form.mtLogin || !form.investor}
+            disabled={busy || !open || !form.displayName || waNumber.length < 8 || !form.mtLogin || !form.investor}
             className="rounded-bk bg-accent py-3 text-[13px] font-bold text-white disabled:opacity-40">
             {busy ? t.submitting : t.submit}
           </button>

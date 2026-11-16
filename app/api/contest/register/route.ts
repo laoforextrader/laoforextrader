@@ -38,7 +38,10 @@ export async function POST(req: Request) {
   const investor    = clean(body.investor, 64)
 
   if (displayName.length < 2) return NextResponse.json({ error: "name is too short" }, { status: 400 })
-  if (contact.length < 3)     return NextResponse.json({ error: "contact is required" }, { status: 400 })
+  // Digits only, international form. 8 is the shortest real mobile number.
+  if (!/^\d{8,15}$/.test(contact)) {
+    return NextResponse.json({ error: "WhatsApp number must be digits, with country code" }, { status: 400 })
+  }
   if (!/^\d{5,12}$/.test(mtLogin)) {
     return NextResponse.json({ error: "MT5 account number must be digits only" }, { status: 400 })
   }
@@ -68,14 +71,15 @@ export async function POST(req: Request) {
   // Best-effort: a Telegram outage must not cost someone their registration,
   // which is already committed by this point.
   const total = await entryCount(contest._id).catch(() => res.entryNo)
+  const base = process.env.PUBLIC_BASE_URL ?? "https://www.laoforextrader.com"
   void sendAdminTelegram(
     `🏁 <b>Contest registration #${res.entryNo}</b>\n` +
     `${escapeHtml(displayName)} · ${escapeHtml(country || "—")}\n` +
     `MT5 <code>${escapeHtml(mtLogin)}</code> · ${escapeHtml(mtServer || "—")}\n` +
-    `${escapeHtml(contact)}\n` +
-    `${escapeHtml(contest.title)} · total ${total}\n` +
-    `investor password on file — check the account, then approve it` +
-    (res.earlyBird ? `\n🎁 early bird — VPS perk` : "")
+    `WhatsApp +${escapeHtml(contact)}\n` +
+    `${escapeHtml(contest.title)} · total ${total}` +
+    (res.earlyBird ? `\n🎁 early bird — VPS perk` : "") +
+    `\n\n👉 <a href="${base}/admin/contest">check the account and approve</a>`
   )
 
   return NextResponse.json({

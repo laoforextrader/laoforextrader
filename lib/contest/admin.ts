@@ -1,0 +1,97 @@
+import { sanityWrite } from "@/lib/sanityWrite"
+import { decryptPII } from "@/lib/pii"
+import { codeOf, investorOf, type Contest } from "@/lib/contest/store"
+
+// Admin-side reads of a contest round.
+//
+// This is the only place the sealed fields are opened, and only for someone
+// the site has already checked is an admin. Nothing here is reachable from a
+// public page: the leaderboard queries select their own columns.
+
+export interface AdminEntry {
+  _id: string
+  entryNo?: number
+  displayName: string
+  mtLogin: string
+  mtServer?: string
+  country?: string
+  status: string
+  createdAt: string
+  approvedAt?: string
+  lastSeen?: string
+  profit?: number
+  equity?: number
+  startBalance?: number
+  flags?: Array<{ kind?: string; note?: string; at?: string }>
+  /** Unsealed for the admin screen only. */
+  email: string
+  whatsapp: string
+  entryCode: string
+  investor: string
+}
+
+const open = (blob: string | undefined, fallback = "") => {
+  if (!blob) return fallback
+  try { return decryptPII(blob) } catch { return fallback }
+}
+
+/** Everyone in this round, newest registration first. */
+export async function adminEntries(contestId: string): Promise<AdminEntry[]> {
+  const rows = await sanityWrite.fetch<any[]>(
+    `*[_type == "contestEntry" && contest._ref == $id] | order(_createdAt desc){
+       _id, entryNo, displayName, mtLogin, mtServer, country, status,
+       "createdAt": _createdAt, approvedAt, lastSeen, profit, equity, startBalance,
+       flags, ownerEmailEnc, contactEnc, entryCodeEnc, investorEnc
+     }`,
+    { id: contestId }
+  )
+  return rows.map(r => ({
+    ...r,
+    email: open(r.ownerEmailEnc),
+    whatsapp: open(r.contactEnc),
+    entryCode: codeOf(r),
+    investor: investorOf(r),
+  }))
+}
+
+/**
+ * The WhatsApp message the owner sends after approving someone.
+ *
+ * Built here rather than typed each time: it carries the three things a
+ * contestant needs and will otherwise ask for — that they are in, their entry
+ * code, and where to watch — and it goes out in the language of the site the
+ * contest is run in.
+ */
+export function waLink(e: AdminEntry, contest: Contest, base: string): string {
+  const start = contest.startAt ? new Date(contest.startAt).toISOString().slice(0, 10) : ""
+  const text = [
+    `ສະບາຍດີ ${e.displayName} 👋`,
+    ``,
+    `✅ ບັນຊີ MT5 ${e.mtLogin} ຂອງທ່ານຜ່ານການກວດສອບແລ້ວ ແລະ ເຂົ້າຮ່ວມ "${contest.title}" ໄດ້`,
+    ``,
+    `🔑 ລະຫັດຜູ້ແຂ່ງຂອງທ່ານ: ${e.entryCode}`,
+    `   (ໃສ່ໃນຊ່ອງ ContestCode ຂອງ EA)`,
+    ``,
+    `📅 ເລີ່ມແຂ່ງ: ${start}`,
+    `📊 ເບິ່ງອັນດັບສົດ: ${base}/contest`,
+    ``,
+    `ຖ້າມີຄຳຖາມ ຕອບກັບຂໍ້ຄວາມນີ້ໄດ້ເລີຍ`,
+  ].join("\n")
+  return `https://wa.me/${e.whatsapp}?text=${encodeURIComponent(text)}`
+}
+
+/** Mark an entry approved. Idempotent. */
+export async function approveEntry(entryId: string, by: string): Promise<void> {
+  await sanityWrite
+    .patch(entryId)
+    .set({ status: "approved", approvedAt: new Date().toISOString(), approvedBy: by })
+    .commit({ visibility: "sync" })
+}
+
+/** Take an entry out of the contest, with a reason kept for the record. */
+export async function rejectEntry(entryId: string, by: string, note: string): Promise<void> {
+  await sanityWrite
+    .patch(entryId)
+    .set({ status: "disqualified", adminNote: note, approvedBy: by })
+    .commit({ visibility: "sync" })
+}
