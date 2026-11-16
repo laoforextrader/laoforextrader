@@ -44,7 +44,9 @@ const doc = {
   // in the middle of the ladder long before the ten days are out.
   startBalance: 100000,
   currency: "USD",
-  symbol: "XAUUSD",
+  // Measured on the owner-s demo 434529270 (Exness-MT5Trial7) with the
+  // ContestSpec script: a Standard account sees XAUUSDm, not XAUUSD.
+  symbol: "XAUUSDm",
   // The site already uses this partner link for Exness (CTASelector).
   brokerSignupUrl: "https://one.exnessonelink.com/intl/th/a/tv2hiv2h",
 
