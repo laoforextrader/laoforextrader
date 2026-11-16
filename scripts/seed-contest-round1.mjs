@@ -25,21 +25,25 @@ const client = createClient({
   token: process.env.SANITY_API_TOKEN,
 })
 
-const SLUG = "round-1-exness-cent"
+const SLUG = "round-1-exness-standard"
 
 const L = (en, th, lo) => ({ en, th, lo })
 
 const doc = {
   _id: `contest-${SLUG}`,
   _type: "contest",
-  title: "Round 1 — Exness Standard Cent",
+  title: "Round 1 — Exness Standard",
   slug: { _type: "slug", current: SLUG },
   status: "register",
 
   broker: "Exness",
-  accountType: "Standard Cent",
+  accountType: "Standard",
+  // Exness has no cent demo, so this is a plain Standard account in USD.
+  // 100,000 USD is deliberate: every number this EA has been measured on
+  // comes from a 50k-100k account, and a 1,000 USD account would blow up
+  // in the middle of the ladder long before the ten days are out.
   startBalance: 100000,
-  currency: "cent",
+  currency: "USD",
   symbol: "XAUUSD",
 
   // Registration opens 17 Nov 08:00 Laos time (UTC+7).
@@ -70,9 +74,9 @@ const doc = {
 
   rules: [
     ["r1",
-      "Demo account at Exness, Standard Cent, starting balance 100,000 cent.",
-      "บัญชีเดโมของ Exness ประเภท Standard Cent ทุนเริ่มต้น 100,000 cent",
-      "ບັນຊີເດໂມຂອງ Exness ປະເພດ Standard Cent ທຶນເລີ່ມຕົ້ນ 100,000 cent"],
+      "Demo account at Exness, Standard, starting balance 100,000 USD.",
+      "บัญชีเดโมของ Exness ประเภท Standard ทุนเริ่มต้น 100,000 USD",
+      "ບັນຊີເດໂມຂອງ Exness ປະເພດ Standard ທຶນເລີ່ມຕົ້ນ 100,000 USD"],
     ["r2",
       "The contest EA only. Trading by hand is not allowed and the EA reports positions it did not open.",
       "ใช้ EA รุ่นแข่งขันเท่านั้น ห้ามเทรดมือ · EA จะรายงานไม้ที่ไม่ได้เปิดเอง",

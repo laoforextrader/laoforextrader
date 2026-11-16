@@ -55,8 +55,10 @@ function StatusChip({ contest, t }: { contest: Contest; t: any }) {
 
 function money(v: number | undefined, currency?: string) {
   if (typeof v !== "number") return "—"
-  const n = v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return currency === "cent" ? `${n}¢` : n
+  // Whole units: a starting balance is never 100,000.00 on a poster.
+  const n = v.toLocaleString(undefined, { maximumFractionDigits: 0 })
+  if (currency === "cent") return `${n}¢`
+  return currency === "USD" ? `$${n}` : `${n}${currency ? " " + currency : ""}`
 }
 
 function Board({ rows, t, slug }: { rows: BoardRow[]; t: any; slug: string }) {
