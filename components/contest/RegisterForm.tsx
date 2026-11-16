@@ -14,13 +14,15 @@ import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/contest/i18n
 type Existing = { entryNo?: number; displayName?: string; mtLogin?: string; entryCode?: string } | null
 
 export default function RegisterForm({
-  existing, contestTitle, earlyBirdCount, entries, open, requirements,
+  existing, contestTitle, earlyBirdCount, entries, open, full, requirements,
 }: {
   existing: Existing
   contestTitle: string
   earlyBirdCount: number
   entries: number
   open: boolean
+  /** Seats gone, as distinct from the round being closed for another reason. */
+  full: boolean
   requirements: {
     broker?: string; accountType?: string; symbol?: string
     startBalance?: number; currency?: string; signupUrl?: string
@@ -143,7 +145,9 @@ export default function RegisterForm({
           )}
 
           {!open && (
-            <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{t.errClosed}</p>
+            <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">
+              {full ? t.seatsFull : t.errClosed}
+            </p>
           )}
 
           {/* The account has to exist and be funded correctly BEFORE this form

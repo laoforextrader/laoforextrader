@@ -151,6 +151,14 @@ export default function ContestHome({
   const spots = contest.earlyBirdCount ?? 0
   const spotsLeft = Math.max(0, spots - entries)
 
+  //  A round takes a fixed number of entries, because every one of them is
+  //  approved by hand. Once they are gone the page becomes what it should be
+  //  for everyone else: a live board to watch.
+  const seats = contest.maxEntries ?? 0
+  const seatsLeft = seats > 0 ? Math.max(0, seats - entries) : null
+  const full = seatsLeft === 0
+  const canRegister = contest.status === "register" && !full
+
   return (
     <div className="mx-auto flex max-w-[860px] flex-col gap-4 px-4 py-6">
       {/* header */}
@@ -199,11 +207,29 @@ export default function ContestHome({
             {contest.status === "judging" && contest.announceAt &&
               <Countdown to={contest.announceAt} label={t.resultsIn} t={t} />}
 
-            {contest.status === "register" && (
-              <Link href="/contest/register"
-                className="rounded-bk bg-accent px-5 py-2.5 text-[13px] font-bold text-white hover:opacity-90">
-                {myCode ? t.myEntry : t.register}
-              </Link>
+            {canRegister && (
+              <div className="flex flex-col items-end gap-1">
+                <Link href="/contest/register"
+                  className="rounded-bk bg-accent px-5 py-2.5 text-[13px] font-bold text-white hover:opacity-90">
+                  {myCode ? t.myEntry : t.register}
+                </Link>
+                {seatsLeft !== null && (
+                  <span className="text-[11.5px] font-semibold text-bk-muted">
+                    {t.seatsLeft}: <span className="font-mono text-accent">{seatsLeft}</span> / {seats}
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Closed, or full: no button at all, just the reason. */}
+            {!canRegister && (
+              <div className="flex flex-col items-end gap-0.5 text-right">
+                <span className="text-[12px] font-bold text-bk-muted">
+                  {full && contest.status === "register" ? t.seatsFull : t.registerClosed}
+                </span>
+                <span className="text-[11.5px] text-bk-muted">
+                  {contest.status === "done" ? t.nextRound : t.watchOnly}
+                </span>
+              </div>
             )}
           </div>
 
@@ -237,7 +263,7 @@ export default function ContestHome({
                   <li key={i} className="text-[12.5px] text-bk-muted">🎁 {loc(p.text, lang)}</li>
                 ))}
               </ul>
-              {contest.status === "register" && spots > 0 && (
+              {canRegister && spots > 0 && (
                 <p className="mt-2 text-[12px] font-bold text-accent">
                   {t.spotsLeft}: {spotsLeft} / {spots}
                 </p>

@@ -34,7 +34,10 @@ export default async function ContestRegisterPage() {
       contestTitle={contest.title}
       earlyBirdCount={contest.earlyBirdCount ?? 0}
       entries={entries}
-      open={contest.status === "register"}
+      // Full is as closed as closed, from the form's point of view.
+      open={contest.status === "register" &&
+            (!contest.maxEntries || entries < contest.maxEntries)}
+      full={!!contest.maxEntries && entries >= contest.maxEntries}
       requirements={{
         broker: contest.broker,
         accountType: contest.accountType,

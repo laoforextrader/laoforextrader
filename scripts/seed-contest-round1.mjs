@@ -105,9 +105,19 @@ const doc = {
       "Keep the EA running. Gaps in the data are the contestant's own risk.",
       "ต้องเปิด EA ไว้ต่อเนื่อง · ข้อมูลที่ขาดหายเป็นความเสี่ยงของผู้เข้าแข่งขันเอง",
       "ຕ້ອງເປີດ EA ໄວ້ຕໍ່ເນື່ອງ · ຂໍ້ມູນທີ່ຂາດຫາຍເປັນຄວາມສ່ຽງຂອງຜູ້ເຂົ້າແຂ່ງຂັນເອງ"],
+    ["r8",
+      "One person, one entry. Registering twice disqualifies every entry that person made, not just the extra one.",
+      "หนึ่งคนหนึ่งสิทธิ์ · ถ้าพบว่าสมัครซ้ำ จะถูกตัดสิทธิ์ทุกใบของคนนั้น ไม่ใช่เฉพาะใบที่เกิน",
+      "ໜຶ່ງຄົນໜຶ່ງສິດ · ຖ້າພົບວ່າສະໝັກຊ້ຳ ຈະຖືກຕັດສິດທຸກໃບຂອງຄົນນັ້ນ ບໍ່ແມ່ນສະເພາະໃບທີ່ເກີນ"],
+    ["r9",
+      "Winners are checked again before the prize is paid. A winner found to have registered twice loses the prize and it passes to the next place.",
+      "ผู้ได้รางวัลจะถูกตรวจอีกครั้งก่อนจ่ายรางวัล · ถ้าพบว่าสมัครซ้ำ รางวัลจะเลื่อนไปให้อันดับถัดไป",
+      "ຜູ້ໄດ້ລາງວັນຈະຖືກກວດອີກຄັ້ງກ່ອນຈ່າຍລາງວັນ · ຖ້າພົບວ່າສະໝັກຊ້ຳ ລາງວັນຈະເລື່ອນໄປໃຫ້ອັນດັບຖັດໄປ"],
   ].map(([k, en, th, lo]) => ({ _key: k, _type: "rule", text: L(en, th, lo) })),
 
-  maxEntries: 0,
+  // Twenty per round, by the owner's decision: a field this size can be
+  // checked by hand in an evening, which is what approval requires.
+  maxEntries: 20,
 }
 
 const existing = await client.fetch(`*[_id == $id][0]{ _id, status }`, { id: doc._id })
