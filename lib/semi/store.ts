@@ -427,9 +427,15 @@ async function sealKey(account: string, e: CacheEntry, key: string): Promise<voi
 export async function verifySignature(
   account: string, e: CacheEntry, raw: string, sign: string
 ): Promise<boolean> {
-  const stored = e.doc.dashKey ?? ""
+  const stored = keyOf(e.doc)
   if (!stored) return false
-  if (signBody(raw, stored) === sign) return true
+  if (signBody(raw, stored) === sign) {
+    //  A document still holding the key in the clear is sealed on the first
+    //  heartbeat that proves it, so there is never a window where the EA
+    //  cannot authenticate.
+    if (e.doc.dashKey) await sealKey(account, e, stored)
+    return true
+  }
 
   for (const cand of [canonKey(stored), compactKey(stored)]) {
     if (!cand || cand === stored) continue

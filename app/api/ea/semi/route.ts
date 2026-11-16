@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { load, saveState, takeCommand, isWatched, verifySignature, type SemiRound } from "@/lib/semi/store"
+import { load, saveState, takeCommand, isWatched, verifySignature, keyOf, type SemiRound } from "@/lib/semi/store"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -29,7 +29,10 @@ export async function POST(req: Request) {
   }
 
   const entry = await load(account)
-  if (!entry || !entry.doc.dashKey) {
+  //  keyOf, not doc.dashKey: a sealed account has no plaintext key, and
+  //  reading the old field told every EA on a newly linked account that it
+  //  was not linked — while the website showed it linked.
+  if (!entry || !keyOf(entry.doc)) {
     // Not linked yet — the owner has to sign in on the site and enter the key.
     return NextResponse.json({ error: "account not linked" }, { status: 404 })
   }
