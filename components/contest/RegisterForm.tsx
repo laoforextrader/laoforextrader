@@ -51,6 +51,7 @@ export default function RegisterForm({
   const errText = (reason: string) => ({
     "already-registered": t.errAlready,
     "login-taken": t.errLogin,
+    "phone-taken": t.errPhone,
     closed: t.errClosed,
     full: t.errFull,
   } as Record<string, string>)[reason] ?? t.errGeneric

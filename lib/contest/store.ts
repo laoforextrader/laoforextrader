@@ -178,6 +178,8 @@ export type RegisterInput = {
   startBalance: number
   /** Read-only MT5 password, so the account can be checked before approval. */
   investor: string
+  /** Caller's IP, kept only as a one-way index for spotting duplicates. */
+  ip?: string
 }
 
 // ── Sealed storage ──────────────────────────────────────────────────────────
@@ -202,7 +204,7 @@ export function investorOf(entry: { investorEnc?: string }): string {
 
 export type RegisterResult =
   | { ok: true; code: string; entryNo: number; earlyBird: boolean }
-  | { ok: false; reason: "already-registered" | "login-taken" | "closed" | "full" }
+  | { ok: false; reason: "already-registered" | "login-taken" | "phone-taken" | "closed" | "full" }
 
 /**
  * Register one contestant.
@@ -221,16 +223,23 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
   )
   if (!contest || contest.status !== "register") return { ok: false, reason: "closed" }
 
+  // Three uniqueness checks, because the first two are cheap to defeat: a new
+  // Gmail is free and Exness hands out demo accounts without limit. A phone
+  // number is the one thing in this list that costs something to obtain, so
+  // it is the check that actually bites.
   const emailHash = blindIndex(email, "contestOwner")
-  const dupe = await sanityWrite.fetch<{ mine: number; login: number }>(
+  const phoneHash = blindIndex(input.contact, "contestPhone")
+  const dupe = await sanityWrite.fetch<{ mine: number; login: number; phone: number }>(
     `{
       "mine":  count(*[_type == "contestEntry" && contest._ref == $id && ownerEmailHash == $hash]),
-      "login": count(*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login])
+      "login": count(*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login]),
+      "phone": count(*[_type == "contestEntry" && contest._ref == $id && contactHash == $phone])
     }`,
-    { id: contestId, hash: emailHash, login: mtLogin }
+    { id: contestId, hash: emailHash, login: mtLogin, phone: phoneHash }
   )
   if (dupe.mine > 0) return { ok: false, reason: "already-registered" }
   if (dupe.login > 0) return { ok: false, reason: "login-taken" }
+  if (dupe.phone > 0) return { ok: false, reason: "phone-taken" }
 
   const taken = await entryCount(contestId)
   if (contest.maxEntries && taken >= contest.maxEntries) return { ok: false, reason: "full" }
@@ -246,6 +255,8 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
     ownerEmailEnc: encryptPII(email),
     displayName: input.displayName,
     contactEnc: encryptPII(input.contact),
+    contactHash: phoneHash,
+    ipHash: input.ip ? blindIndex(input.ip, "contestIp") : undefined,
     country: input.country,
     mtLogin,
     mtServer: input.mtServer,

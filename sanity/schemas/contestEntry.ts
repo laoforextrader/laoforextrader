@@ -25,7 +25,12 @@ export const contestEntrySchema = {
     { name: "ownerEmailHash", title: "ອີເມວ (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
     { name: "ownerEmailEnc",  title: "ອີເມວ (ເຂົ້າລະຫັດ)", type: "string", readOnly: true, hidden: true },
     { name: "displayName", title: "ຊື່ທີ່ສະແດງເທິງກະດານ", type: "string", validation: (R: any) => R.required() },
-    { name: "contactEnc", title: "Telegram / WhatsApp (ເຂົ້າລະຫັດ)", type: "string", readOnly: true, hidden: true },
+    { name: "contactEnc",  title: "WhatsApp (ເຂົ້າລະຫັດ)", type: "string", readOnly: true, hidden: true },
+    // One-way indexes. They cannot be read back into a phone number or an
+    // address; they exist only so two entries can be compared to each other.
+    { name: "contactHash", title: "WhatsApp (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
+    { name: "ipHash",      title: "IP ຕອນສະໝັກ (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
+    { name: "holderHash",  title: "ຊື່ເຈົ້າຂອງບັນຊີ (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
     { name: "country", title: "ປະເທດ", type: "string", readOnly: true },
 
     // ─── ບັນຊີ MT5 ───

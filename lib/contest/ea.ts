@@ -1,4 +1,5 @@
 import { sanityWrite } from "@/lib/sanityWrite"
+import { blindIndex } from "@/lib/pii"
 import { codeOf, type Contest } from "@/lib/contest/store"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,6 +22,8 @@ export interface EaPayload {
   acct?: {
     login?: number; server?: string; company?: string; currency?: string
     leverage?: number; symbol?: string; demo?: boolean; algoOn?: boolean
+    /** Account holder name as the broker has it (KYC), for duplicate hunting. */
+    name?: string
   }
   money?: { balance?: number; equity?: number; margin?: number; free?: number }
   contest?: {
@@ -167,6 +170,10 @@ export async function applyHeartbeat(
   if (p.acct?.symbol) set.symbol = p.acct.symbol
   if (typeof p.acct?.demo === "boolean") set.isDemo = p.acct.demo
   if (typeof p.acct?.leverage === "number") set.leverage = p.acct.leverage
+  // The broker knows who owns the account; we keep only a one-way index of
+  // that name, which is enough to tell two entries apart without storing
+  // anyone's identity.
+  if (p.acct?.name) set.holderHash = blindIndex(p.acct.name, "contestHolder")
 
   const patch = sanityWrite.patch(entry._id).set(set)
   if (flags.length) patch.setIfMissing({ flags: [] }).append("flags", flags)

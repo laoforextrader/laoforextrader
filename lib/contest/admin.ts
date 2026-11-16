@@ -27,6 +27,11 @@ export interface AdminEntry {
   leverage?: number
   trades?: number
   openPositions?: number
+  contactHash?: string
+  ipHash?: string
+  holderHash?: string
+  /** Display names of other entries that share a signal with this one. */
+  twins?: string[]
   flags?: Array<{ kind?: string; note?: string; at?: string }>
   /** Unsealed for the admin screen only. */
   email: string
@@ -47,17 +52,36 @@ export async function adminEntries(contestId: string): Promise<AdminEntry[]> {
        _id, entryNo, displayName, mtLogin, mtServer, country, status,
        "createdAt": _createdAt, approvedAt, lastSeen, profit, equity, startBalance,
        symbol, isDemo, leverage, trades, openPositions,
+       contactHash, ipHash, holderHash,
        flags, ownerEmailEnc, contactEnc, entryCodeEnc, investorEnc
      }`,
     { id: contestId }
   )
-  return rows.map(r => ({
+  const mapped = rows.map(r => ({
     ...r,
     email: open(r.ownerEmailEnc),
     whatsapp: open(r.contactEnc),
     entryCode: codeOf(r),
     investor: investorOf(r),
   }))
+
+  // Same phone, same registration IP or same account holder as someone else
+  // in this round. None of these is proof on its own — a family shares an
+  // address, two people can share a phone in a village — so they are shown to
+  // the owner rather than acted on. Two of them together rarely lie.
+  for (const e of mapped) {
+    const twins = new Set<string>()
+    for (const other of mapped) {
+      if (other._id === e._id) continue
+      const same =
+        (e.contactHash && other.contactHash === e.contactHash && "same WhatsApp") ||
+        (e.holderHash && other.holderHash === e.holderHash && "same account holder") ||
+        (e.ipHash && other.ipHash === e.ipHash && "same IP at signup")
+      if (same) twins.add(`${other.displayName} (#${other.mtLogin}) — ${same}`)
+    }
+    e.twins = [...twins]
+  }
+  return mapped
 }
 
 /**

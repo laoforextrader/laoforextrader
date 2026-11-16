@@ -64,6 +64,9 @@ export async function POST(req: Request) {
     mtServer,
     startBalance: contest.startBalance ?? 0,
     investor,
+    // Behind Vercel this is the real client address. It is hashed before it
+    // is stored and never read back — only compared with other entries.
+    ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "",
   })
 
   if (!res.ok) return NextResponse.json({ error: res.reason, reason: res.reason }, { status: 409 })

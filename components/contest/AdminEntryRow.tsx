@@ -82,6 +82,14 @@ export default function AdminEntryRow({
         ))}
       </ul>
 
+      {!!e.twins?.length && (
+        <ul className="mt-2 flex flex-col gap-0.5">
+          {e.twins.map(t => (
+            <li key={t} className="text-[11.5px] font-semibold text-warn">👥 {t}</li>
+          ))}
+        </ul>
+      )}
+
       {!!e.flags?.length && (
         <ul className="mt-2 flex flex-col gap-0.5">
           {e.flags.map((f, i) => (
