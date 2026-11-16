@@ -6,6 +6,7 @@ import { accountsOf } from "@/lib/semi/store"
 import { dashSession } from "@/lib/semi/session"
 import SemiDashboard from "@/components/semi/SemiDashboard"
 import LinkAccount from "@/components/semi/LinkAccount"
+import AccountPicker from "@/components/semi/AccountPicker"
 
 export const dynamic = "force-dynamic"
 
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 export default async function SemiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ acc?: string }>
+  searchParams: Promise<{ acc?: string; linked?: string }>
 }) {
   const session = await getServerSession(authOptions)
   const email = session?.user?.email
@@ -34,11 +35,24 @@ export default async function SemiPage({
   // ownership is re-checked here on every load, never trusted from the cookie.
   const picked = unlocked && accounts.some(a => a.account === unlocked) ? unlocked : null
 
+  const { acc, linked } = await searchParams
+
   if (!picked) {
-    return <div style={{ background: "var(--bg)", minHeight: "100vh" }}><LinkAccount /></div>
+    //  Owning accounts but not being unlocked for any of them is a real
+    //  state, and it used to render as the bare key form — which is exactly
+    //  what "I pressed Connect and nothing happened" looks like. Arriving
+    //  here with ?linked=1 means the link succeeded and the cookie did not
+    //  come back, so say that rather than showing the same form again in
+    //  silence.
+    return (
+      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+        {accounts.length > 0
+          ? <AccountPicker accounts={accounts} justLinked={linked === "1"} />
+          : <LinkAccount />}
+      </div>
+    )
   }
 
-  const { acc } = await searchParams
   const show = acc && accounts.some(a => a.account === acc) ? acc : picked
 
   return (

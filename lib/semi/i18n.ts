@@ -27,6 +27,8 @@ const TERMS = {
 
 const PROSE = {
   en: {
+    yourAccounts: "Accounts already linked to this Google account",
+    cookieBlocked: "The account is linked, but this browser did not keep the sign-in. Allow cookies for laoforextrader.com — or use a normal browser window rather than one inside another app — and connect again.",
     dash: "Dashboard", history: "History", owner: "Owner",
     online: "Live", offline: "EA offline", updated: "updated", secAgo: "s ago",
     setup: "Before you press", fullBasket: "full ladder",
@@ -58,6 +60,8 @@ const PROSE = {
     curve: "Equity curve", collecting: "Collecting — the curve starts after a few minutes",
   },
   th: {
+    yourAccounts: "บัญชีที่ผูกกับ Google นี้ไว้แล้ว",
+    cookieBlocked: "ผูกบัญชีสำเร็จแล้ว แต่เบราว์เซอร์นี้ไม่เก็บการเข้าสู่ระบบไว้ · อนุญาตคุกกี้ให้ laoforextrader.com หรือเปิดในเบราว์เซอร์ปกติแทนการเปิดในแอป แล้วลองเชื่อมอีกครั้ง",
     dash: "แดชบอร์ด", history: "ประวัติ", owner: "เจ้าของบัญชี",
     online: "สด", offline: "EA ไม่ได้เชื่อมต่อ", updated: "อัปเดต", secAgo: " วิที่แล้ว",
     setup: "ตั้งค่าก่อนกด", fullBasket: "เต็มบันได",
@@ -89,6 +93,8 @@ const PROSE = {
     curve: "เส้นการเติบโต", collecting: "กำลังเก็บข้อมูล เส้นจะขึ้นหลังผ่านไปไม่กี่นาที",
   },
   lo: {
+    yourAccounts: "ບັນຊີທີ່ຜູກກັບ Google ນີ້ໄວ້ແລ້ວ",
+    cookieBlocked: "ຜູກບັນຊີສຳເລັດແລ້ວ ແຕ່ເບຣົາເຊີນີ້ບໍ່ເກັບການເຂົ້າສູ່ລະບົບໄວ້ · ອະນຸຍາດຄຸກກີ້ໃຫ້ laoforextrader.com ຫຼື ເປີດໃນເບຣົາເຊີປົກກະຕິແທນການເປີດໃນແອັບ ແລ້ວລອງເຊື່ອມອີກຄັ້ງ",
     dash: "ແດຊບອດ", history: "ປະຫວັດ", owner: "ເຈົ້າຂອງບັນຊີ",
     online: "ສົດ", offline: "EA ບໍ່ໄດ້ເຊື່ອມຕໍ່", updated: "ອັບເດດ", secAgo: " ວິນາທີກ່ອນ",
     setup: "ຕັ້ງຄ່າກ່ອນກົດ", fullBasket: "ເຕັມຂັ້ນໄດ",

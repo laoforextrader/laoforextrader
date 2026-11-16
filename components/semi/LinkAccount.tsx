@@ -30,9 +30,13 @@ export default function LinkAccount() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ account, key, remember }),
       })
-      const j = await r.json()
+      const j = await r.json().catch(() => ({}))
       if (!r.ok) { setErr(j.error ?? "failed"); return }
-      router.refresh()
+      //  A full navigation rather than router.refresh(): the session cookie
+      //  was set on this very response, and a hard load is the one thing
+      //  guaranteed to send it back. ?linked=1 lets the page tell the
+      //  difference between "not linked yet" and "linked, cookie missing".
+      window.location.href = "/semi?linked=1"
     } catch {
       setErr("network error")
     } finally {

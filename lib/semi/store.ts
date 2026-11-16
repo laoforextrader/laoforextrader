@@ -441,9 +441,21 @@ export async function verifySignature(
 }
 
 /** Accounts this signed-in user may see. */
-export async function accountsOf(email: string): Promise<Array<{ account: string; lastSeen?: string }>> {
-  return sanityWrite.fetch(
-    `*[_type == "semiAccount" && ownerEmail == $email]{ account, lastSeen } | order(account asc)`,
-    { email }
+export async function accountsOf(
+  email: string
+): Promise<Array<{ account: string; lastSeen?: string; keyTail?: string }>> {
+  // Matches either the blind index (new) or the plaintext (pre-migration).
+  const rows = await sanityWrite.fetch<Array<{ account: string; lastSeen?: string; dashKey?: string; dashKeyEnc?: string }>>(
+    `*[_type == "semiAccount" && (ownerEmailHash == $hash || ownerEmail == $email)]{
+       account, lastSeen, dashKey, dashKeyEnc
+     } | order(account asc)`,
+    { hash: blindIndex(email, "semiOwner"), email }
   )
+  //  The last four characters of the key, for the owner's own accounts only.
+  //  Someone whose browser is not unlocked needs to tell which key goes with
+  //  which account; four characters do that without being the key.
+  return rows.map(r => {
+    const key = keyOf(r as SemiDoc)
+    return { account: r.account, lastSeen: r.lastSeen, keyTail: key ? key.slice(-4) : undefined }
+  })
 }
