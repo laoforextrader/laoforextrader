@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import type { AdminEntry } from "@/lib/contest/admin"
+import type { AdminEntry, Readiness } from "@/lib/contest/admin"
 
 // One contestant in the admin list.
 //
@@ -12,11 +12,11 @@ import type { AdminEntry } from "@/lib/contest/admin"
 // wrongly-funded account ends up on the board.
 
 export default function AdminEntryRow({
-  e, waHref, startBalance,
+  e, waHref, checks,
 }: {
   e: AdminEntry
   waHref: string
-  startBalance?: number
+  checks: Readiness[]
 }) {
   const [status, setStatus] = useState(e.status)
   const [busy, setBusy] = useState(false)
@@ -47,9 +47,11 @@ export default function AdminEntryRow({
     status === "disqualified" ? "text-bad" :
     status === "flagged" || status === "blown" ? "text-warn" : "text-bk-muted"
 
-  const balanceOff =
-    typeof startBalance === "number" && typeof e.startBalance === "number" &&
-    e.startBalance > 0 && Math.abs(e.startBalance - startBalance) / startBalance > 0.01
+  //  Approval is gated on the checks the EA can answer, not on memory. The
+  //  blocking ones are the owner's own rule: nothing is approved until the
+  //  EA has connected and the account is a demo funded correctly.
+  const blockers = checks.filter(c => c.blocking && !c.ok)
+  const warnings = checks.filter(c => !c.blocking && !c.ok)
 
   return (
     <div className="rounded-bk border border-bk-line bg-bk-surface p-3">
@@ -67,13 +69,18 @@ export default function AdminEntryRow({
         <span className="text-bk-muted">WhatsApp: <span className="font-mono text-bk-ink">+{e.whatsapp}</span></span>
         <span className="text-bk-muted">Server: <span className="font-mono text-bk-ink">{e.mtServer || "—"}</span></span>
         <span className="text-bk-muted">Email: <span className="text-bk-ink">{e.email || "—"}</span></span>
-        <span className="text-bk-muted">
-          Start balance:{" "}
-          <span className={`font-mono ${balanceOff ? "font-bold text-bad" : "text-bk-ink"}`}>
-            {typeof e.startBalance === "number" ? e.startBalance.toLocaleString() : "not seen yet"}
-          </span>
-        </span>
+        <span className="text-bk-muted">Leverage: <span className="font-mono text-bk-ink">{e.leverage ? "1:" + e.leverage : "—"}</span></span>
       </div>
+
+      {/* The checklist, straight from what the EA reported. */}
+      <ul className="mt-2 grid gap-x-4 gap-y-0.5 text-[12px] sm:grid-cols-2">
+        {checks.map(c => (
+          <li key={c.label} className={c.ok ? "text-ok" : c.blocking ? "text-bad" : "text-warn"}>
+            {c.ok ? "✓" : c.blocking ? "✗" : "!"} {c.label}
+            {c.detail && <span className="text-bk-muted"> · {c.detail}</span>}
+          </li>
+        ))}
+      </ul>
 
       {!!e.flags?.length && (
         <ul className="mt-2 flex flex-col gap-0.5">
@@ -97,9 +104,23 @@ export default function AdminEntryRow({
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {status !== "approved" && status !== "disqualified" && (
-          <button onClick={() => send("approve")} disabled={busy}
-            className="rounded-bk bg-accent px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40">
-            Approve
+          <button
+            onClick={() => {
+              if (blockers.length && !confirm(
+                "Not ready:\n" + blockers.map(b => "· " + b.label + (b.detail ? " (" + b.detail + ")" : "")).join("\n") +
+                "\n\nApprove anyway?"
+              )) return
+              if (!blockers.length && warnings.length && !confirm(
+                "Worth a look:\n" + warnings.map(w => "· " + w.label + (w.detail ? " (" + w.detail + ")" : "")).join("\n") +
+                "\n\nApprove?"
+              )) return
+              send("approve")
+            }}
+            disabled={busy}
+            className={`rounded-bk px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40 ${
+              blockers.length ? "bg-bk-muted" : "bg-accent"
+            }`}>
+            {blockers.length ? `Approve (${blockers.length} not ready)` : "Approve"}
           </button>
         )}
         <a

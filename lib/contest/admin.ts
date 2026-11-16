@@ -22,6 +22,11 @@ export interface AdminEntry {
   profit?: number
   equity?: number
   startBalance?: number
+  symbol?: string
+  isDemo?: boolean
+  leverage?: number
+  trades?: number
+  openPositions?: number
   flags?: Array<{ kind?: string; note?: string; at?: string }>
   /** Unsealed for the admin screen only. */
   email: string
@@ -41,6 +46,7 @@ export async function adminEntries(contestId: string): Promise<AdminEntry[]> {
     `*[_type == "contestEntry" && contest._ref == $id] | order(_createdAt desc){
        _id, entryNo, displayName, mtLogin, mtServer, country, status,
        "createdAt": _createdAt, approvedAt, lastSeen, profit, equity, startBalance,
+       symbol, isDemo, leverage, trades, openPositions,
        flags, ownerEmailEnc, contactEnc, entryCodeEnc, investorEnc
      }`,
     { id: contestId }
@@ -78,6 +84,71 @@ export function waLink(e: AdminEntry, contest: Contest, base: string): string {
     `ຖ້າມີຄຳຖາມ ຕອບກັບຂໍ້ຄວາມນີ້ໄດ້ເລີຍ`,
   ].join("\n")
   return `https://wa.me/${e.whatsapp}?text=${encodeURIComponent(text)}`
+}
+
+/**
+ * Is this entry ready to be approved?
+ *
+ * Every item is something the EA has already reported, so the screen can say
+ * it instead of the owner having to remember it. The rule the owner set is
+ * the first one: nothing is approved until the EA has actually connected,
+ * because an entry that cannot report is an entry that cannot be scored.
+ *
+ * `blocking` is what should stop an approval; the rest is advice.
+ */
+export interface Readiness {
+  label: string
+  ok: boolean
+  blocking: boolean
+  detail?: string
+}
+
+export function readiness(e: AdminEntry, contest: Contest): Readiness[] {
+  const seen = !!e.lastSeen
+  const expected = contest.startBalance ?? 0
+  const balOk = typeof e.startBalance === "number" && expected > 0 &&
+    Math.abs(e.startBalance - expected) / expected <= 0.01
+  const wantSymbol = (contest.symbol ?? "").toUpperCase()
+  const gotSymbol = (e.symbol ?? "").toUpperCase()
+
+  return [
+    {
+      label: "EA connected",
+      ok: seen,
+      blocking: true,
+      detail: seen ? `last seen ${new Date(e.lastSeen!).toLocaleString()}` : "no heartbeat yet",
+    },
+    {
+      label: "Demo account",
+      ok: e.isDemo === true,
+      blocking: true,
+      detail: e.isDemo === false ? "LIVE account — not allowed" : undefined,
+    },
+    {
+      label: `Starting balance ${expected.toLocaleString()}`,
+      ok: balOk,
+      blocking: true,
+      detail: typeof e.startBalance === "number" ? e.startBalance.toLocaleString() : "unknown",
+    },
+    {
+      label: `Symbol ${wantSymbol || "—"}`,
+      ok: !wantSymbol || gotSymbol === wantSymbol,
+      blocking: false,
+      detail: gotSymbol || "unknown",
+    },
+    {
+      label: "No open positions",
+      ok: (e.openPositions ?? 0) === 0,
+      blocking: false,
+      detail: e.openPositions ? `${e.openPositions} open` : undefined,
+    },
+    {
+      label: "No trades before the start",
+      ok: (e.trades ?? 0) === 0,
+      blocking: false,
+      detail: e.trades ? `${e.trades} already closed` : undefined,
+    },
+  ]
 }
 
 /** Mark an entry approved. Idempotent. */

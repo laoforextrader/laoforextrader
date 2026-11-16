@@ -31,6 +31,9 @@ export const contestEntrySchema = {
     // ─── ບັນຊີ MT5 ───
     { name: "mtLogin", title: "ເລກບັນຊີ MT5", type: "string", validation: (R: any) => R.required() },
     { name: "mtServer", title: "ເຊີບເວີ", type: "string" },
+    { name: "symbol",   title: "Symbol ທີ່ EA ແລ່ນຢູ່", type: "string", readOnly: true },
+    { name: "isDemo",   title: "ເປັນບັນຊີເດໂມ", type: "boolean", readOnly: true },
+    { name: "leverage", title: "Leverage", type: "number", readOnly: true },
     { name: "startBalance", title: "ທຶນຕອນເລີ່ມ", type: "number", readOnly: true },
     { name: "firstSeen", title: "ເຫັນ EA ຄັ້ງທຳອິດ", type: "datetime", readOnly: true },
     { name: "lastSeen",  title: "ເຫັນ EA ລ່າສຸດ",     type: "datetime", readOnly: true },

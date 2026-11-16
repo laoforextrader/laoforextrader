@@ -18,7 +18,10 @@ import { codeOf, type Contest } from "@/lib/contest/store"
 
 export interface EaPayload {
   ts?: number
-  acct?: { login?: number; server?: string; company?: string; currency?: string; leverage?: number; symbol?: string }
+  acct?: {
+    login?: number; server?: string; company?: string; currency?: string
+    leverage?: number; symbol?: string; demo?: boolean; algoOn?: boolean
+  }
   money?: { balance?: number; equity?: number; margin?: number; free?: number }
   contest?: {
     startBalance?: number      // balance before the first trade of the account
@@ -106,6 +109,9 @@ export async function applyHeartbeat(
     flags.push(flag("start-balance",
       `EA reports a starting balance of ${reported.toFixed(2)}, the round is ${expected.toFixed(2)}`))
   }
+  if (p.acct?.demo === false && !had("live-account")) {
+    flags.push(flag("live-account", "this is a LIVE account, the contest is demo only"))
+  }
   if ((p.contest?.deposits ?? 0) > 0 && !had("deposit")) {
     flags.push(flag("deposit",
       `${(p.contest?.deposits ?? 0).toFixed(2)} deposited after the start — profit is counted without it`))
@@ -153,8 +159,14 @@ export async function applyHeartbeat(
   if (!entry.firstSeen) {
     set.firstSeen = now.toISOString()
     set.startBalance = reported || expected
-    if (p.acct?.server) set.mtServer = p.acct.server
   }
+  // Refreshed on every beat, not just the first: these are what the approval
+  // screen checks, and a contestant who switches chart or account type after
+  // being approved should show up as changed.
+  if (p.acct?.server) set.mtServer = p.acct.server
+  if (p.acct?.symbol) set.symbol = p.acct.symbol
+  if (typeof p.acct?.demo === "boolean") set.isDemo = p.acct.demo
+  if (typeof p.acct?.leverage === "number") set.leverage = p.acct.leverage
 
   const patch = sanityWrite.patch(entry._id).set(set)
   if (flags.length) patch.setIfMissing({ flags: [] }).append("flags", flags)
