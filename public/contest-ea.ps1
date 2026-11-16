@@ -97,7 +97,21 @@ try {
 #  The hash is what makes an unattended install safe to trust: a truncated
 #  download or a proxy's error page would otherwise land in Experts\ as a
 #  file MT5 refuses, which looks like the EA being broken.
-$sha = (Get-FileHash -Path $tmp -Algorithm SHA256).Hash.ToLower()
+#  Get-FileHash is normally there on PowerShell 5.1, but it comes from a
+#  module, and a stripped PSModulePath (seen while testing this very
+#  script) makes it vanish with a CommandNotFoundException. .NET is always
+#  present, so the cmdlet is the fast path and the class is the guarantee.
+function Get-Sha256([string]$path) {
+    try { return (Get-FileHash -Path $path -Algorithm SHA256).Hash.ToLower() } catch {}
+    $h = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $fs = [System.IO.File]::OpenRead($path)
+        try { return ([BitConverter]::ToString($h.ComputeHash($fs))).Replace("-", "").ToLower() }
+        finally { $fs.Dispose() }
+    } finally { $h.Dispose() }
+}
+
+$sha = Get-Sha256 $tmp
 if ($build.sha256 -and $sha -ne $build.sha256.ToLower()) {
     Say '  The downloaded file does not match its published checksum.' 'Red'
     Say "  expected $($build.sha256)" 'DarkGray'
