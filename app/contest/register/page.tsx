@@ -35,6 +35,14 @@ export default async function ContestRegisterPage() {
       earlyBirdCount={contest.earlyBirdCount ?? 0}
       entries={entries}
       open={contest.status === "register"}
+      requirements={{
+        broker: contest.broker,
+        accountType: contest.accountType,
+        symbol: contest.symbol,
+        startBalance: contest.startBalance,
+        currency: contest.currency,
+        signupUrl: contest.brokerSignupUrl,
+      }}
     />
   )
 }

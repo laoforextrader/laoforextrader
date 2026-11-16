@@ -55,6 +55,8 @@ export const contestSchema = {
       validation: (R: any) => R.required() },
     { name: "currency", title: "ສະກຸນ", type: "string", initialValue: "cent" },
     { name: "symbol", title: "Symbol ທີ່ໃຫ້ເທຣດ", type: "string", initialValue: "XAUUSD" },
+    { name: "brokerSignupUrl", title: "ລິ້ງເປີດບັນຊີກັບໂບຣກເກີ", type: "url",
+      description: "ປຸ່ມຂັ້ນຕອນທີ 1 ຂອງໜ້າແຂ່ງຂັນຈະພາໄປທີ່ນີ້" },
 
     // ─── ວັນເວລາ (ທຸກຄ່າເປັນເວລາເຊີບເວີຂອງໂບຣກ) ───
     { name: "registerOpenAt", title: "ເປີດຮັບສະໝັກ",  type: "datetime" },

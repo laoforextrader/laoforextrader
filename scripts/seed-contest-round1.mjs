@@ -45,6 +45,8 @@ const doc = {
   startBalance: 100000,
   currency: "USD",
   symbol: "XAUUSD",
+  // The site already uses this partner link for Exness (CTASelector).
+  brokerSignupUrl: "https://one.exnessonelink.com/intl/th/a/tv2hiv2h",
 
   // Registration opens 17 Nov 08:00 Laos time (UTC+7).
   registerOpenAt: "2026-11-17T01:00:00Z",

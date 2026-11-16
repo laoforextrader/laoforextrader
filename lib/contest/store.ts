@@ -30,6 +30,7 @@ export interface Contest {
   startBalance?: number
   currency?: string
   symbol?: string
+  brokerSignupUrl?: string
   registerOpenAt?: string
   startAt: string
   endAt: string
@@ -63,7 +64,7 @@ export interface BoardRow {
 
 const CONTEST_FIELDS = `
   _id, title, "slug": slug.current, status, broker, accountType, startBalance,
-  currency, symbol, registerOpenAt, startAt, endAt, announceAt,
+  currency, symbol, brokerSignupUrl, registerOpenAt, startAt, endAt, announceAt,
   prizes, perks, earlyBirdCount, rules, maxEntries,
   winners[]{ place, verifiedProfit, note, entry->{ _id, displayName, mtLogin, country, profit, profitPct } }
 `

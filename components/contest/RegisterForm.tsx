@@ -14,13 +14,17 @@ import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/contest/i18n
 type Existing = { entryNo?: number; displayName?: string; mtLogin?: string; entryCode?: string } | null
 
 export default function RegisterForm({
-  existing, contestTitle, earlyBirdCount, entries, open,
+  existing, contestTitle, earlyBirdCount, entries, open, requirements,
 }: {
   existing: Existing
   contestTitle: string
   earlyBirdCount: number
   entries: number
   open: boolean
+  requirements: {
+    broker?: string; accountType?: string; symbol?: string
+    startBalance?: number; currency?: string; signupUrl?: string
+  }
 }) {
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "lo"
@@ -134,6 +138,27 @@ export default function RegisterForm({
           {!open && (
             <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{t.errClosed}</p>
           )}
+
+          {/* The account has to exist and be funded correctly BEFORE this form
+              is any use: the EA reports the starting balance and a wrong one is
+              visible on day one. */}
+          <div className="rounded-bk border border-bk-line bg-bk-sunken p-3">
+            <h2 className="mb-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-bk-muted">{t.requirements}</h2>
+            <ul className="flex flex-col gap-1 text-[12.5px]">
+              <li>• {requirements.broker} {requirements.accountType} ({t.demo})</li>
+              <li>• {t.startingBalance}: <b className="font-mono">
+                {typeof requirements.startBalance === "number"
+                  ? (requirements.currency === "USD" ? "$" : "") + requirements.startBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })
+                  : "—"}</b></li>
+              <li>• Symbol: {requirements.symbol}</li>
+            </ul>
+            {requirements.signupUrl && (
+              <a href={requirements.signupUrl} target="_blank" rel="noopener noreferrer"
+                className="mt-2 inline-block text-[12px] font-bold text-accent underline underline-offset-2">
+                {t.openAccount} ↗
+              </a>
+            )}
+          </div>
 
           {([
             ["displayName", t.name, "text", "Souk T."],

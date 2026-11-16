@@ -178,11 +178,12 @@ export default function ContestHome({
             <StatusChip contest={contest} t={t} />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {/* The starting balance is deliberately not here: it belongs with the
+              entry requirements, not on the poster. */}
+          <div className="grid grid-cols-3 gap-2">
             {[
               [t.broker, contest.broker ?? "—"],
               ["Account", contest.accountType ?? "—"],
-              ["Start", money(contest.startBalance, contest.currency)],
               ["Symbol", contest.symbol ?? "—"],
             ].map(([k, v]) => (
               <div key={k as string} className="rounded-bk border border-bk-line bg-bk-sunken px-3 py-2">
@@ -253,10 +254,29 @@ export default function ContestHome({
           {t.how.map((step: string, i: number) => (
             <li key={i} className="flex gap-2 text-[12.5px] leading-relaxed">
               <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-accent text-[10.5px] font-bold text-white">{i + 1}</span>
-              <span>{step}</span>
+              <span>
+                {step}
+                {i === 0 && contest.brokerSignupUrl && (
+                  <a href={contest.brokerSignupUrl} target="_blank" rel="noopener noreferrer"
+                    className="ml-1.5 whitespace-nowrap font-bold text-accent underline underline-offset-2">
+                    {t.openAccount} ↗
+                  </a>
+                )}
+              </span>
             </li>
           ))}
         </ol>
+
+        {/* Requirements, where the starting balance lives. Everyone has to be
+            on the same number or the board compares nothing. */}
+        <div className="mt-3 rounded-bk border border-bk-line bg-bk-sunken p-3">
+          <h4 className="mb-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-bk-muted">{t.requirements}</h4>
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-[12.5px]">
+            <span><span className="text-bk-muted">{t.broker}:</span> <b>{contest.broker} {contest.accountType} ({t.demo})</b></span>
+            <span><span className="text-bk-muted">{t.startingBalance}:</span> <b className="font-mono">{money(contest.startBalance, contest.currency)}</b></span>
+            <span><span className="text-bk-muted">Symbol:</span> <b>{contest.symbol}</b></span>
+          </div>
+        </div>
       </section>
 
       {/* rules */}
