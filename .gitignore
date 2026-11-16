@@ -27,3 +27,6 @@ public/newsletter-preview.html
 
 # local theme screenshots (scripts/theme-shots.mjs)
 theme-preview/
+
+# Local backups made before an edit — never part of a deploy
+*.bak-*
