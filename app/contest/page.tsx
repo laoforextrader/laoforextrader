@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { currentContest, leaderboard, entryCount, allContests, myEntry } from "@/lib/contest/store"
 import ContestHome from "@/components/contest/ContestHome"
+import CTASelector from "@/components/cta/CTASelector"
 
 export const dynamic = "force-dynamic"
 
@@ -39,6 +40,12 @@ export default async function ContestPage() {
       entries={entries}
       archive={archive.map(a => ({ slug: a.slug, title: a.title, status: a.status }))}
       myCode={mine?.entryCode ?? null}
-    />
+    >
+      <section className="border-t border-bk-line pt-6">
+        <h2 className="mb-1 text-[16px] font-bold tracking-[-0.01em]">{"\u0e2a\u0e34\u0e48\u0e07\u0e17\u0e35\u0e48\u0e43\u0e0a\u0e49\u0e43\u0e19\u0e23\u0e2d\u0e1a\u0e19\u0e35\u0e49"}</h2>
+        <CTASelector type="broker-exness" />
+        <CTASelector type="ea-megihgedge" />
+      </section>
+    </ContestHome>
   )
 }

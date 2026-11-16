@@ -45,6 +45,10 @@ const config: Config = {
         ok:   { DEFAULT: "var(--success)", soft: "var(--success-soft)", line: "var(--success-line)", ink: "var(--success-ink)" },
         bad:  { DEFAULT: "var(--danger)",  soft: "var(--danger-soft)",  line: "var(--danger-line)",  ink: "var(--danger-ink)" },
         warn: { DEFAULT: "var(--warn)",    soft: "var(--warn-soft)",    line: "var(--warn-line)",    ink: "var(--warn-ink)" },
+        // Contest only: prize money and rank one. The instrument is XAUUSD,
+        // so the metal is the subject rather than decoration — and keeping
+        // it out of every other surface is what stops it becoming a theme.
+        gold: { DEFAULT: "var(--gold)", soft: "var(--gold-soft)", line: "var(--gold-line)", ink: "var(--gold-ink)" },
         pink: { DEFAULT: "var(--pink)" },
         violet: { DEFAULT: "var(--violet)", soft: "var(--violet-soft)", line: "var(--violet-line)" },
 

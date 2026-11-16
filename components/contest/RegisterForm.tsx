@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/contest/i18n"
+import { DICT, LANGS, LANG_LABEL, loc, pickLang, type Lang } from "@/lib/contest/i18n"
+import { Dot, Ban, Shield, Arrow, External } from "@/components/contest/icons"
+import type { ContestRule } from "@/lib/contest/store"
 
 // Registration, and the one screen where the entry code is ever shown.
 //
@@ -14,7 +16,7 @@ import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/contest/i18n
 type Existing = { entryNo?: number; displayName?: string; mtLogin?: string; entryCode?: string } | null
 
 export default function RegisterForm({
-  existing, contestTitle, earlyBirdCount, entries, open, full, requirements,
+  existing, contestTitle, earlyBirdCount, entries, open, full, rules, seats, requirements,
 }: {
   existing: Existing
   contestTitle: string
@@ -23,6 +25,9 @@ export default function RegisterForm({
   open: boolean
   /** Seats gone, as distinct from the round being closed for another reason. */
   full: boolean
+  /** The round's own rules, written by the owner in all three languages. */
+  rules: ContestRule[]
+  seats: number
   requirements: {
     broker?: string; accountType?: string; symbol?: string
     startBalance?: number; currency?: string; signupUrl?: string
@@ -170,6 +175,62 @@ export default function RegisterForm({
               </a>
             )}
           </div>
+
+
+          {/* How to join — four steps, because the fifth was "watch the
+              board", which is not something anyone has to be told. */}
+          <section>
+            <h2 className="mb-2.5 text-[13px] font-extrabold uppercase tracking-wide">{t.howTitle}</h2>
+            <div>
+              {t.how.map((step: string, i: number) => (
+                <div key={i} className="grid grid-cols-[26px_1fr] gap-3 border-t border-bk-line py-3 first:border-t-0">
+                  <span className="grid h-[26px] w-[26px] place-items-center rounded-bk border border-[#233155] bg-[#121b33] font-mono text-[12px] font-semibold text-[#a9c0ff]">
+                    {i + 1}
+                  </span>
+                  <p className="m-0 mt-[3px] text-[13.5px] leading-[1.6] text-bk-muted">
+                    {step}
+                    {i === 0 && requirements.signupUrl && (
+                      <a href={requirements.signupUrl} target="_blank" rel="noopener noreferrer"
+                        className="ml-1.5 inline-flex items-center gap-1 whitespace-nowrap font-semibold text-accent">
+                        {t.openAccount} <External />
+                      </a>
+                    )}
+                    {i === 3 && (
+                      <Link href="/contest/install" className="ml-1.5 inline-flex items-center gap-1 whitespace-nowrap font-semibold text-accent">
+                        {t.installTitle} <Arrow />
+                      </Link>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* The rules, from the round document. Hard rules carry the ban
+              mark so the three that disqualify stand out from the five that
+              describe. */}
+          {rules.length > 0 && (
+            <section>
+              <h2 className="mb-2.5 text-[13px] font-extrabold uppercase tracking-wide">{t.rules}</h2>
+              <ul className="m-0 grid list-none gap-px overflow-hidden rounded-bk border border-bk-line bg-bk-line p-0">
+                {rules.map((r, i) => {
+                  const text = loc(r.text, lang)
+                  const hard = /ຕັດສິດ|ຫ້າມ|ตัดสิทธิ์|ห้าม|disqualif|No deposits|no other EA/i.test(text)
+                  const checked = /ກວດສອບ|ตรวจสอบ|checked/i.test(text)
+                  return (
+                    <li key={i} className="grid grid-cols-[18px_1fr] gap-2.5 bg-bk-surface px-3.5 py-3 text-[13px] leading-[1.6] text-bk-muted">
+                      <span className={`mt-[2px] text-[15px] ${hard ? "text-bad" : checked ? "text-ok" : "text-bk-muted"}`}>
+                        {hard ? <Ban /> : checked ? <Shield /> : <Dot />}
+                      </span>
+                      <span>{text}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )}
+
+          <h2 className="mt-1 text-[13px] font-extrabold uppercase tracking-wide">{t.applicant}</h2>
 
           {([
             ["displayName", t.name, "text", "Souk T."],

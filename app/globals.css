@@ -108,6 +108,12 @@ html.dark:has([data-force-light]) {
   --warn-soft: #FFFBEB;
   --warn-line: #FDE68A;
   --warn-ink: #92400E;     /* dark ink ON --warn-soft */
+
+  /* Contest gold — prize money and rank one only (see tailwind.config) */
+  --gold: #A16207;
+  --gold-soft: #FEF6E0;
+  --gold-line: #E6C867;
+  --gold-ink: #7A4A06;
   --violet-soft: #F5F3FF;
   --violet-line: #DDD6FE;
 
@@ -183,6 +189,12 @@ html.dark {
   --danger-ink: #FCA5A5;
   --warn: #FBBF24;
   --warn-soft: #2C2008;
+
+  /* Contest gold, dark */
+  --gold: #E8B64C;
+  --gold-soft: #211A0B;
+  --gold-line: #4A3914;
+  --gold-ink: #F5D896;
   --warn-line: #4A3A10;
   --warn-ink: #FCD34D;
   --violet-soft: #1F1B33;

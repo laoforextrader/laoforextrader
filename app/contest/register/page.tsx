@@ -38,6 +38,8 @@ export default async function ContestRegisterPage() {
       open={contest.status === "register" &&
             (!contest.maxEntries || entries < contest.maxEntries)}
       full={!!contest.maxEntries && entries >= contest.maxEntries}
+      rules={contest.rules ?? []}
+      seats={contest.maxEntries ?? 0}
       requirements={{
         broker: contest.broker,
         accountType: contest.accountType,

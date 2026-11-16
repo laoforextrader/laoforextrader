@@ -20,6 +20,7 @@ export type LocaleText = { en?: string; th?: string; lo?: string }
 
 export interface ContestPrize { place?: number; amount?: number; label?: LocaleText }
 export interface ContestRule { text?: LocaleText }
+export type { LocaleText as ContestLocaleText }
 
 export interface Contest {
   _id: string
