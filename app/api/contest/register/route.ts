@@ -33,11 +33,17 @@ export async function POST(req: Request) {
   const country     = clean(body.country, 40)
   const mtLogin     = clean(body.mtLogin, 16)
   const mtServer    = clean(body.mtServer, 64)
+  // Read-only password. Checked for length only — whether it actually works
+  // is for the admin to find out by logging in, which is the point of it.
+  const investor    = clean(body.investor, 64)
 
   if (displayName.length < 2) return NextResponse.json({ error: "name is too short" }, { status: 400 })
   if (contact.length < 3)     return NextResponse.json({ error: "contact is required" }, { status: 400 })
   if (!/^\d{5,12}$/.test(mtLogin)) {
     return NextResponse.json({ error: "MT5 account number must be digits only" }, { status: 400 })
+  }
+  if (investor.length < 4) {
+    return NextResponse.json({ error: "investor password is required" }, { status: 400 })
   }
 
   const contest = await currentContest()
@@ -54,6 +60,7 @@ export async function POST(req: Request) {
     mtLogin,
     mtServer,
     startBalance: contest.startBalance ?? 0,
+    investor,
   })
 
   if (!res.ok) return NextResponse.json({ error: res.reason, reason: res.reason }, { status: 409 })
@@ -66,7 +73,8 @@ export async function POST(req: Request) {
     `${escapeHtml(displayName)} · ${escapeHtml(country || "—")}\n` +
     `MT5 <code>${escapeHtml(mtLogin)}</code> · ${escapeHtml(mtServer || "—")}\n` +
     `${escapeHtml(contact)}\n` +
-    `${escapeHtml(contest.title)} · total ${total}` +
+    `${escapeHtml(contest.title)} · total ${total}\n` +
+    `investor password on file — check the account, then approve it` +
     (res.earlyBird ? `\n🎁 early bird — VPS perk` : "")
   )
 

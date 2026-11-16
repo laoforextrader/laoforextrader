@@ -1,5 +1,5 @@
 import { sanityWrite } from "@/lib/sanityWrite"
-import { type Contest } from "@/lib/contest/store"
+import { codeOf, type Contest } from "@/lib/contest/store"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // What the contest EA sends, and what the server does with it.
@@ -112,6 +112,9 @@ export async function applyHeartbeat(
   }
 
   let status: string = entry.status === "disqualified" ? "disqualified" : "active"
+  // An entry the admin has not approved yet still reports; it simply stays
+  // out of the running until a human has looked at the account.
+  if (entry.status === "pending") status = "pending"
   if (expected > 0 && equity <= expected * 0.1) {
     status = "blown"
     if (!had("blown")) flags.push(flag("blown", `equity fell to ${equity.toFixed(2)}`))
@@ -172,10 +175,13 @@ export async function rankOf(contestId: string, entryId: string, profit: number)
 
 /** The entry for one MT5 login in one round, with the fields this route needs. */
 export async function entryByLogin(contestId: string, login: string) {
-  return sanityWrite.fetch<any>(
+  const entry = await sanityWrite.fetch<any>(
     `*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login][0]{
-       _id, entryCode, status, firstSeen, flags, series, startBalance
+       _id, entryCodeEnc, status, firstSeen, flags, series, startBalance
      }`,
     { id: contestId, login }
   )
+  // Unsealed in memory for the signature check only; it is never written back
+  // or returned to the caller's response.
+  return entry ? { ...entry, entryCode: codeOf(entry) } : null
 }

@@ -1,5 +1,6 @@
 import { createHash, randomInt } from "crypto"
 import { sanityWrite } from "@/lib/sanityWrite"
+import { blindIndex, encryptPII, decryptPII } from "@/lib/pii"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Data layer for the demo trading contest.
@@ -131,13 +132,15 @@ export async function entryCount(contestId: string): Promise<number> {
 
 /** This user's entry in this round, or null. Includes the code: it is theirs. */
 export async function myEntry(email: string, contestId: string) {
-  return sanityWrite.fetch<any>(
-    `*[_type == "contestEntry" && contest._ref == $id && ownerEmail == $email][0]{
-       _id, entryNo, displayName, mtLogin, mtServer, entryCode, status, lastSeen,
+  const entry = await sanityWrite.fetch<any>(
+    `*[_type == "contestEntry" && contest._ref == $id && ownerEmailHash == $hash][0]{
+       _id, entryNo, displayName, mtLogin, mtServer, entryCodeEnc, status, lastSeen,
        profit, profitPct, equity
      }`,
-    { id: contestId, email }
+    { id: contestId, hash: blindIndex(email, "contestOwner") }
   )
+  // The code is unsealed only here, for the one person it belongs to.
+  return entry ? { ...entry, entryCode: codeOf(entry) } : null
 }
 
 // ── Entry code ───────────────────────────────────────────────────────────────
@@ -173,6 +176,28 @@ export type RegisterInput = {
   mtLogin: string
   mtServer: string
   startBalance: number
+  /** Read-only MT5 password, so the account can be checked before approval. */
+  investor: string
+}
+
+// ── Sealed storage ──────────────────────────────────────────────────────────
+// This Sanity dataset is PUBLIC (see lib/pii.ts). An entry code in the clear
+// would let anyone post results as that contestant, and an investor password
+// in the clear would hand out read access to their account. Both are sealed
+// with AES-GCM before they are written; the email is a blind index for
+// lookups plus a sealed copy.
+//
+// What stays readable is only what the leaderboard shows anyway: display
+// name, MT5 login, country, and the numbers.
+
+export function codeOf(entry: { entryCodeEnc?: string }): string {
+  if (!entry?.entryCodeEnc) return ""
+  try { return decryptPII(entry.entryCodeEnc) } catch { return "" }
+}
+
+export function investorOf(entry: { investorEnc?: string }): string {
+  if (!entry?.investorEnc) return ""
+  try { return decryptPII(entry.investorEnc) } catch { return "" }
 }
 
 export type RegisterResult =
@@ -196,12 +221,13 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
   )
   if (!contest || contest.status !== "register") return { ok: false, reason: "closed" }
 
+  const emailHash = blindIndex(email, "contestOwner")
   const dupe = await sanityWrite.fetch<{ mine: number; login: number }>(
     `{
-      "mine":  count(*[_type == "contestEntry" && contest._ref == $id && ownerEmail == $email]),
+      "mine":  count(*[_type == "contestEntry" && contest._ref == $id && ownerEmailHash == $hash]),
       "login": count(*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login])
     }`,
-    { id: contestId, email, login: mtLogin }
+    { id: contestId, hash: emailHash, login: mtLogin }
   )
   if (dupe.mine > 0) return { ok: false, reason: "already-registered" }
   if (dupe.login > 0) return { ok: false, reason: "login-taken" }
@@ -216,14 +242,16 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
     _type: "contestEntry",
     contest: { _type: "reference", _ref: contestId },
     entryNo,
-    ownerEmail: email,
+    ownerEmailHash: emailHash,
+    ownerEmailEnc: encryptPII(email),
     displayName: input.displayName,
-    contact: input.contact,
+    contactEnc: encryptPII(input.contact),
     country: input.country,
     mtLogin,
     mtServer: input.mtServer,
     startBalance: input.startBalance,
-    entryCode: code,
+    entryCodeEnc: encryptPII(code),
+    investorEnc: input.investor ? encryptPII(input.investor) : undefined,
     status: "pending",
     profit: 0,
     profitPct: 0,
@@ -240,10 +268,15 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
 /** Creation-ordered logins that earned the early-bird perk, for the admin. */
 export async function earlyBirdWinners(contestId: string, howMany: number) {
   if (howMany <= 0) return []
-  return sanityWrite.fetch<Array<{ displayName: string; mtLogin: string; contact: string }>>(
+  const rows = await sanityWrite.fetch<Array<{ displayName: string; mtLogin: string; contactEnc?: string }>>(
     `*[_type == "contestEntry" && contest._ref == $id] | order(_createdAt asc)[0...$n]{
-       displayName, mtLogin, contact
+       displayName, mtLogin, contactEnc
      }`,
     { id: contestId, n: howMany }
   )
+  return rows.map(r => ({
+    displayName: r.displayName,
+    mtLogin: r.mtLogin,
+    contact: r.contactEnc ? decryptPII(r.contactEnc) : "",
+  }))
 }

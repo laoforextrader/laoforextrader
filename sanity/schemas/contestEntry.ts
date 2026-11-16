@@ -19,9 +19,13 @@ export const contestEntrySchema = {
       description: "1 = ຄົນທຳອິດ — ໃຊ້ຕັດສິນສິດທິພິເສດ (VPS ຟຣີ)" },
 
     // ─── ຕົວຕົນ ───
-    { name: "ownerEmail", title: "ອີເມວ (Google)", type: "string", readOnly: true },
+    // The dataset is PUBLIC (see lib/pii.ts). Anything that identifies a
+    // person, or would let someone impersonate their EA, is sealed before it
+    // is written and never stored in the clear.
+    { name: "ownerEmailHash", title: "ອີເມວ (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
+    { name: "ownerEmailEnc",  title: "ອີເມວ (ເຂົ້າລະຫັດ)", type: "string", readOnly: true, hidden: true },
     { name: "displayName", title: "ຊື່ທີ່ສະແດງເທິງກະດານ", type: "string", validation: (R: any) => R.required() },
-    { name: "contact", title: "Telegram / WhatsApp", type: "string", readOnly: true },
+    { name: "contactEnc", title: "Telegram / WhatsApp (ເຂົ້າລະຫັດ)", type: "string", readOnly: true, hidden: true },
     { name: "country", title: "ປະເທດ", type: "string", readOnly: true },
 
     // ─── ບັນຊີ MT5 ───
@@ -32,12 +36,21 @@ export const contestEntrySchema = {
     { name: "lastSeen",  title: "ເຫັນ EA ລ່າສຸດ",     type: "datetime", readOnly: true },
 
     {
-      name: "entryCode",
-      title: "ລະຫັດຜູ້ແຂ່ງ",
+      name: "entryCodeEnc",
+      title: "ລະຫັດຜູ້ແຂ່ງ (ເຂົ້າລະຫັດ)",
       type: "string",
       hidden: true,
-      description: "ໃຊ້ກວດລາຍເຊັນຂອງ EA (SHA256 ຂອງ body + code) — ບໍ່ສະແດງຕໍ່ສາທາລະນະ",
+      description: "ໃຊ້ກວດລາຍເຊັນຂອງ EA (SHA256 ຂອງ body + code) — ເກັບແບບເຂົ້າລະຫັດ",
     },
+    {
+      name: "investorEnc",
+      title: "Investor password (ເຂົ້າລະຫັດ)",
+      type: "string",
+      hidden: true,
+      description: "ລະຫັດອ່ານຢ່າງດຽວ ສຳລັບກວດບັນຊີກ່ອນອະນຸມັດ ແລະ ກວດຜົນຕອນຈົບ",
+    },
+    { name: "approvedAt", title: "ອະນຸມັດເມື່ອ", type: "datetime" },
+    { name: "approvedBy", title: "ອະນຸມັດໂດຍ", type: "string" },
 
     // ─── ຕົວເລກສົດ (EA ຂຽນ ຫ້າມແກ້ດ້ວຍມື) ───
     { name: "equity",    title: "Equity",            type: "number", readOnly: true },
@@ -59,7 +72,8 @@ export const contestEntrySchema = {
       type: "string",
       options: {
         list: [
-          { title: "⏳ ລໍ EA ສົ່ງຂໍ້ມູນ (pending)", value: "pending" },
+          { title: "📝 ລໍກວດບັນຊີ (pending)", value: "pending" },
+          { title: "✅ ອະນຸມັດແລ້ວ ລໍແຂ່ງ (approved)", value: "approved" },
           { title: "🟢 ກຳລັງແຂ່ງ (active)",         value: "active" },
           { title: "🚩 ມີທຸງ ລໍກວດ (flagged)",      value: "flagged" },
           { title: "💀 ລ້າງພອດ (blown)",            value: "blown" },

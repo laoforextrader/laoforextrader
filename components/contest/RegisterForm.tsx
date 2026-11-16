@@ -32,7 +32,7 @@ export default function RegisterForm({
   })
   const t = DICT[lang]
 
-  const [form, setForm] = useState({ displayName: "", contact: "", country: "", mtLogin: "", mtServer: "" })
+  const [form, setForm] = useState({ displayName: "", contact: "", country: "", mtLogin: "", mtServer: "", investor: "" })
   const [done, setDone] = useState<{ code: string; entryNo: number; earlyBird: boolean } | null>(
     existing?.entryCode ? { code: existing.entryCode, entryNo: existing.entryNo ?? 0, earlyBird: (existing.entryNo ?? 99) <= earlyBirdCount } : null
   )
@@ -105,6 +105,7 @@ export default function RegisterForm({
             </div>
 
             <p className="text-[12px] leading-relaxed text-bk-muted">{t.doneBody}</p>
+            <p className="rounded-bk bg-bk-sunken px-3 py-2 text-[12px] leading-relaxed text-bk-muted">{t.pendingNote}</p>
             {done.earlyBird && (
               <p className="rounded-bk bg-ok-soft px-3 py-2 text-[12px] font-semibold text-ok-ink">🎁 {t.earlyBirdYou}</p>
             )}
@@ -177,10 +178,24 @@ export default function RegisterForm({
             </label>
           ))}
 
+          {/* The read-only password. Asked for here rather than from the
+              winners at the end: checking the account before the start is
+              what lets an entry be approved in advance, and nobody has to
+              hand over anything once there is prize money on the line. */}
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[12px] text-bk-muted">{t.investor}</span>
+            <input
+              type="password" value={form.investor} onChange={set("investor")}
+              autoComplete="off" spellCheck={false}
+              className="w-full rounded-bk border border-bk-line bg-bk-surface px-3 py-2.5 font-mono text-[15px] outline-none focus:ring-2 focus:ring-accent"
+            />
+            <span className="text-[11px] leading-relaxed text-bk-muted">{t.investorHelp}</span>
+          </label>
+
           {err && <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{err}</p>}
 
           <button type="submit"
-            disabled={busy || !open || !form.displayName || !form.contact || !form.mtLogin}
+            disabled={busy || !open || !form.displayName || !form.contact || !form.mtLogin || !form.investor}
             className="rounded-bk bg-accent py-3 text-[13px] font-bold text-white disabled:opacity-40">
             {busy ? t.submitting : t.submit}
           </button>

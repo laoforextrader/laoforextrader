@@ -1,5 +1,6 @@
 import { createHash } from "crypto"
 import { sanityWrite } from "@/lib/sanityWrite"
+import { blindIndex, encryptPII, decryptPII } from "@/lib/pii"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Storage for the Semi EA dashboard.
@@ -45,9 +46,12 @@ export interface SemiRound {
 export interface SemiDoc {
   _id: string
   account: string
-  ownerEmail?: string
+  ownerEmail?: string      // legacy plaintext; cleared by the migration
+  ownerEmailHash?: string
+  ownerEmailEnc?: string
   ownerName?: string
-  dashKey?: string
+  dashKey?: string         // legacy plaintext; cleared by the migration
+  dashKeyEnc?: string
   state?: string
   lastSeen?: string
   cmdId?: number
@@ -91,6 +95,41 @@ export const canonKey = (key: string) => compactKey(key).replace(/(.{4})(?=.)/g,
 export const sameKey = (a: string, b: string) =>
   compactKey(a).length > 0 && compactKey(a) === compactKey(b)
 
+// ── Sealed storage ──────────────────────────────────────────────────────────
+// This Sanity dataset is PUBLIC (see lib/pii.ts): a dashboard key written in
+// the clear is readable by anyone who lifts the project id out of the page
+// source, and with it they could impersonate that account's EA. Keys are
+// sealed with AES-GCM; the owner's email is stored as a blind index for
+// lookups plus a sealed copy to read back.
+//
+// Documents written before 2026-11-16 still hold plaintext. Every reader here
+// is sealed-first with a fallback, so nothing breaks mid-migration.
+
+/** The dashboard key for this account, however it happens to be stored. */
+export function keyOf(doc: SemiDoc): string {
+  if (doc.dashKeyEnc) {
+    try { return decryptPII(doc.dashKeyEnc) } catch { /* fall back to legacy */ }
+  }
+  return doc.dashKey ?? ""
+}
+
+/** The owner's email, however it happens to be stored. */
+export function emailOf(doc: SemiDoc): string {
+  if (doc.ownerEmailEnc) {
+    try { return decryptPII(doc.ownerEmailEnc) } catch { /* fall back */ }
+  }
+  return doc.ownerEmail ?? ""
+}
+
+/** The fields that store an owner's email safely, plaintext dropped. */
+export function sealEmail(email: string) {
+  return {
+    ownerEmailHash: blindIndex(email, "semiOwner"),
+    ownerEmailEnc: encryptPII(email),
+    ownerEmail: null,
+  }
+}
+
 /** SHA256(body + key) — the signature the EA sends in X-RM-Sign. */
 export const signBody = (body: string, key: string) =>
   createHash("sha256").update(body + key, "utf8").digest("hex")
@@ -98,7 +137,8 @@ export const signBody = (body: string, key: string) =>
 async function fetchDoc(account: string): Promise<SemiDoc | null> {
   return sanityWrite.fetch<SemiDoc | null>(
     `*[_id == $id][0]{
-       _id, account, ownerEmail, ownerName, dashKey, state, lastSeen,
+       _id, account, ownerEmail, ownerEmailHash, ownerEmailEnc, ownerName,
+       dashKey, dashKeyEnc, state, lastSeen,
        cmdId, cmd, cmdLot, cmdAt, cmdBy, ackRound, rounds, series, watchUntil
      }`,
     { id: docId(account) }
@@ -308,10 +348,12 @@ export async function linkAccount(
   const id = docId(account)
   const doc = await fetchDoc(account)
 
-  if (doc?.ownerEmail && doc.ownerEmail !== email) {
+  const owner = doc ? emailOf(doc) : ""
+  if (owner && owner !== email) {
     return { ok: false, reason: "already-linked" }
   }
-  if (doc?.dashKey && !sameKey(doc.dashKey, key)) {
+  const storedKey = doc ? keyOf(doc) : ""
+  if (storedKey && !sameKey(storedKey, key)) {
     return { ok: false, reason: "bad-key" }
   }
 
@@ -326,16 +368,21 @@ export async function linkAccount(
     // any queued command with it, so an existing account is patched instead.
     await sanityWrite
       .patch(id)
-      .set({ ownerEmail: email, dashKey: stored, ownerName: name ?? doc.ownerName ?? "" })
+      .set({
+        ...sealEmail(email),
+        dashKeyEnc: encryptPII(stored),
+        dashKey: null,
+        ownerName: name ?? doc.ownerName ?? "",
+      })
       .commit({ visibility: "async" })
   } else {
     await sanityWrite.createOrReplace({
       _id: id,
       _type: "semiAccount",
       account,
-      ownerEmail: email,
+      ...sealEmail(email),
       ownerName: name ?? "",
-      dashKey: stored,
+      dashKeyEnc: encryptPII(stored),
       state: "",
       ackRound: 0,
       rounds: [],
@@ -343,6 +390,27 @@ export async function linkAccount(
   }
   mem.delete(account)
   return { ok: true }
+}
+
+/**
+ * Write the key back sealed, and drop the plaintext copy.
+ *
+ * Called from the heartbeat path, so a failure here must never fail the beat:
+ * the signature is already verified by the time we arrive, and the next
+ * heartbeat tries again.
+ */
+async function sealKey(account: string, e: CacheEntry, key: string): Promise<void> {
+  e.doc.dashKeyEnc = encryptPII(key)
+  e.doc.dashKey = undefined
+  try {
+    await sanityWrite.patch(docId(account))
+      .set({ dashKeyEnc: e.doc.dashKeyEnc })
+      .unset(["dashKey"])
+      .commit({ visibility: "async" })
+    console.log("[semi] " + account + ": dashboard key sealed")
+  } catch (err) {
+    console.error("[semi] sealing the dashboard key failed", err)
+  }
 }
 
 /**
@@ -366,15 +434,7 @@ export async function verifySignature(
   for (const cand of [canonKey(stored), compactKey(stored)]) {
     if (!cand || cand === stored) continue
     if (signBody(raw, cand) !== sign) continue
-    e.doc.dashKey = cand
-    try {
-      await sanityWrite.patch(docId(account)).set({ dashKey: cand }).commit({ visibility: "async" })
-      console.log("[semi] " + account + ": dashKey rewritten in the form the EA signs with")
-    } catch (err) {
-      // The signature was valid, so the heartbeat goes through either way; the
-      // next one tries the repair again.
-      console.error("[semi] dashKey repair failed", err)
-    }
+    await sealKey(account, e, cand)
     return true
   }
   return false

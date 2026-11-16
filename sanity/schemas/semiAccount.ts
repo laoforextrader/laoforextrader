@@ -22,10 +22,16 @@ export const semiAccountSchema = {
       validation: (R: any) => R.required(),
       description: "ໃຊ້ເປັນຕົວລະບຸບັນຊີ — _id ຂອງ doc ນີ້ຄື semi-<account>",
     },
+    // Sealed: this dataset is PUBLIC (see lib/pii.ts). The plain fields
+    // below stay only so documents written before 2026-11-16 still load;
+    // scripts/migrate-encrypt.mjs clears them once the code is deployed.
+    { name: "ownerEmailHash", title: "owner email (index)", type: "string", readOnly: true, hidden: true },
+    { name: "ownerEmailEnc",  title: "owner email (sealed)", type: "string", readOnly: true, hidden: true },
+    { name: "dashKeyEnc",     title: "dashboard key (sealed)", type: "string", readOnly: true, hidden: true },
     { name: "ownerEmail", title: "ອີເມວເຈົ້າຂອງ", type: "string", readOnly: true },
     { name: "ownerName",  title: "ຊື່ເຈົ້າຂອງບັນຊີ", type: "string", readOnly: true },
     {
-      name: "dashKey",
+      name: "dashKey",   // legacy plaintext — cleared by the migration
       title: "ກະແຈແດຊບອດ",
       type: "string",
       hidden: true,
