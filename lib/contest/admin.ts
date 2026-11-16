@@ -92,22 +92,51 @@ export async function adminEntries(contestId: string): Promise<AdminEntry[]> {
  * code, and where to watch — and it goes out in the language of the site the
  * contest is run in.
  */
-export function waLink(e: AdminEntry, contest: Contest, base: string): string {
+const wa = (number: string, lines: string[]) =>
+  `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`
+
+/**
+ * Message one, sent as soon as somebody registers.
+ *
+ * Carries the entry code and the install link, because that is what they
+ * need before anything else can happen — and the VPS line when they are one
+ * of the first few, since that is decided by registration order and nothing
+ * else.
+ */
+export function waLinkWelcome(e: AdminEntry, contest: Contest, base: string, earlyBird: boolean): string {
   const start = contest.startAt ? new Date(contest.startAt).toISOString().slice(0, 10) : ""
-  const text = [
+  return wa(e.whatsapp, [
     `ສະບາຍດີ ${e.displayName} 👋`,
     ``,
-    `✅ ບັນຊີ MT5 ${e.mtLogin} ຂອງທ່ານຜ່ານການກວດສອບແລ້ວ ແລະ ເຂົ້າຮ່ວມ "${contest.title}" ໄດ້`,
+    `ໄດ້ຮັບໃບສະໝັກ "${contest.title}" ຂອງທ່ານແລ້ວ`,
     ``,
-    `🔑 ລະຫັດຜູ້ແຂ່ງຂອງທ່ານ: ${e.entryCode}`,
+    `🔑 ລະຫັດຜູ້ແຂ່ງ: ${e.entryCode}`,
     `   (ໃສ່ໃນຊ່ອງ ContestCode ຂອງ EA)`,
+    ``,
+    ...(earlyBird ? [`🎁 ທ່ານຢູ່ໃນກຸ່ມທຳອິດ ຈຶ່ງໄດ້ VPS ຟຣີ — ຈະສົ່ງລາຍລະອຽດໃຫ້ທາງນີ້`, ``] : []),
+    `📥 ວິທີຕິດຕັ້ງ EA: ${base}/contest/install`,
+    ``,
+    `ຕິດຕັ້ງແລ້ວບອກມາ ຫຼື ລໍໃຫ້ລະບົບເຫັນ EA ຂອງທ່ານ`,
+    `ພວກເຮົາຈະກວດບັນຊີ ແລ້ວແຈ້ງຜົນອະນຸມັດກັບມາ`,
+    ``,
+    `📅 ເລີ່ມແຂ່ງ: ${start}`,
+  ])
+}
+
+/** Message two, after the account has been checked and approved. */
+export function waLinkApproved(e: AdminEntry, contest: Contest, base: string): string {
+  const start = contest.startAt ? new Date(contest.startAt).toISOString().slice(0, 10) : ""
+  return wa(e.whatsapp, [
+    `ສະບາຍດີ ${e.displayName} 👋`,
+    ``,
+    `✅ ບັນຊີ MT5 ${e.mtLogin} ຜ່ານການກວດສອບແລ້ວ — ທ່ານເຂົ້າຮ່ວມ "${contest.title}" ຢ່າງເປັນທາງການ`,
     ``,
     `📅 ເລີ່ມແຂ່ງ: ${start}`,
     `📊 ເບິ່ງອັນດັບສົດ: ${base}/contest`,
     ``,
+    `ເປີດ EA ໄວ້ຕໍ່ເນື່ອງຈົນຈົບການແຂ່ງຂັນ`,
     `ຖ້າມີຄຳຖາມ ຕອບກັບຂໍ້ຄວາມນີ້ໄດ້ເລີຍ`,
-  ].join("\n")
-  return `https://wa.me/${e.whatsapp}?text=${encodeURIComponent(text)}`
+  ])
 }
 
 /**
@@ -120,6 +149,10 @@ export function waLink(e: AdminEntry, contest: Contest, base: string): string {
  *
  * `blocking` is what should stop an approval; the rest is advice.
  */
+/** True when this entry is inside the round's early-bird window. */
+export const isEarlyBird = (e: AdminEntry, contest: Contest) =>
+  !!e.entryNo && e.entryNo <= (contest.earlyBirdCount ?? 0)
+
 export interface Readiness {
   label: string
   ok: boolean

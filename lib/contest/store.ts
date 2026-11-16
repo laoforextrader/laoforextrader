@@ -116,7 +116,12 @@ export async function allContests(): Promise<Contest[]> {
  */
 export async function leaderboard(contestId: string): Promise<BoardRow[]> {
   const rows = await sanityWrite.fetch<BoardRow[]>(
-    `*[_type == "contestEntry" && contest._ref == $id && status != "disqualified"]{
+    //  Approved and after: someone who has registered but whose account has
+    //  not been checked yet is not on the public board, which is what lets
+    //  the code go out early without putting an unchecked account in front
+    //  of everyone.
+    `*[_type == "contestEntry" && contest._ref == $id &&
+       status in ["approved", "active", "flagged", "blown"]]{
        _id, entryNo, displayName, mtLogin, country, equity, balance, profit, profitPct,
        maxDDPct, trades, openPositions, deposits, status, lastSeen
      }`,

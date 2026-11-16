@@ -64,14 +64,14 @@ const doc = {
     { _key: "p2", _type: "prize", place: 2, amount: 40 },
     { _key: "p3", _type: "prize", place: 3, amount: 10 },
   ],
-  earlyBirdCount: 5,
+  earlyBirdCount: 3,
   perks: [
     {
       _key: "k1", _type: "perk",
       text: L(
-        "The first 5 people to register get a free VPS for the contest.",
-        "5 ท่านแรกที่ลงทะเบียนได้สิทธิ์ VPS ฟรีตลอดการแข่งขัน",
-        "5 ທ່ານທຳອິດທີ່ລົງທະບຽນໄດ້ສິດ VPS ຟຣີຕະຫຼອດການແຂ່ງຂັນ"
+        "The first 3 people to register get a free VPS for the contest.",
+        "3 ท่านแรกที่ลงทะเบียนได้สิทธิ์ VPS ฟรีตลอดการแข่งขัน",
+        "3 ທ່ານທຳອິດທີ່ລົງທະບຽນໄດ້ສິດ VPS ຟຣີຕະຫຼອດການແຂ່ງຂັນ"
       ),
     },
   ],

@@ -81,8 +81,8 @@ export async function POST(req: Request) {
     `MT5 <code>${escapeHtml(mtLogin)}</code> · ${escapeHtml(mtServer || "—")}\n` +
     `WhatsApp +${escapeHtml(contact)}\n` +
     `${escapeHtml(contest.title)} · total ${total}` +
-    (res.earlyBird ? `\n🎁 early bird — VPS perk` : "") +
-    `\n\n👉 <a href="${base}/admin/contest">check the account and approve</a>`
+    (res.earlyBird ? `\n🎁 early bird — send them a VPS` : "") +
+    `\n\n👉 <a href="${base}/admin/contest">send the code, then approve once the EA connects</a>`
   )
 
   return NextResponse.json({

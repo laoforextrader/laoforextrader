@@ -5,7 +5,7 @@ import type { Metadata } from "next"
 import { authOptions } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/admin/auth"
 import { currentContest, allContests, contestBySlug } from "@/lib/contest/store"
-import { adminEntries, waLink, readiness } from "@/lib/contest/admin"
+import { adminEntries, waLinkWelcome, waLinkApproved, isEarlyBird, readiness } from "@/lib/contest/admin"
 import AdminEntryRow from "@/components/contest/AdminEntryRow"
 
 export const dynamic = "force-dynamic"
@@ -82,7 +82,14 @@ export default async function AdminContestPage(
           </p>
         )}
         {waiting.map(e => (
-          <AdminEntryRow key={e._id} e={e} waHref={waLink(e, contest, base)} checks={readiness(e, contest)} />
+          <AdminEntryRow
+            key={e._id}
+            e={e}
+            waWelcome={waLinkWelcome(e, contest, base, isEarlyBird(e, contest))}
+            waApproved={waLinkApproved(e, contest, base)}
+            earlyBird={isEarlyBird(e, contest)}
+            checks={readiness(e, contest)}
+          />
         ))}
       </section>
 
@@ -92,7 +99,14 @@ export default async function AdminContestPage(
             Everyone else ({rest.length})
           </h2>
           {rest.map(e => (
-            <AdminEntryRow key={e._id} e={e} waHref={waLink(e, contest, base)} checks={readiness(e, contest)} />
+            <AdminEntryRow
+              key={e._id}
+              e={e}
+              waWelcome={waLinkWelcome(e, contest, base, isEarlyBird(e, contest))}
+              waApproved={waLinkApproved(e, contest, base)}
+              earlyBird={isEarlyBird(e, contest)}
+              checks={readiness(e, contest)}
+            />
           ))}
         </section>
       )}

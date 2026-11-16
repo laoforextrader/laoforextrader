@@ -12,10 +12,14 @@ import type { AdminEntry, Readiness } from "@/lib/contest/admin"
 // wrongly-funded account ends up on the board.
 
 export default function AdminEntryRow({
-  e, waHref, checks,
+  e, waWelcome, waApproved, earlyBird, checks,
 }: {
   e: AdminEntry
-  waHref: string
+  /** Code and install link — ready the moment they register. */
+  waWelcome: string
+  /** Sent once the account has been checked. */
+  waApproved: string
+  earlyBird: boolean
   checks: Readiness[]
 }) {
   const [status, setStatus] = useState(e.status)
@@ -58,6 +62,11 @@ export default function AdminEntryRow({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[11px] text-bk-muted">#{e.entryNo ?? "—"}</span>
+          {earlyBird && (
+            <span className="rounded-bk border border-gold-line bg-gold-soft px-1.5 py-0.5 text-[10px] font-bold text-gold-ink">
+              VPS
+            </span>
+          )}
           <span className="text-[14px] font-bold">{e.displayName}</span>
           <span className="font-mono text-[12px] text-bk-muted">{e.mtLogin}</span>
           {e.country && <span className="text-[11.5px] text-bk-muted">· {e.country}</span>}
@@ -110,6 +119,16 @@ export default function AdminEntryRow({
         )}
       </div>
 
+      {/* Step one, always available: the code and the install link. Nothing
+          can happen before this goes out, which is why it is not gated on
+          approval any more. */}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <a href={waWelcome} target="_blank" rel="noopener noreferrer"
+          className="rounded-bk border border-bk-line bg-bk-sunken px-3 py-1.5 text-[12px] font-semibold text-bk-ink">
+          WhatsApp: {earlyBird ? "code + VPS" : "send code"} →
+        </a>
+      </div>
+
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {status !== "approved" && status !== "disqualified" && (
           <button
@@ -131,8 +150,11 @@ export default function AdminEntryRow({
             {blockers.length ? `Approve (${blockers.length} not ready)` : "Approve"}
           </button>
         )}
+        {/* Step two: the result. Only once the account has been checked —
+            telling someone they are in before looking at their account is
+            how a wrongly funded one ends up on the board. */}
         <a
-          href={status === "approved" ? waHref : undefined}
+          href={status === "approved" ? waApproved : undefined}
           target="_blank" rel="noopener noreferrer"
           aria-disabled={status !== "approved"}
           className={`rounded-bk px-3 py-1.5 text-[12px] font-bold ${
@@ -140,7 +162,7 @@ export default function AdminEntryRow({
               ? "bg-ok text-white"
               : "pointer-events-none bg-bk-sunken text-bk-muted"
           }`}>
-          WhatsApp →
+          WhatsApp: result →
         </a>
         {status !== "disqualified" && (
           <button onClick={() => send("reject")} disabled={busy}

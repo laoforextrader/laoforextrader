@@ -120,10 +120,16 @@ export default function RegisterForm({
             <p className="text-[12px] leading-relaxed text-bk-muted">{t.doneBody}</p>
             <p className="rounded-bk bg-bk-sunken px-3 py-2 text-[12px] leading-relaxed text-bk-muted">{t.pendingNote}</p>
             {done.earlyBird && (
-              <p className="rounded-bk bg-ok-soft px-3 py-2 text-[12px] font-semibold text-ok-ink">🎁 {t.earlyBirdYou}</p>
+              <p className="rounded-bk bg-gold-soft px-3 py-2 text-[12px] font-semibold text-gold-ink">{t.perkYours}</p>
             )}
 
-            <Link href="/contest" className="rounded-bk bg-accent py-3 text-center text-[13px] font-bold text-white">
+            {/* Installing is the next thing that has to happen — the board
+                has nothing on it for them yet. */}
+            <Link href="/contest/install"
+              className="rounded-bk bg-accent py-3 text-center text-[13px] font-bold text-white">
+              {t.installNow} →
+            </Link>
+            <Link href="/contest" className="text-center text-[12.5px] font-semibold text-bk-muted">
               {t.leaderboard}
             </Link>
           </div>
