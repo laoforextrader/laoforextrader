@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { linkAccount, accountsOf } from "@/lib/semi/store"
+import { linkAccount, accountsOf, compactKey } from "@/lib/semi/store"
 import { openDashSession } from "@/lib/semi/session"
 
 export const runtime = "nodejs"
@@ -31,8 +31,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "account must be the MT5 login number" }, { status: 400 })
   }
   // The EA writes the key as XXXX-XXXX-XXXX-XXXX; accept it with or without
-  // the dashes so retyping from the panel is forgiving.
-  const compact = key.replace(/-/g, "")
+  // the dashes, with or without spaces, so retyping from the panel is
+  // forgiving. The store puts it back into the dashed form the EA signs with.
+  const compact = compactKey(key)
   if (!/^[A-Z0-9]{12,32}$/.test(compact)) {
     return NextResponse.json({ error: "key does not look right" }, { status: 400 })
   }

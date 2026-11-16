@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { load, saveState, takeCommand, isWatched, signBody, type SemiRound } from "@/lib/semi/store"
+import { load, saveState, takeCommand, isWatched, verifySignature, type SemiRound } from "@/lib/semi/store"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,7 +34,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "account not linked" }, { status: 404 })
   }
 
-  if (signBody(raw, entry.doc.dashKey) !== sign) {
+  // Forgives only the dash form of the stored key, and repairs it in passing
+  // - see verifySignature.
+  if (!(await verifySignature(account, entry, raw, sign))) {
     return NextResponse.json({ error: "bad signature" }, { status: 401 })
   }
 

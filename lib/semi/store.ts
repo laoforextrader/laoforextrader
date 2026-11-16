@@ -76,6 +76,21 @@ export const docId = (account: string) => `semi-${account}`
 export const hashKey = (key: string) =>
   createHash("sha256").update(key.trim().toUpperCase()).digest("hex")
 
+// -- Key shape ---------------------------------------------------------------
+// The EA generates the key WITH dashes (MakeWebKey writes XXXX-XXXX-XXXX-XXXX)
+// and signs every heartbeat with that exact string. The owner retypes it off
+// the panel and may well leave the dashes out, and storing that verbatim broke
+// the account in both directions at once: the EA's signature never matched
+// (401, panel reads "key mismatch") and re-entering the dashed key was refused
+// by the exact comparison below (409), so the owner could not escape either way.
+//
+// Keys are therefore COMPARED without dashes and always STORED in the dashed
+// form the EA actually signs with.
+export const compactKey = (key: string) => String(key ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
+export const canonKey = (key: string) => compactKey(key).replace(/(.{4})(?=.)/g, "$1-")
+export const sameKey = (a: string, b: string) =>
+  compactKey(a).length > 0 && compactKey(a) === compactKey(b)
+
 /** SHA256(body + key) — the signature the EA sends in X-RM-Sign. */
 export const signBody = (body: string, key: string) =>
   createHash("sha256").update(body + key, "utf8").digest("hex")
@@ -296,9 +311,13 @@ export async function linkAccount(
   if (doc?.ownerEmail && doc.ownerEmail !== email) {
     return { ok: false, reason: "already-linked" }
   }
-  if (doc?.dashKey && doc.dashKey !== key) {
+  if (doc?.dashKey && !sameKey(doc.dashKey, key)) {
     return { ok: false, reason: "bad-key" }
   }
+
+  // Stored in the EA's own dashed form no matter how it was typed, which also
+  // upgrades an account that was linked with a bare key before this fix.
+  const stored = canonKey(key)
 
   if (doc) {
     // Re-entering the key is now routine — it happens after every "Exit
@@ -307,7 +326,7 @@ export async function linkAccount(
     // any queued command with it, so an existing account is patched instead.
     await sanityWrite
       .patch(id)
-      .set({ ownerEmail: email, dashKey: key, ownerName: name ?? doc.ownerName ?? "" })
+      .set({ ownerEmail: email, dashKey: stored, ownerName: name ?? doc.ownerName ?? "" })
       .commit({ visibility: "async" })
   } else {
     await sanityWrite.createOrReplace({
@@ -316,7 +335,7 @@ export async function linkAccount(
       account,
       ownerEmail: email,
       ownerName: name ?? "",
-      dashKey: key,
+      dashKey: stored,
       state: "",
       ackRound: 0,
       rounds: [],
@@ -324,6 +343,41 @@ export async function linkAccount(
   }
   mem.delete(account)
   return { ok: true }
+}
+
+/**
+ * Check the EA heartbeat signature against the stored key, tolerating a key
+ * that was stored in a different dash form, and repairing the document when
+ * that is what happened.
+ *
+ * Accounts linked before the fix above hold a dashless key the EA can never
+ * match, and their owners could not re-link (linkAccount refused the dashed
+ * key). They heal themselves here, on the next heartbeat, with nobody having
+ * to touch the data by hand. Only the dash form is forgiven: the key material
+ * still has to be exactly right.
+ */
+export async function verifySignature(
+  account: string, e: CacheEntry, raw: string, sign: string
+): Promise<boolean> {
+  const stored = e.doc.dashKey ?? ""
+  if (!stored) return false
+  if (signBody(raw, stored) === sign) return true
+
+  for (const cand of [canonKey(stored), compactKey(stored)]) {
+    if (!cand || cand === stored) continue
+    if (signBody(raw, cand) !== sign) continue
+    e.doc.dashKey = cand
+    try {
+      await sanityWrite.patch(docId(account)).set({ dashKey: cand }).commit({ visibility: "async" })
+      console.log("[semi] " + account + ": dashKey rewritten in the form the EA signs with")
+    } catch (err) {
+      // The signature was valid, so the heartbeat goes through either way; the
+      // next one tries the repair again.
+      console.error("[semi] dashKey repair failed", err)
+    }
+    return true
+  }
+  return false
 }
 
 /** Accounts this signed-in user may see. */
