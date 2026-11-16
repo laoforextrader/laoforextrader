@@ -148,9 +148,17 @@ if ($ok -eq 0) { Say '  Nothing was installed.' 'Red'; return }
 Write-Host ''
 Say '  Done. Three things left, in MT5:' 'White'
 Write-Host ''
+#  The allow-list cannot be written by a script: tested four ways on
+#  2026-11-16 (startup /config:, config\common.ini, bare host, repeated key)
+#  and MT5 keeps the value in the file while ignoring it completely — the EA
+#  still gets error 4014. So the next best thing is to put the URL on the
+#  clipboard, which turns three fiddly steps into tick, Ctrl+V, OK.
+try { Set-Clipboard -Value $BASE; $onClip = $true } catch { $onClip = $false }
+
 Say '  1. Tools > Options > Expert Advisors' 'Gray'
 Say '       tick  Allow WebRequest for listed URL' 'Gray'
 Say "       add   $BASE" 'Cyan'
+if ($onClip) { Say '       (already copied - just press Ctrl+V in that box)' 'Green' }
 Say '       (without this the EA trades but cannot report, and we cannot' 'DarkGray'
 Say '        approve your entry)' 'DarkGray'
 Write-Host ''
