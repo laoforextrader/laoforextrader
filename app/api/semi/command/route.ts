@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { load, queueCommand } from "@/lib/semi/store"
+import { load, queueCommand, emailOf } from "@/lib/semi/store"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -59,7 +59,8 @@ export async function POST(req: Request) {
   }
 
   const entry = await load(account)
-  if (!entry || entry.doc.ownerEmail !== email) {
+  //  emailOf(), because a sealed account has no plaintext ownerEmail.
+  if (!entry || emailOf(entry.doc) !== email) {
     return NextResponse.json({ error: "account not found" }, { status: 404 })
   }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { load, markWatching, readSeries, watchedCommand } from "@/lib/semi/store"
+import { load, markWatching, readSeries, watchedCommand, emailOf } from "@/lib/semi/store"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -19,7 +19,8 @@ export async function GET(req: Request) {
 
   const entry = await load(account)
   if (!entry) return NextResponse.json({ error: "account not found" }, { status: 404 })
-  if (entry.doc.ownerEmail !== email) {
+  //  emailOf(), because a sealed account has no plaintext ownerEmail.
+  if (emailOf(entry.doc) !== email) {
     // Same answer as "not found" on purpose: never confirm that an account
     // number exists to someone who does not own it.
     return NextResponse.json({ error: "account not found" }, { status: 404 })

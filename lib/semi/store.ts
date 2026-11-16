@@ -46,11 +46,14 @@ export interface SemiRound {
 export interface SemiDoc {
   _id: string
   account: string
-  ownerEmail?: string      // legacy plaintext; cleared by the migration
+  //  Deliberately awkward names. These two hold the pre-2026-11-16
+  //  plaintext, and nothing outside keyOf()/emailOf() may read them: the
+  //  names are what makes the compiler say so.
+  legacyOwnerEmailPlain?: string
+  legacyDashKeyPlain?: string
   ownerEmailHash?: string
   ownerEmailEnc?: string
   ownerName?: string
-  dashKey?: string         // legacy plaintext; cleared by the migration
   dashKeyEnc?: string
   state?: string
   lastSeen?: string
@@ -110,7 +113,7 @@ export function keyOf(doc: SemiDoc): string {
   if (doc.dashKeyEnc) {
     try { return decryptPII(doc.dashKeyEnc) } catch { /* fall back to legacy */ }
   }
-  return doc.dashKey ?? ""
+  return doc.legacyDashKeyPlain ?? ""
 }
 
 /** The owner's email, however it happens to be stored. */
@@ -118,7 +121,7 @@ export function emailOf(doc: SemiDoc): string {
   if (doc.ownerEmailEnc) {
     try { return decryptPII(doc.ownerEmailEnc) } catch { /* fall back */ }
   }
-  return doc.ownerEmail ?? ""
+  return doc.legacyOwnerEmailPlain ?? ""
 }
 
 /** The fields that store an owner's email safely, plaintext dropped. */
@@ -137,8 +140,9 @@ export const signBody = (body: string, key: string) =>
 async function fetchDoc(account: string): Promise<SemiDoc | null> {
   return sanityWrite.fetch<SemiDoc | null>(
     `*[_id == $id][0]{
-       _id, account, ownerEmail, ownerEmailHash, ownerEmailEnc, ownerName,
-       dashKey, dashKeyEnc, state, lastSeen,
+       _id, account, ownerEmailHash, ownerEmailEnc, ownerName, dashKeyEnc,
+       "legacyOwnerEmailPlain": ownerEmail, "legacyDashKeyPlain": dashKey,
+       state, lastSeen,
        cmdId, cmd, cmdLot, cmdAt, cmdBy, ackRound, rounds, series, watchUntil
      }`,
     { id: docId(account) }
@@ -401,7 +405,7 @@ export async function linkAccount(
  */
 async function sealKey(account: string, e: CacheEntry, key: string): Promise<void> {
   e.doc.dashKeyEnc = encryptPII(key)
-  e.doc.dashKey = undefined
+  e.doc.legacyDashKeyPlain = undefined
   try {
     await sanityWrite.patch(docId(account))
       .set({ dashKeyEnc: e.doc.dashKeyEnc })
@@ -433,7 +437,7 @@ export async function verifySignature(
     //  A document still holding the key in the clear is sealed on the first
     //  heartbeat that proves it, so there is never a window where the EA
     //  cannot authenticate.
-    if (e.doc.dashKey) await sealKey(account, e, stored)
+    if (e.doc.legacyDashKeyPlain) await sealKey(account, e, stored)
     return true
   }
 
@@ -451,9 +455,9 @@ export async function accountsOf(
   email: string
 ): Promise<Array<{ account: string; lastSeen?: string; keyTail?: string }>> {
   // Matches either the blind index (new) or the plaintext (pre-migration).
-  const rows = await sanityWrite.fetch<Array<{ account: string; lastSeen?: string; dashKey?: string; dashKeyEnc?: string }>>(
+  const rows = await sanityWrite.fetch<Array<{ account: string; lastSeen?: string; legacyDashKeyPlain?: string; dashKeyEnc?: string }>>(
     `*[_type == "semiAccount" && (ownerEmailHash == $hash || ownerEmail == $email)]{
-       account, lastSeen, dashKey, dashKeyEnc
+       account, lastSeen, dashKeyEnc, "legacyDashKeyPlain": dashKey
      } | order(account asc)`,
     { hash: blindIndex(email, "semiOwner"), email }
   )
