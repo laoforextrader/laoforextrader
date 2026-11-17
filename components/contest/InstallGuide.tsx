@@ -44,12 +44,15 @@ function Step({ n, children }: { n: string; children: React.ReactNode }) {
 }
 
 export default function InstallGuide({
-  installUrl, symbol, hasEntry, entryCode,
+  installUrl, symbol, hasEntry, entryCode, eaUrl, eaSize,
 }: {
   installUrl: string
   symbol: string
   hasEntry: boolean
   entryCode: string | null
+  /** Path of the shipped .ex5, from the dist manifest. */
+  eaUrl: string | null
+  eaSize: number
 }) {
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "lo"
@@ -106,6 +109,28 @@ export default function InstallGuide({
           <Cmd text={long} label={t.copy} />
         </div>
         <p className="mt-2.5 text-[11.5px] leading-[1.55] text-bk-muted">{t.dlAfter}</p>
+
+        {/* The same build, by hand. A command that installs software is a
+            fair thing to be wary of, and a VPS without PowerShell is a real
+            case — both end at the same file. */}
+        {eaUrl && (
+          <div className="mt-4 rounded-bk border border-bk-line bg-bk-sunken p-3.5">
+            <p className="m-0 text-[12.5px] font-semibold text-bk-ink">{t.dlOr}</p>
+            <a
+              href={eaUrl}
+              download
+              className="mt-2.5 inline-flex items-center gap-2 rounded-bk bg-accent px-4 py-2.5 text-[13px] font-bold text-white no-underline"
+            >
+              {t.dlManual} <Arrow />
+            </a>
+            {eaSize > 0 && (
+              <span className="ml-2 text-[11.5px] text-bk-muted">
+                {t.dlSize} {(eaSize / 1024).toFixed(0)} KB
+              </span>
+            )}
+            <p className="mt-2.5 text-[11.5px] leading-[1.75] text-bk-muted">{t.dlManualNote}</p>
+          </div>
+        )}
       </section>
 
       <section className="mt-6 border-t border-bk-line pt-6">
