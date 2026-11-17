@@ -33,6 +33,7 @@ export interface HomeContest {
   pool: number
   startBalance?: number
   currency?: string
+  symbol?: string
   seats: number
   entries: number
 }
@@ -192,7 +193,7 @@ export default function HomeContestBanner({ contest }: { contest: HomeContest })
                   <span className="text-[13px] text-[#e3b561]"><Trophy /></span>
                   {T.prizePool}
                 </span>
-                <span className="font-mono normal-case tracking-normal">XAUUSD</span>
+                <span className="font-mono normal-case tracking-normal">{contest.symbol ?? "XAUUSD"}</span>
               </div>
 
               <div className="px-4 pb-3 pt-[18px] text-center">

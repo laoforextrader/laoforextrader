@@ -112,7 +112,7 @@ interface SiteCounts {
  */
 const CONTEST_QUERY = `*[_type == "contest" && status in ["register", "live", "judging"]] {
   title, "slug": slug.current, status, startAt, endAt, announceAt,
-  startBalance, currency, "seats": coalesce(maxEntries, 0),
+  startBalance, currency, symbol, "seats": coalesce(maxEntries, 0),
   "pool": math::sum(prizes[].amount),
   "entries": count(*[_type == "contestEntry" && contest._ref == ^._id])
 }`
