@@ -319,6 +319,70 @@ html { background-color: var(--bg); }
 }
 .approval-ping { animation: approvalPing 1.6s ease-out infinite; }
 
+/* -- Homepage contest banner --------------------------------------------
+   Motion with a job: the sweep says the round is live, the clock counts,
+   the rise orders what to read first. Everything here is decoration over a
+   page that already reads fine without it, so the whole set is switched off
+   under prefers-reduced-motion at the bottom of this block. */
+
+/* a band of light crossing the panel, roughly once every eight seconds */
+@keyframes ctSweep {
+  0%        { transform: translateX(0); opacity: 0; }
+  12%       { opacity: 1; }
+  55%, 100% { transform: translateX(520%); opacity: 0; }
+}
+.ct-sweep {
+  background: linear-gradient(100deg, transparent, rgba(227,181,97,0.16) 45%, rgba(255,255,255,0.10) 55%, transparent);
+  animation: ctSweep 8s cubic-bezier(.4,0,.2,1) 1.2s infinite;
+}
+
+/* the prize figure, breathing rather than blinking */
+@keyframes ctGlow {
+  0%, 100% { text-shadow: 0 0 18px rgba(227,181,97,0.20); }
+  50%      { text-shadow: 0 0 30px rgba(227,181,97,0.45); }
+}
+.ct-gold { animation: ctGlow 3.6s ease-in-out infinite; }
+
+/* status dot: a ring leaving the dot, in the dot's own colour */
+@keyframes ctDot {
+  0%   { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  70%  { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.ct-dot { animation: ctDot 2.2s ease-out infinite; }
+
+/* one rise, staggered, so the eye lands on the headline first */
+@keyframes ctRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.ct-rise   { animation: ctRise .55s cubic-bezier(.22,.61,.36,1) both; }
+.ct-rise-1 { animation-delay: .07s; }
+.ct-rise-2 { animation-delay: .14s; }
+.ct-rise-3 { animation-delay: .21s; }
+.ct-rise-4 { animation-delay: .28s; }
+
+/* the seats bar fills to whatever width the markup sets */
+@keyframes ctBar { from { transform: scaleX(0); } to { transform: none; } }
+.ct-bar { transform-origin: left; animation: ctBar .9s cubic-bezier(.22,.61,.36,1) .35s both; }
+
+/* the card itself lifts a little on hover, and the CTA carries a soft glow */
+.ct-card { transition: border-color .25s ease, transform .25s ease; }
+@media (hover: hover) and (min-width: 768px) {
+  .ct-card:hover { border-color: rgba(227,181,97,0.35); transform: translateY(-2px); }
+}
+.ct-cta { box-shadow: 0 6px 20px rgba(77,124,254,0.30); transition: box-shadow .25s ease, transform .25s ease; }
+.ct-cta:hover { box-shadow: 0 10px 28px rgba(77,124,254,0.45); transform: translateY(-1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-sweep { display: none; }
+  .ct-gold, .ct-dot, .ct-rise, .ct-bar { animation: none; }
+  .ct-rise { opacity: 1; transform: none; }
+  .ct-bar  { transform: none; }
+  .ct-card, .ct-cta { transition: none; }
+  .ct-card:hover, .ct-cta:hover { transform: none; }
+}
+
 /* ── Prose / Article body ── */
 .prose-lao {
   color: var(--fg-2) !important;

@@ -40,6 +40,7 @@ import MerchSection from "@/components/sections/MerchSection"
 import FounderSection from "@/components/sections/FounderSection"
 import EASGridCTA from "@/components/sections/EASGridCTA"
 import QuizzesHomeSection from "@/components/quiz/QuizzesHomeSection"
+import HomeContestBanner, { type HomeContest } from "@/components/contest/HomeContestBanner"
 import { btnSolid, btnOutline, ArrowIcon } from "@/components/broker/review/BrokerBits"
 import type { Article, Broker, BrokerNewsDoc, HotNewsEntry } from "@/types"
 import { categoryRoute, formatDate } from "@/lib/utils"
@@ -98,6 +99,27 @@ interface SiteCounts {
   articles: number
 }
 
+/**
+ * The round to promote, if there is one.
+ *
+ * Only a round people can still act on earns a place on the homepage:
+ * register, live, or being judged. A finished round renders nothing rather
+ * than an empty trophy — /contest keeps the archive.
+ *
+ * `entries` is a count, never the entries themselves: the documents carry a
+ * name, a phone number and a sealed investor password, and none of that has
+ * any business being fetched for a banner.
+ */
+const CONTEST_QUERY = `*[_type == "contest" && status in ["register", "live", "judging"]] {
+  title, "slug": slug.current, status, startAt, endAt, announceAt,
+  startBalance, currency, "seats": coalesce(maxEntries, 0),
+  "pool": math::sum(prizes[].amount),
+  "entries": count(*[_type == "contestEntry" && contest._ref == ^._id])
+}`
+
+/** live beats judging beats register, the same order /contest uses. */
+const CONTEST_RANK: Record<string, number> = { live: 0, judging: 1, register: 2 }
+
 const COUNTS_QUERY = `{
   "brokers": count(*[_type == "broker"]),
   "lessons": count(*[_type == "article" && category == "education"]),
@@ -110,6 +132,7 @@ export default async function HomePage() {
   let lessons: Article[] = []
   let popular: Article[] = []
   let counts: SiteCounts | null = null
+  let contest: HomeContest | null = null
 
   try {
     const data = await Promise.all([
@@ -124,12 +147,17 @@ export default async function HomePage() {
       ),
       sanityClient.fetch<Article[]>(QUERIES.popularArticles(2), {}, { next: { revalidate: 60 } }),
       sanityClient.fetch<SiteCounts>(COUNTS_QUERY, {}, { next: { revalidate: 300 } }),
+      sanityClient.fetch<HomeContest[]>(CONTEST_QUERY, {}, { next: { revalidate: 60 } }),
     ])
     latest = data[0] || latest
     brokers = data[1] || []
     lessons = data[2] || []
     popular = data[3] || []
     counts = data[4] || null
+    contest =
+      (data[5] || [])
+        .slice()
+        .sort((a, b) => (CONTEST_RANK[a.status] ?? 9) - (CONTEST_RANK[b.status] ?? 9))[0] ?? null
   } catch (err) {
     console.error("Sanity fetch error:", err)
   }
@@ -233,6 +261,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── contest promo ───────────────────────────────── */}
+      {contest && <HomeContestBanner contest={{ ...contest, pool: contest.pool ?? 0 }} />}
 
       {/* ── today's calendar ─────────────────────────────────────────────── */}
       {dailyUpdate?.calendarHighlights && dailyUpdate.calendarHighlights.length > 0 && (
