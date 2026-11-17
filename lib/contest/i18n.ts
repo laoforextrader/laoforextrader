@@ -16,6 +16,33 @@ export function pickLang(v: unknown): Lang {
   return v === "th" || v === "lo" || v === "en" ? v : "lo"
 }
 
+/**
+ * A short date that renders identically on the server and in the browser.
+ *
+ * `toLocaleDateString` cannot be used for this. Node ships the full CLDR and
+ * formats lo-LA as ວັນທີ ພ.ຈ.; Chrome on Windows has no Lao calendar data and
+ * falls back to English. The two disagree, React calls that a hydration
+ * failure, throws away the server tree and re-renders — which also resets
+ * <html class="dark"> and dropped the whole contest page back to the light
+ * palette. The month names below are CLDR's own, lifted from Node's ICU.
+ *
+ * Dates are read in UTC on purpose: the round's own times are stored in UTC
+ * and the schedule is labelled "broker server time", so the reader's machine
+ * clock must not shift the day.
+ */
+const MONTHS: Record<Lang, string[]> = {
+  lo: ["ມ.ກ.", "ກ.ພ.", "ມ.ນ.", "ມ.ສ.", "ພ.ພ.", "ມິ.ຖ.", "ກ.ລ.", "ສ.ຫ.", "ກ.ຍ.", "ຕ.ລ.", "ພ.ຈ.", "ທ.ວ."],
+  th: ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+}
+
+export function shortDay(iso: string | undefined, lang: Lang): string {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return "—"
+  return `${d.getUTCDate()} ${MONTHS[lang][d.getUTCMonth()]}`
+}
+
 /** Pull one language out of a Sanity locale object, falling back sensibly. */
 export function loc(v: { en?: string; th?: string; lo?: string } | undefined, lang: Lang): string {
   if (!v) return ""

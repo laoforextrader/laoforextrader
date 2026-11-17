@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/contest/i18n"
 import { Alert, Copy, Check, Arrow } from "@/components/contest/icons"
@@ -54,10 +54,13 @@ export default function InstallGuide({
   eaUrl: string | null
   eaSize: number
 }) {
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === "undefined") return "lo"
-    try { return pickLang(localStorage.getItem("semi.lang")) } catch { return "lo" }
-  })
+  // Read after mount, never during the first render: localStorage does not
+  // exist on the server, so a stored EN/ไทย choice would make every string
+  // differ and cost the page its hydration (see ContestHome).
+  const [lang, setLang] = useState<Lang>("lo")
+  useEffect(() => {
+    try { setLang(pickLang(localStorage.getItem("semi.lang"))) } catch {}
+  }, [])
   const t = DICT[lang]
 
   const short = `irm ${installUrl} | iex`

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
 import { DICT, LANGS, LANG_LABEL, pickLang, type Lang } from "@/lib/contest/i18n"
@@ -22,10 +22,18 @@ export default function MyEntryCard({
   mtLogin: string
   startAt: string | null
 }) {
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === "undefined") return "lo"
-    try { return pickLang(localStorage.getItem("semi.lang")) } catch { return "lo" }
-  })
+  // Read after mount, never during the first render: localStorage does not
+  // exist on the server, so a stored EN/ไทย choice would make every string
+  // differ and cost the page its hydration (see ContestHome).
+  const [lang, setLang] = useState<Lang>("lo")
+  // `mounted` gates the one value only the reader's machine can produce: a
+  // timestamp in their own timezone. Rendering it on the server too would
+  // cost the page its hydration, and with it the dark class on <html>.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+    try { setLang(pickLang(localStorage.getItem("semi.lang"))) } catch {}
+  }, [])
   const t = DICT[lang]
   const [copied, setCopied] = useState(false)
 
@@ -80,7 +88,7 @@ export default function MyEntryCard({
             <span className="text-right font-mono">{mtLogin || "—"}</span>
             <span className="text-bk-muted">{lastSeen ? t.meSeen : ""}</span>
             <span className="text-right font-mono text-bk-muted">
-              {lastSeen ? new Date(lastSeen).toLocaleString() : t.meNoSeen}
+              {lastSeen ? (mounted ? new Date(lastSeen).toLocaleString() : "…") : t.meNoSeen}
             </span>
             {startAt && (
               <>

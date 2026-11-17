@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
 import { DICT, LANGS, LANG_LABEL, loc, pickLang, type Lang } from "@/lib/contest/i18n"
@@ -35,10 +35,13 @@ export default function RegisterForm({
     startBalance?: number; currency?: string; signupUrl?: string
   }
 }) {
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === "undefined") return "lo"
-    try { return pickLang(localStorage.getItem("semi.lang")) } catch { return "lo" }
-  })
+  // Read after mount, never during the first render: localStorage does not
+  // exist on the server, so a stored EN/ไทย choice would make every string
+  // differ and cost the page its hydration (see ContestHome).
+  const [lang, setLang] = useState<Lang>("lo")
+  useEffect(() => {
+    try { setLang(pickLang(localStorage.getItem("semi.lang"))) } catch {}
+  }, [])
   const t = DICT[lang]
 
   const [form, setForm] = useState({ displayName: "", contact: "", country: "", mtLogin: "", mtServer: "", investor: "" })
@@ -179,7 +182,7 @@ export default function RegisterForm({
               <li>• {requirements.broker} {requirements.accountType} ({t.demo})</li>
               <li>• {t.startingBalance}: <b className="font-mono">
                 {typeof requirements.startBalance === "number"
-                  ? (requirements.currency === "USD" ? "$" : "") + requirements.startBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })
+                  ? (requirements.currency === "USD" ? "$" : "") + requirements.startBalance.toLocaleString("en-US", { maximumFractionDigits: 0 })
                   : "—"}</b></li>
               <li>• Symbol: {requirements.symbol}</li>
             </ul>

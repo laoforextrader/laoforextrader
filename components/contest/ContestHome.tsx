@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { DICT, LANGS, LANG_LABEL, loc, pickLang, type Lang } from "@/lib/contest/i18n"
+import { DICT, LANGS, LANG_LABEL, loc, pickLang, shortDay, type Lang } from "@/lib/contest/i18n"
 import type { BoardRow, Contest } from "@/lib/contest/store"
 import { Trophy, Medal, Clock, Users, Chart, Gift, Info, Arrow, CandleBand } from "@/components/contest/icons"
 
@@ -21,24 +21,34 @@ import { Trophy, Medal, Clock, Users, Chart, Gift, Info, Arrow, CandleBand } fro
 const POLL_MS = 30_000
 
 function useCountdown(to?: string) {
-  const [left, setLeft] = useState(() => (to ? Date.parse(to) - Date.now() : 0))
+  // Starts at null on purpose. A clock rendered on the server is already
+  // wrong by the time it reaches the browser, and React treats that one
+  // differing digit as a hydration failure: it throws away the whole server
+  // tree, re-renders from scratch, and resets <html class="dark"> that
+  // ThemeScript had set before paint — which is how this page, and only this
+  // page, used to come up light for a reader who had chosen dark.
+  const [left, setLeft] = useState<number | null>(null)
   useEffect(() => {
     if (!to) return
-    const id = setInterval(() => setLeft(Date.parse(to) - Date.now()), 1000)
+    const tick = () => setLeft(Date.parse(to) - Date.now())
+    tick()
+    const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [to])
-  if (!to || !Number.isFinite(left) || left <= 0) return null
+  if (!to || left === null || !Number.isFinite(left) || left <= 0) return null
   const s = Math.floor(left / 1000)
   return { d: Math.floor(s / 86400), h: Math.floor(s / 3600) % 24, m: Math.floor(s / 60) % 60, s: s % 60 }
 }
 
+// Fixed locale, both sides. `undefined` means "whatever this machine is set
+// to", and the renderer and the reader are never the same machine.
 const money = (v?: number, currency?: string) => {
   if (typeof v !== "number") return "—"
-  const n = v.toLocaleString(undefined, { maximumFractionDigits: 0 })
+  const n = v.toLocaleString("en-US", { maximumFractionDigits: 0 })
   return currency === "USD" ? `$${n}` : currency === "cent" ? `${n}¢` : n
 }
 const round0 = (v?: number) =>
-  typeof v === "number" ? v.toLocaleString(undefined, { maximumFractionDigits: 0 }) : "—"
+  typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—"
 const signed0 = (v?: number) =>
   typeof v === "number" ? (v >= 0 ? "+" : "") + round0(v) : "—"
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -150,10 +160,13 @@ export default function ContestHome({
   /** The site's own CTA cards, rendered on the server and passed through. */
   children?: React.ReactNode
 }) {
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === "undefined") return "lo"
-    try { return pickLang(localStorage.getItem("semi.lang")) } catch { return "lo" }
-  })
+  // Same reason as the countdown: localStorage does not exist on the server,
+  // so reading it during the first render makes every string on the page
+  // differ for anyone who had picked EN or ไทย. Pick it up right after mount.
+  const [lang, setLang] = useState<Lang>("lo")
+  useEffect(() => {
+    try { setLang(pickLang(localStorage.getItem("semi.lang"))) } catch {}
+  }, [])
   const [board, setBoard] = useState(rows)
   const t = DICT[lang]
 
@@ -184,9 +197,7 @@ export default function ContestHome({
   )
   const prizes = [...(contest.prizes ?? [])].sort((a, b) => (a.place ?? 9) - (b.place ?? 9))
   const pool = prizes.reduce((sum, p) => sum + (p.amount ?? 0), 0)
-  const locale = lang === "en" ? "en-GB" : lang === "th" ? "th-TH" : "lo-LA"
-  const day = (iso?: string) =>
-    iso ? new Date(iso).toLocaleDateString(locale, { day: "numeric", month: "short" }) : "—"
+  const day = (iso?: string) => shortDay(iso, lang)
 
   const schedule = [
     { when: day(contest.registerOpenAt), title: t.phRegister, note: t.phRegisterNote, on: contest.status === "register" },
