@@ -75,6 +75,11 @@ export async function POST(req: Request) {
     status: saved.status,
     endsAt: contest.endAt,
     startsAt: contest.startAt,
+    // Epoch seconds as well as the ISO strings: MQL5 has no date parser, and
+    // the EA was reading endsAt with StringToInteger, which turns
+    // "2026-11-24T..." into 2026. Seconds are what it can actually use.
+    startsAtTs: contest.startAt ? Math.floor(Date.parse(contest.startAt) / 1000) : 0,
+    endsAtTs: contest.endAt ? Math.floor(Date.parse(contest.endAt) / 1000) : 0,
     // The panel locks itself on this, so the owner can move the start date in
     // Sanity without anyone reinstalling an EA. Open only while the round is
     // actually running: before the start there is nothing to trade for, and a
