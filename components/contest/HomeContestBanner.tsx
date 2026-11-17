@@ -126,7 +126,10 @@ export default function HomeContestBanner({ contest }: { contest: HomeContest })
                 <span className="text-white/55 normal-case tracking-normal">{contest.title}</span>
               </span>
 
-              <h2 className="ct-rise ct-rise-1 lao-head m-0 mt-3 text-[25px] font-bold leading-[1.32] tracking-[-0.02em] sm:text-[31px]">
+              {/* `!text-white`: globals.css sets `h1..h6 { color: var(--fg) !important }`,
+                  which beats an inherited text-white and painted this headline
+                  near-black on the dark panel for every reader in light mode. */}
+              <h2 className="ct-rise ct-rise-1 lao-head m-0 mt-3 text-[25px] font-bold leading-[1.32] tracking-[-0.02em] !text-white sm:text-[31px]">
                 {T.head} <span className="ct-gold whitespace-nowrap text-[#e3b561]">{T.headGold}</span>
                 <br className="hidden sm:block" />{" "}
                 <span className="text-white/90">{T.headB}</span>
