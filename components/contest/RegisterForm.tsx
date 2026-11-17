@@ -280,14 +280,14 @@ export default function RegisterForm({
             </span>
             <div className="flex items-stretch gap-0">
               {lao && (
-                <span className="flex items-center rounded-l-bk border border-r-0 border-bk-line bg-bk-sunken px-3 font-mono text-[15px] text-bk-muted">
-                  +856 20
+                <span className="flex items-center whitespace-nowrap rounded-l-bk border border-r-0 border-bk-line bg-bk-sunken px-3 font-mono text-[15px] text-bk-muted">
+                  +856
                 </span>
               )}
               <input
                 value={form.contact}
                 onChange={e => setForm(f => ({ ...f, contact: e.target.value.replace(/[^\d+]/g, "") }))}
-                placeholder={lao ? "12345678" : "+66812345678"}
+                placeholder={lao ? "20 9xxxxxxx" : "+66812345678"}
                 inputMode="tel" autoComplete="tel"
                 className={`w-full border border-bk-line bg-bk-surface px-3 py-2.5 font-mono text-[15px] outline-none focus:ring-2 focus:ring-accent ${lao ? "rounded-r-bk" : "rounded-bk"}`}
               />
