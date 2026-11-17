@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { currentContest, signBody, normCode } from "@/lib/contest/store"
 import { applyHeartbeat, entryByLogin, rankOf, type EaPayload } from "@/lib/contest/ea"
+import { notifyEaConnected } from "@/lib/contest/notify"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -65,6 +66,14 @@ export async function POST(req: Request) {
   }
 
   const saved = await applyHeartbeat(entry, contest, body)
+
+  // First time this entry has ever reported: tell the owner, once, with the
+  // approval checks already run. Best-effort on purpose — a Telegram outage
+  // must not fail a heartbeat that has already been recorded.
+  if (saved.firstBeat) {
+    void notifyEaConnected(contest, entry._id, login, body).catch(() => {})
+  }
+
   const { rank, entries } = await rankOf(contest._id, entry._id, saved.profit)
 
   return NextResponse.json({

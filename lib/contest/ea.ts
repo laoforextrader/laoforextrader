@@ -82,6 +82,8 @@ export interface SaveResult {
   profit: number
   status: string
   newFlags: Flag[]
+  /** True only on the beat that wrote `firstSeen` — the owner is told once. */
+  firstBeat: boolean
 }
 
 /**
@@ -182,7 +184,8 @@ export async function applyHeartbeat(
     series: JSON.stringify(series),
     status,
   }
-  if (!entry.firstSeen) {
+  const firstBeat = !entry.firstSeen
+  if (firstBeat) {
     set.firstSeen = now.toISOString()
     set.startBalance = reported || expected
   }
@@ -208,7 +211,7 @@ export async function applyHeartbeat(
   if (flags.length) patch.setIfMissing({ flags: [] }).append("flags", flags)
   await patch.commit({ visibility: "async" })
 
-  return { profit, status, newFlags: flags }
+  return { profit, status, newFlags: flags, firstBeat }
 }
 
 /** Where this entry stands right now, for the EA to show on its panel. */
