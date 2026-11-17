@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/admin/auth"
 import { getEmailOptIn } from "@/lib/subscribers"
+import { accountOverview } from "@/lib/account/overview"
+import { CopyEmail, SignOutButton } from "@/components/account/AccountActions"
 import { EmailOptInCard } from "@/components/newsletter/EmailOptInCard"
 import { Bookmark, Clock, MessageSquare, ChevronRight } from "lucide-react"
 import Image from "next/image"
@@ -22,6 +24,11 @@ export default async function DashboardPage() {
   const user = session.user
   const isAdmin = isAdminEmail(user?.email)
   const optIn = user?.email ? await getEmailOptIn(user.email) : false
+  //  What this person actually owns: their contest entry, their linked EA
+  //  accounts, and what they have left on the site.
+  const mine = user?.email
+    ? await accountOverview(user.email, (user as any).id)
+    : null
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "80vh" }}>
@@ -37,7 +44,7 @@ export default async function DashboardPage() {
           }
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--fg)", marginBottom: 2 }}>{user?.name}</h1>
-            <p style={{ fontSize: 12, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace" }}>{user?.email}</p>
+            <CopyEmail email={user?.email ?? ""} />
             <span style={{ display: "inline-block", marginTop: 6, fontSize: 10, fontWeight: 700, padding: "2px 8px", background: "var(--accent-soft)", border: "1px solid var(--accent-line)", color: "var(--accent)", borderRadius: 4, letterSpacing: "0.06em" }}>
               FREE MEMBER
             </span>
@@ -50,9 +57,12 @@ export default async function DashboardPage() {
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
           {[
-            { icon: Bookmark, label: "Bookmarks", value: "0" },
-            { icon: Clock,    label: "ອ່ານລ່າສຸດ", value: "0" },
-            { icon: MessageSquare, label: "ຄຳເຫັນ", value: "0" },
+            //  Counted from this user's own rows. They used to be three
+            //  hard-coded zeros, which told a member who had commented that
+            //  the site had lost their comments.
+            { icon: Bookmark, label: "ຖືກໃຈ", value: String(mine?.likes ?? 0) },
+            { icon: MessageSquare, label: "ຄຳເຫັນ", value: String(mine?.comments ?? 0) },
+            { icon: Clock, label: "ບັນຊີ EA", value: String(mine?.eaAccounts.length ?? 0) },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 12, padding: 16, textAlign: "center" }}>
               <Icon size={16} color="var(--fg-4)" style={{ margin: "0 auto 8px" }} />
@@ -61,6 +71,76 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* The contest, when this person is in it. The entry code lives here
+            as well as on /contest/me, because this is the page they land on
+            from the navbar and the code is what the EA asks for. */}
+        {mine?.contest && (
+          <div style={{ background: "var(--surface)", border: "1px solid var(--accent-line)", borderRadius: 14, padding: 18, marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontSize: 10, color: "var(--fg-4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                ການແຂ່ງຂັນ
+              </span>
+              <span style={{ fontSize: 11, color: "var(--fg-3)" }}>
+                {mine.contest.roundTitle}{mine.contest.entryNo ? ` · #${mine.contest.entryNo}` : ""}
+              </span>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--fg-3)", marginBottom: 4 }}>ລະຫັດຜູ້ແຂ່ງຂອງທ່ານ</p>
+            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, fontWeight: 800, letterSpacing: "0.18em", color: "var(--accent)", marginBottom: 10 }}>
+              {mine.contest.code || "—"}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 6, fontSize: 12, color: "var(--fg-3)", marginBottom: 12 }}>
+              <span>ບັນຊີ MT5</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--fg-2)" }}>{mine.contest.mtLogin || "—"}</span>
+              <span>ສະຖານະ</span>
+              <span style={{ color: mine.contest.status === "pending" ? "var(--fg-2)" : "var(--success)" }}>
+                {mine.contest.status === "pending" ? "ລໍຖ້າ EA ເຊື່ອມຕໍ່" : mine.contest.status}
+              </span>
+              <span>EA ສົ່ງຂໍ້ມູນຫຼ້າສຸດ</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--fg-2)" }}>
+                {mine.contest.lastSeen ? new Date(mine.contest.lastSeen).toLocaleString() : "ຍັງບໍ່ທັນສົ່ງ"}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Link href="/contest/me" className="btn-primary" style={{ display: "inline-flex", padding: "8px 14px", fontSize: 12.5 }}>ໃບສະໝັກຂອງຂ້ອຍ →</Link>
+              <Link href="/contest/install" style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", fontSize: 12.5, fontWeight: 600, borderRadius: 10, border: "1px solid var(--line-2)", color: "var(--fg-2)", textDecoration: "none" }}>ຕິດຕັ້ງ EA</Link>
+            </div>
+          </div>
+        )}
+
+        {!mine?.contest && mine?.contestOpen && (
+          <Link href="/contest"
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface)", border: "1px solid var(--accent-line)", borderRadius: 14, padding: "14px 18px", marginBottom: 20, textDecoration: "none" }}>
+            <div>
+              <p style={{ fontSize: 14, color: "var(--fg)", fontWeight: 600, marginBottom: 2 }}>ການແຂ່ງຂັນເທຣດບັນຊີເດໂມ</p>
+              <p style={{ fontSize: 11, color: "var(--fg-4)" }}>ເປີດຮັບສະໝັກຢູ່ · ທ່ານຍັງບໍ່ທັນສະໝັກ</p>
+            </div>
+            <ChevronRight size={14} color="var(--fg-4)" />
+          </Link>
+        )}
+
+        {/* MT5 accounts linked to the Semi dashboard. The key tail is here so
+            somebody with two accounts can tell which key belongs to which. */}
+        {!!mine?.eaAccounts.length && (
+          <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
+            <div style={{ padding: "10px 18px", borderBottom: "1px solid var(--line-2)" }}>
+              <span style={{ fontSize: 10, color: "var(--fg-4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>ບັນຊີ EA ຂອງຂ້ອຍ</span>
+            </div>
+            {mine.eaAccounts.map(a => (
+              <Link key={a.account} href={`/semi?account=${encodeURIComponent(a.account)}`}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 18px", borderBottom: "1px solid var(--line-2)", textDecoration: "none" }}>
+                <div>
+                  <p style={{ fontSize: 14, color: "var(--fg)", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", marginBottom: 2 }}>{a.account}</p>
+                  <p style={{ fontSize: 11, color: "var(--fg-4)" }}>
+                    {a.lastSeen ? `ເຫັນ EA ຫຼ້າສຸດ ${new Date(a.lastSeen).toLocaleString()}` : "ຍັງບໍ່ທັນເຫັນ EA"}
+                    {a.keyTail ? ` · key …${a.keyTail}` : ""}
+                  </p>
+                </div>
+                <ChevronRight size={14} color="var(--fg-4)" />
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Menu */}
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
@@ -101,6 +181,10 @@ export default async function DashboardPage() {
           </p>
           <p style={{ fontSize: 13, color: "var(--fg-2)", marginBottom: 16 }}>ຮຽນ 50 ບົດ ຟຣີ ກັບ LaoForexTrader</p>
           <Link href="/lessons" className="btn-primary" style={{ display: "inline-flex" }}>ເລີ່ມຮຽນ Forex →</Link>
+        </div>
+
+        <div style={{ marginTop: 20 }}>
+          <SignOutButton label="ອອກຈາກລະບົບ" />
         </div>
       </div>
     </div>

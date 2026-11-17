@@ -14,6 +14,11 @@ export default function LoginButton() {
   if (session) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link
+          href="/dashboard"
+          title={session.user?.email ?? 'ບັນຊີຂອງຂ້ອຍ'}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
+        >
         {session.user?.image && (
           <img
             src={session.user.image}
@@ -35,6 +40,7 @@ export default function LoginButton() {
         >
           {session.user?.name}
         </span>
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
           style={{

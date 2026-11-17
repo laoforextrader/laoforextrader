@@ -113,7 +113,15 @@ export function Navbar() {
           ))}
           <div className="pt-3 border-t border-line-2">
             {session
-              ? <button onClick={() => signOut({ callbackUrl:"/" })} className="font-sans text-sm text-red-500 py-1">ອອກຈາກລະບົບ</button>
+              ? <>
+                  {/* Their own page first: sign out was the only thing a
+                      signed-in member could press in this menu. */}
+                  <Link href="/dashboard" onClick={() => setOpen(false)}
+                    className="block font-sans text-sm text-fg-2 font-semibold py-1">
+                    ບັນຊີຂອງຂ້ອຍ
+                  </Link>
+                  <button onClick={() => signOut({ callbackUrl:"/" })} className="font-sans text-sm text-red-500 py-1">ອອກຈາກລະບົບ</button>
+                </>
               : <Link href="/login" className="btn-primary block text-center py-2.5" onClick={() => setOpen(false)}>ເຂົ້າສູ່ລະບົບ / ສະໝັກ</Link>
             }
           </div>
