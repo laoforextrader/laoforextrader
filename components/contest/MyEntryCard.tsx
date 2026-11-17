@@ -37,7 +37,7 @@ export default function MyEntryCard({
     : { text: t.meStatusPending, tone: "text-bk-muted border-bk-line bg-bk-sunken" }
 
   return (
-    <div className="mx-auto flex max-w-[440px] flex-col gap-3 px-4 py-8">
+    <div className="mx-auto flex max-w-[440px] sm:max-w-[520px] flex-col gap-3 px-4 py-8">
       <div className="flex gap-0.5 self-end rounded-bk border border-bk-line bg-bk-sunken p-0.5">
         {LANGS.map(l => (
           <button key={l} onClick={() => { setLang(l); try { localStorage.setItem("semi.lang", l) } catch {} }}
@@ -51,14 +51,14 @@ export default function MyEntryCard({
         <div className="h-[3px] bg-gradient-to-r from-ok to-accent" />
         <div className="flex flex-col gap-3 p-4">
           <div>
-            <h1 className="text-[17px] font-extrabold tracking-tight">{t.meTitle}</h1>
-            <p className="mt-0.5 text-[12.5px] text-bk-muted">
+            <h1 className="text-[18px] font-extrabold leading-[1.6]">{t.meTitle}</h1>
+            <p className="mt-0.5 text-[12.5px] leading-[1.7] text-bk-muted">
               {contestTitle}{entryNo ? ` · #${entryNo}` : ""}
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-[12px] text-bk-muted">{t.yourCode}</span>
+            <span className="text-[12px] leading-[1.7] text-bk-muted">{t.yourCode}</span>
             <button
               onClick={() => {
                 navigator.clipboard?.writeText(code).then(() => {
@@ -75,7 +75,7 @@ export default function MyEntryCard({
             {line.text}
           </p>
 
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[12px]">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[12px] leading-[1.7]">
             <span className="text-bk-muted">{t.meAccount}</span>
             <span className="text-right font-mono">{mtLogin || "—"}</span>
             <span className="text-bk-muted">{lastSeen ? t.meSeen : ""}</span>

@@ -38,7 +38,7 @@ function Step({ n, children }: { n: string; children: React.ReactNode }) {
       <span className="grid h-[26px] w-[26px] place-items-center rounded-bk border border-[#233155] bg-[#121b33] font-mono text-[12px] font-semibold text-[#a9c0ff]">
         {n}
       </span>
-      <p className="m-0 mt-[3px] text-[13.5px] leading-[1.6] text-bk-muted">{children}</p>
+      <p className="m-0 mt-[3px] text-[13.5px] leading-[1.75] text-bk-muted">{children}</p>
     </div>
   )
 }
@@ -113,7 +113,7 @@ export default function InstallGuide({
           <h2 className="text-[16px] font-bold">2 · {t.web1}</h2>
           <span className="text-[11.5px] text-bk-muted">{t.webOnce}</span>
         </div>
-        <div className="flex gap-3 rounded-bk border border-gold-line bg-gold-soft px-3.5 py-3 text-[12.5px] leading-[1.6] text-gold-ink">
+        <div className="flex gap-3 rounded-bk border border-gold-line bg-gold-soft px-3.5 py-3 text-[12.5px] leading-[1.75] text-gold-ink">
           <span className="mt-[1px] shrink-0 text-[17px] text-gold"><Alert /></span>
           <span>{t.webWarn}</span>
         </div>

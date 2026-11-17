@@ -104,16 +104,16 @@ export default function RegisterForm({
 
   if (done) {
     return (
-      <div className="mx-auto flex max-w-[440px] flex-col gap-3 px-4 py-8">
+      <div className="mx-auto flex max-w-[440px] sm:max-w-[620px] flex-col gap-3 px-4 py-8">
         {Lang}
         <div className="overflow-hidden rounded-bk border border-bk-line bg-bk-surface">
           <div className="h-[3px] bg-gradient-to-r from-ok to-accent" />
           <div className="flex flex-col gap-3 p-4">
-            <h1 className="text-[17px] font-extrabold tracking-tight">{t.doneTitle}</h1>
+            <h1 className="text-[18px] font-extrabold leading-[1.6]">{t.doneTitle}</h1>
             <p className="text-[12.5px] text-bk-muted">{contestTitle} · #{done.entryNo}</p>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-[12px] text-bk-muted">{t.yourCode}</span>
+              <span className="text-[12px] leading-[1.7] text-bk-muted">{t.yourCode}</span>
               <button
                 onClick={() => {
                   navigator.clipboard?.writeText(done.code).then(() => {
@@ -148,14 +148,14 @@ export default function RegisterForm({
   }
 
   return (
-    <div className="mx-auto flex max-w-[440px] flex-col gap-3 px-4 py-8">
+    <div className="mx-auto flex max-w-[440px] sm:max-w-[620px] flex-col gap-3 px-4 py-8">
       {Lang}
       <form onSubmit={submit} className="overflow-hidden rounded-bk border border-bk-line bg-bk-surface">
         <div className="h-[3px] bg-gradient-to-r from-ok to-accent" />
         <div className="flex flex-col gap-3 p-4">
           <div>
-            <h1 className="text-[17px] font-extrabold tracking-tight">{t.register}</h1>
-            <p className="mt-0.5 text-[12.5px] text-bk-muted">{contestTitle}</p>
+            <h1 className="text-[18px] font-extrabold leading-[1.6]">{t.register}</h1>
+            <p className="mt-0.5 text-[12.5px] leading-[1.7] text-bk-muted">{contestTitle}</p>
           </div>
 
           {earlyBirdCount > 0 && entries < earlyBirdCount && (
@@ -175,7 +175,7 @@ export default function RegisterForm({
               visible on day one. */}
           <div className="rounded-bk border border-bk-line bg-bk-sunken p-3">
             <h2 className="mb-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-bk-muted">{t.requirements}</h2>
-            <ul className="flex flex-col gap-1 text-[12.5px]">
+            <ul className="flex flex-col gap-1.5 text-[12.5px] leading-[1.75]">
               <li>• {requirements.broker} {requirements.accountType} ({t.demo})</li>
               <li>• {t.startingBalance}: <b className="font-mono">
                 {typeof requirements.startBalance === "number"
@@ -202,7 +202,7 @@ export default function RegisterForm({
                   <span className="grid h-[26px] w-[26px] place-items-center rounded-bk border border-[#233155] bg-[#121b33] font-mono text-[12px] font-semibold text-[#a9c0ff]">
                     {i + 1}
                   </span>
-                  <p className="m-0 mt-[3px] text-[13.5px] leading-[1.6] text-bk-muted">
+                  <p className="m-0 mt-[3px] text-[13.5px] leading-[1.75] text-bk-muted">
                     {step}
                     {i === 0 && requirements.signupUrl && (
                       <a href={requirements.signupUrl} target="_blank" rel="noopener noreferrer"
@@ -233,7 +233,7 @@ export default function RegisterForm({
                   const hard = /ຕັດສິດ|ຫ້າມ|ตัดสิทธิ์|ห้าม|disqualif|No deposits|no other EA/i.test(text)
                   const checked = /ກວດສອບ|ตรวจสอบ|checked/i.test(text)
                   return (
-                    <li key={i} className="grid grid-cols-[18px_1fr] gap-2.5 bg-bk-surface px-3.5 py-3 text-[13px] leading-[1.6] text-bk-muted">
+                    <li key={i} className="grid grid-cols-[18px_1fr] gap-2.5 bg-bk-surface px-3.5 py-3 text-[13px] leading-[1.75] text-bk-muted">
                       <span className={`mt-[2px] text-[15px] ${hard ? "text-bad" : checked ? "text-ok" : "text-bk-muted"}`}>
                         {hard ? <Ban /> : checked ? <Shield /> : <Dot />}
                       </span>
@@ -247,6 +247,10 @@ export default function RegisterForm({
 
           <h2 className="mt-1 text-[13px] font-extrabold uppercase tracking-wide">{t.applicant}</h2>
 
+          {/* Two columns once there is room: the four short fields in one
+              tall stack pushed the WhatsApp number and the submit button off
+              a laptop screen. */}
+          <div className="grid gap-3 sm:grid-cols-2">
           {([
             ["displayName", t.name, "text", "Souk T."],
             ["country", t.country, "text", "Laos"],
@@ -254,7 +258,7 @@ export default function RegisterForm({
             ["mtServer", t.mtServer, "text", "Exness-MT5Trial9"],
           ] as const).map(([k, label, mode, ph]) => (
             <label key={k} className="flex flex-col gap-1.5">
-              <span className="text-[12px] text-bk-muted">{label}</span>
+              <span className="text-[12px] leading-[1.7] text-bk-muted">{label}</span>
               <input
                 value={form[k]} onChange={set(k)} placeholder={ph} autoComplete="off"
                 inputMode={mode === "numeric" ? "numeric" : "text"}
@@ -262,6 +266,7 @@ export default function RegisterForm({
               />
             </label>
           ))}
+          </div>
 
           {/* WhatsApp, with the Lao country code and mobile prefix supplied.
               Stored in full international form so a wa.me link just works. */}
@@ -303,7 +308,7 @@ export default function RegisterForm({
               what lets an entry be approved in advance, and nobody has to
               hand over anything once there is prize money on the line. */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] text-bk-muted">{t.investor}</span>
+            <span className="text-[12px] leading-[1.7] text-bk-muted">{t.investor}</span>
             <input
               type="password" value={form.investor} onChange={set("investor")}
               autoComplete="off" spellCheck={false}
