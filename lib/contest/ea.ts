@@ -92,6 +92,29 @@ export interface SaveResult {
  * entry code itself) and replacing the document would drop them — the same
  * mistake that once cost the Semi dashboard its equity curve.
  */
+/**
+ * Is this account name the broker's default rather than a person?
+ *
+ * Checked against what Exness and MT5 put there on their own: the account
+ * type, the broker name, the word demo. Names are compared with spaces and
+ * punctuation removed, so "Standard Account" and "standard-account" are the
+ * same string.
+ */
+const GENERIC_HOLDER = new Set([
+  "standard", "standardaccount", "standardcent", "standardcentaccount",
+  "pro", "proaccount", "rawspread", "rawspreadaccount", "zero", "zeroaccount",
+  "cent", "centaccount", "demo", "demoaccount", "demoaccountstandard",
+  "exness", "exnesstechnologiesltd", "exnesstrial", "mt5", "metatrader5",
+  "test", "testaccount", "trial", "trialaccount", "forex", "trading",
+  "contest", "contestaccount", "standarddemo", "demostandard",
+])
+
+export function isGenericHolder(name: string): boolean {
+  const k = name.toLowerCase().replace(/[^a-z0-9]/g, "")
+  if (k.length < 3) return true
+  return GENERIC_HOLDER.has(k)
+}
+
 export async function applyHeartbeat(
   entry: any, contest: Contest, p: EaPayload
 ): Promise<SaveResult> {
@@ -173,7 +196,13 @@ export async function applyHeartbeat(
   // The broker knows who owns the account; we keep only a one-way index of
   // that name, which is enough to tell two entries apart without storing
   // anyone's identity.
-  if (p.acct?.name) set.holderHash = blindIndex(p.acct.name, "contestHolder")
+  // Only a name that identifies somebody is worth indexing. Exness names a
+  // demo account after its type unless the owner renames it, so "Standard"
+  // arrives from nearly every entry — hashing that would raise the duplicate
+  // flag on everyone at once, which is the same as it raising it on nobody.
+  if (p.acct?.name && !isGenericHolder(p.acct.name)) {
+    set.holderHash = blindIndex(p.acct.name, "contestHolder")
+  }
 
   const patch = sanityWrite.patch(entry._id).set(set)
   if (flags.length) patch.setIfMissing({ flags: [] }).append("flags", flags)

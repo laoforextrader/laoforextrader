@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { signIn } from "next-auth/react"
 import { DICT, LANGS, LANG_LABEL, loc, pickLang, type Lang } from "@/lib/contest/i18n"
 import { Dot, Ban, Shield, Arrow, External } from "@/components/contest/icons"
 import type { ContestRule } from "@/lib/contest/store"
+import { waNumber, waLooksValid } from "@/lib/contest/phone"
 
 // Registration, and the one screen where the entry code is ever shown.
 //
@@ -44,11 +46,18 @@ export default function RegisterForm({
   //  The prefix is shown rather than typed, so nobody has to think about the
   //  country code — but anyone outside Laos can switch and type it in full.
   const [lao, setLao] = useState(true)
-  const waNumber = lao ? "85620" + form.contact.replace(/\D/g, "") : form.contact.replace(/\D/g, "")
+  //  Normalised in one place (lib/contest/phone) rather than built here: a
+  //  contestant who types the 20 themselves used to get it twice, and the
+  //  number that came out was unreachable with nothing to show it.
+  const waNum = waNumber(form.contact, lao)
   const [done, setDone] = useState<{ code: string; entryNo: number; earlyBird: boolean } | null>(
     existing?.entryCode ? { code: existing.entryCode, entryNo: existing.entryNo ?? 0, earlyBird: (existing.entryNo ?? 99) <= earlyBirdCount } : null
   )
   const [err, setErr] = useState<string | null>(null)
+  //  Kept alongside the message so the screen can offer the way out rather
+  //  than only naming the problem: nearly every one of these is the same
+  //  person coming back, not a second person.
+  const [errReason, setErrReason] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -65,15 +74,15 @@ export default function RegisterForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setBusy(true); setErr(null)
+    setBusy(true); setErr(null); setErrReason(null)
     try {
       const r = await fetch("/api/contest/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, contact: waNumber }),
+        body: JSON.stringify({ ...form, contact: waNum }),
       })
       const j = await r.json()
-      if (!r.ok) { setErr(errText(j.reason ?? "")); return }
+      if (!r.ok) { setErr(errText(j.reason ?? "")); setErrReason(j.reason ?? null); return }
       setDone({ code: j.code, entryNo: j.entryNo, earlyBird: j.earlyBird })
     } catch {
       setErr(t.errGeneric)
@@ -279,6 +288,14 @@ export default function RegisterForm({
               />
             </div>
             <span className="text-[11px] leading-relaxed text-bk-muted">{t.contactHelp}</span>
+            {/* What we will actually dial. Shown because the number is the
+                only way we can reach them, and a typo here is invisible
+                until the approval message silently goes nowhere. */}
+            {waNum.length >= 10 && (
+              <span className="text-[11.5px] font-semibold text-ok">
+                {t.waPreview}: <span className="font-mono">+{waNum}</span>
+              </span>
+            )}
           </label>
 
           {/* The read-only password. Asked for here rather than from the
@@ -295,10 +312,27 @@ export default function RegisterForm({
             <span className="text-[11px] leading-relaxed text-bk-muted">{t.investorHelp}</span>
           </label>
 
-          {err && <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{err}</p>}
+          {err && (
+            <div className="flex flex-col gap-2 rounded-bk bg-bad-soft px-3 py-2.5">
+              <p className="m-0 text-[12px] font-semibold text-bad">{err}</p>
+              {/* Already in — show them their own entry instead of leaving
+                  them staring at a form they cannot submit. */}
+              {errReason === "already-registered" && (
+                <Link href="/contest/me" className="text-[12px] font-semibold text-accent underline underline-offset-2">
+                  {t.meTitle} →
+                </Link>
+              )}
+              {(errReason === "phone-taken" || errReason === "login-taken") && (
+                <button type="button" onClick={() => signIn("google", { callbackUrl: "/contest/me" })}
+                  className="self-start text-[12px] font-semibold text-accent underline underline-offset-2">
+                  {t.meSwitch}
+                </button>
+              )}
+            </div>
+          )}
 
           <button type="submit"
-            disabled={busy || !open || !form.displayName || waNumber.length < 8 || !form.mtLogin || !form.investor}
+            disabled={busy || !open || !form.displayName || !waLooksValid(waNum) || !form.mtLogin || !form.investor}
             className="rounded-bk bg-accent py-3 text-[13px] font-bold text-white disabled:opacity-40">
             {busy ? t.submitting : t.submit}
           </button>

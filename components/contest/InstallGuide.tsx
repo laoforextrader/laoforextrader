@@ -80,6 +80,15 @@ export default function InstallGuide({
       <h1 className="mt-3 text-[24px] font-bold leading-[1.3] tracking-[-0.01em]">{t.installTitle}</h1>
       <p className="mt-2 text-[14px] leading-[1.7] text-bk-muted">{t.installLede}</p>
 
+      {!entryCode && (
+        /* They almost always arrive here from WhatsApp on a different
+           machine, signed out. Without this the code is unreachable from
+           the page that tells them to type it in. */
+        <Link href="/contest/me"
+          className="mt-3 inline-flex items-center gap-2 rounded-bk border border-accent-line bg-accent-soft px-3.5 py-2.5 text-[12.5px] font-semibold text-accent-ink">
+          {t.yourCode} <Arrow />
+        </Link>
+      )}
       {entryCode && (
         <p className="mt-4 inline-block rounded-bk bg-ok-soft px-3.5 py-2.5 text-[13px] font-semibold text-ok-ink">
           {t.yourCode}: <span className="font-mono tracking-[0.15em]">{entryCode}</span>

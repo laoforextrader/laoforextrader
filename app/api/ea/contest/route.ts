@@ -74,6 +74,13 @@ export async function POST(req: Request) {
     profit: +saved.profit.toFixed(2),
     status: saved.status,
     endsAt: contest.endAt,
+    startsAt: contest.startAt,
+    // The panel locks itself on this, so the owner can move the start date in
+    // Sanity without anyone reinstalling an EA. Open only while the round is
+    // actually running: before the start there is nothing to trade for, and a
+    // trade placed early is the one thing the approval screen checks for.
+    locked: contest.status !== "live" ||
+            (!!contest.startAt && Date.now() < Date.parse(contest.startAt)),
     // So the EA can show "3 days left" without trusting the local clock.
     serverTime: Math.floor(Date.now() / 1000),
     // Anything the server wants the contestant to see on the panel.

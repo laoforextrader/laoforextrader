@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { currentContest, registerEntry, entryCount } from "@/lib/contest/store"
 import { sendAdminTelegram, escapeHtml } from "@/lib/alertAdmin"
+import { waRepair, waLooksValid } from "@/lib/contest/phone"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -29,7 +30,9 @@ export async function POST(req: Request) {
   }
 
   const displayName = clean(body.displayName, 40)
-  const contact     = clean(body.contact, 64)
+  // Normalised again here, not just in the form: this is the number every
+  // later message is sent to, and the form is not the only possible caller.
+  const contact     = waRepair(clean(body.contact, 64))
   const country     = clean(body.country, 40)
   const mtLogin     = clean(body.mtLogin, 16)
   const mtServer    = clean(body.mtServer, 64)
@@ -39,7 +42,7 @@ export async function POST(req: Request) {
 
   if (displayName.length < 2) return NextResponse.json({ error: "name is too short" }, { status: 400 })
   // Digits only, international form. 8 is the shortest real mobile number.
-  if (!/^\d{8,15}$/.test(contact)) {
+  if (!waLooksValid(contact)) {
     return NextResponse.json({ error: "WhatsApp number must be digits, with country code" }, { status: 400 })
   }
   if (!/^\d{5,12}$/.test(mtLogin)) {

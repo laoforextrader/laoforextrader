@@ -1,6 +1,7 @@
 import { sanityWrite } from "@/lib/sanityWrite"
 import { decryptPII } from "@/lib/pii"
 import { codeOf, investorOf, type Contest } from "@/lib/contest/store"
+import { waRepair } from "@/lib/contest/phone"
 
 // Admin-side reads of a contest round.
 //
@@ -92,8 +93,12 @@ export async function adminEntries(contestId: string): Promise<AdminEntry[]> {
  * code, and where to watch — and it goes out in the language of the site the
  * contest is run in.
  */
+// Entries registered before lib/contest/phone existed hold whatever the old
+// form built, which could carry the 20 prefix twice. Repaired on the way out
+// so the owner's button works on every entry, old and new, without having to
+// rewrite what is stored.
 const wa = (number: string, lines: string[]) =>
-  `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`
+  `https://wa.me/${waRepair(number)}?text=${encodeURIComponent(lines.join("\n"))}`
 
 /**
  * Message one, sent as soon as somebody registers.
@@ -115,6 +120,7 @@ export function waLinkWelcome(e: AdminEntry, contest: Contest, base: string, ear
     ``,
     ...(earlyBird ? [`🎁 ທ່ານຢູ່ໃນກຸ່ມທຳອິດ ຈຶ່ງໄດ້ VPS ຟຣີ — ຈະສົ່ງລາຍລະອຽດໃຫ້ທາງນີ້`, ``] : []),
     `📥 ວິທີຕິດຕັ້ງ EA: ${base}/contest/install`,
+    `🔖 ເປີດເບິ່ງລະຫັດຄືນໄດ້ທຸກເວລາ: ${base}/contest/me`,
     ``,
     `ຕິດຕັ້ງແລ້ວບອກມາ ຫຼື ລໍໃຫ້ລະບົບເຫັນ EA ຂອງທ່ານ`,
     `ພວກເຮົາຈະກວດບັນຊີ ແລ້ວແຈ້ງຜົນອະນຸມັດກັບມາ`,
