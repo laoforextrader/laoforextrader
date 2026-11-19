@@ -1,6 +1,7 @@
 import { sanityWrite } from "@/lib/sanityWrite"
 import { blindIndex } from "@/lib/pii"
 import { codeOf, type Contest } from "@/lib/contest/store"
+import { memo, forget } from "@/lib/memo"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // What the contest EA sends, and what the server does with it.
@@ -233,6 +234,22 @@ export async function applyHeartbeat(
   }
   if (flags.length && status === "active") status = "flagged"
 
+  //  How often this entry's numbers are worth storing.
+  //
+  //  Before the round starts nobody is racing: the only thing anyone needs
+  //  from a beat is "this EA is alive and the account looks right", and that
+  //  does not change in ten minutes. While the round is live the board
+  //  moves, so five minutes — which is also how often the equity curve
+  //  takes a point, so nothing is lost by writing no faster than that.
+  //
+  //  Anything that is news gets written immediately regardless: the first
+  //  beat, any flag, a change of status. Those are what the owner watches
+  //  for, and they must never wait behind a timer.
+  const live = contest.status === "live"
+  const WRITE_EVERY_MS = live ? 5 * 60_000 : 10 * 60_000
+  const since = entry.lastSeen ? now.getTime() - Date.parse(entry.lastSeen) : Infinity
+  const due = !(since < WRITE_EVERY_MS)
+
   // Equity curve, sampled server-side: the EA already sends both numbers on
   // every beat and keeps no history of its own.
   let series: Array<[number, number, number]> = []
@@ -242,9 +259,13 @@ export async function applyHeartbeat(
   } catch { series = [] }
   const t = Math.floor(now.getTime() / 1000)
   const last = series.length ? series[series.length - 1] : null
-  if (!last || t - last[0] >= SERIES_MS / 1000) {
+  //  Only while the round is running. A curve of the days before the start
+  //  is a flat line nobody opens, and sampling it would force a write.
+  let sampled = false
+  if (live && (!last || t - last[0] >= SERIES_MS / 1000)) {
     series.push([t, +equity.toFixed(2), +balance.toFixed(2)])
     series = series.slice(-MAX_SERIES)
+    sampled = true
   }
 
   const set: Record<string, unknown> = {
@@ -297,29 +318,63 @@ export async function applyHeartbeat(
     set.flags = (entry.flags ?? []).filter((f: any) => f?.kind !== "start-balance")
   }
 
+  //  The whole point of the timer: a beat that says nothing new costs no
+  //  write at all. The EA sends its current numbers every time, so a
+  //  skipped write is never a lost one — the next write carries fresher
+  //  figures than the one we skipped would have.
+  const newsworthy = firstBeat || flags.length > 0 || status !== entry.status || sampled
+  if (!newsworthy && !due) {
+    return { profit, status, newFlags: flags, firstBeat }
+  }
+
   const patch = sanityWrite.patch(entry._id).set(set)
   if (flags.length) patch.setIfMissing({ flags: [] }).append("flags", flags)
   await patch.commit({ visibility: "async" })
+
+  //  Keep the cached entry in step with what was just stored, so the next
+  //  beat reads our own numbers rather than a copy from before the write.
+  Object.assign(entry, set, flags.length ? { flags: [...(entry.flags ?? []), ...flags] } : {})
+  //  The board and the rank list now hold figures older than this entry's.
+  forget(`contest:board:${contest._id}`)
+  forget(`contest:ranks:${contest._id}`)
 
   return { profit, status, newFlags: flags, firstBeat }
 }
 
 /** Where this entry stands right now, for the EA to show on its panel. */
 export async function rankOf(contestId: string, entryId: string, profit: number) {
-  const rows = await sanityWrite.fetch<Array<{ _id: string; profit?: number }>>(
-    `*[_type == "contestEntry" && contest._ref == $id && status != "disqualified"]{ _id, profit }`,
-    { id: contestId }
-  )
+  //  Everyone's profit, to place this one. Cached for 20 seconds: with
+  //  twenty EAs beating once a minute this query ran twenty times a
+  //  minute to answer a number that moves in steps of minutes.
+  const rows = await memo(`contest:ranks:${contestId}`, 20_000, () =>
+    sanityWrite.fetch<Array<{ _id: string; profit?: number }>>(
+      `*[_type == "contestEntry" && contest._ref == $id && status != "disqualified"]{ _id, profit }`,
+      { id: contestId }
+    ))
   const better = rows.filter(r => r._id !== entryId && (r.profit ?? -Infinity) > profit).length
   return { rank: better + 1, entries: rows.length }
 }
 
 /** The entry for one MT5 login in one round, with the fields this route needs. */
+/**
+ * The entry for one MT5 login, kept for a minute.
+ *
+ * applyHeartbeat updates this same object in place when it writes, so a
+ * cached copy never falls behind what we ourselves last stored. What it
+ * can be late on is a change made by the admin screen — a disqualify
+ * takes up to a minute to reach the EA, which is a minute of a round
+ * that lasts ten days.
+ */
 export async function entryByLogin(contestId: string, login: string) {
+  return memo(`contest:entry:${contestId}:${login}`, 60_000,
+              () => entryByLoginFresh(contestId, login))
+}
+
+async function entryByLoginFresh(contestId: string, login: string) {
   const entry = await sanityWrite.fetch<any>(
     `*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login][0]{
        _id, entryCodeEnc, status, firstSeen, flags, series, startBalance,
-       displayName, ownerEmailEnc
+       displayName, ownerEmailEnc, lastSeen
      }`,
     { id: contestId, login }
   )

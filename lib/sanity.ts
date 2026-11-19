@@ -4,11 +4,16 @@ import imageUrlBuilder from "@sanity/image-url"
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "f8cr9afb"
 const dataset   = process.env.NEXT_PUBLIC_SANITY_DATASET   ?? "production"
 
+//  Public reads go through Sanity's CDN. It is a different quota from the
+//  one the EA traffic spends — four times larger and a tenth of the price
+//  per request — and these pages are articles and broker pages that change
+//  a few times a day. Anything that must be current (the contest board, the
+//  admin screen, every EA route) uses sanityWrite instead, which does not.
 export const sanityClient = createClient({
   projectId,
   dataset,
   apiVersion: "2025-04-25",
-  useCdn:     false,
+  useCdn:     true,
   // Server-only. Next inlines nothing but NEXT_PUBLIC_* into the browser
   // bundle, so the one client component that imports this file
   // (BrokerSection, for urlFor) sees `undefined` here — the token never

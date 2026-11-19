@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { currentContest, signBody, normCode, ownerEmailOf } from "@/lib/contest/store"
 import { autoLink } from "@/lib/semi/store"
+import { memo } from "@/lib/memo"
 import { applyHeartbeat, entryByLogin, rankOf, type EaPayload } from "@/lib/contest/ea"
 import { notifyEaConnected } from "@/lib/contest/notify"
 
@@ -71,9 +72,14 @@ export async function POST(req: Request) {
   // Link this account to the Semi dashboard using the key the EA just sent.
   // Best-effort and never fails the beat: the ranking does not depend on it,
   // and the next heartbeat is a minute away.
+  //  Once per login per six hours, not once per beat: linking is a read
+  //  and sometimes a write, and the answer is the same every minute for
+  //  days on end. Six hours is short enough that a rebuilt VPS with a new
+  //  key still heals itself the same day.
   const dashKey = String(body?.dash?.key ?? "").trim()
   if (dashKey) {
-    void autoLink(login, dashKey, ownerEmailOf(entry), entry.displayName)
+    void memo(`semi:link:${login}:${dashKey}`, 6 * 3600_000, () =>
+      autoLink(login, dashKey, ownerEmailOf(entry), entry.displayName))
       .then(r => {
         if (r === "created" || r === "relinked") {
           console.log(`[contest] MT5 ${login}: dashboard ${r}`)

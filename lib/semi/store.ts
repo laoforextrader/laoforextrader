@@ -22,7 +22,12 @@ import { blindIndex, encryptPII, decryptPII } from "@/lib/pii"
 // a closed round.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FLUSH_MS = 15_000          // throttle for the live snapshot
+//  Throttle for the live snapshot. Fast while a dashboard is open, because
+//  that is the only time anyone can see the difference; slow otherwise, and
+//  "otherwise" is nearly all of the time. At 15s with twenty contest EAs
+//  pushing every 30s this was a write every push, around the clock.
+const FLUSH_MS = 15_000          // someone is watching
+const FLUSH_IDLE_MS = 300_000    // nobody is watching
 const WATCH_MS = 20_000          // how long one dashboard poll counts as "watching"
 const MAX_ROUNDS = 200           // closed rounds kept per account
 const CMD_TTL_MS = 60_000        // a queued command older than this is dropped
@@ -228,8 +233,9 @@ export async function saveState(
     e.doc.ackRound = Math.max(e.doc.ackRound ?? 0, ...newRounds.map(r => r.id))
   }
 
+  const every = isWatched(e) ? FLUSH_MS : FLUSH_IDLE_MS
   const mustFlush = newRounds.length > 0 || before !== sig(state)
-                 || Date.now() - e.lastFlush >= FLUSH_MS
+                 || Date.now() - e.lastFlush >= every
   if (mustFlush) await flush(account, e)
   return e
 }
@@ -329,7 +335,11 @@ async function syncCommand(account: string, e: CacheEntry): Promise<void> {
 export async function takeCommand(
   account: string, e: CacheEntry
 ): Promise<{ id: number; cmd: string; lot: number } | null> {
-  await syncCommand(account, e)
+  //  A command can only have been queued by a browser, and a browser that
+  //  queues one has been polling this account seconds earlier — which is
+  //  what sets watchUntil. So when nobody is watching and the cache holds
+  //  nothing, there is nothing to find, and the re-read is pure cost.
+  if (isWatched(e) || e.doc.cmd) await syncCommand(account, e)
   const cmd = pendingCommand(e)
   if (!cmd) return null
   e.doc.cmd = ""

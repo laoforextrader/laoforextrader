@@ -244,6 +244,9 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   //  with two different ages, and letting the older one through is what made
   //  the mode and the side cards flip back and forth.
   const seenTs = useRef(0)
+  //  True while a command is in the air. Read inside the poll loop, so it is a
+  //  ref rather than state: the loop must not be rebuilt every time it flips.
+  const waiting = useRef(false)
   const t = DICT[lang]
   //  every control reads this, so the name stays `busy`
   const busy = pending !== null && pending.phase !== "done"
@@ -258,7 +261,11 @@ export default function SemiDashboard({ account, email }: { account: string; ema
 
   const poll = useCallback(async () => {
     try {
-      const r = await fetch(`/api/semi/state?acc=${encodeURIComponent(account)}`, { cache: "no-store" })
+      //  `w=1` asks the server to re-read the command queue, which costs it
+      //  a round trip to the database. Only worth it while we are actually
+      //  waiting for the EA to pick something up.
+      const w = waiting.current ? "&w=1" : ""
+      const r = await fetch(`/api/semi/state?acc=${encodeURIComponent(account)}${w}`, { cache: "no-store" })
       if (r.status === 401) setAuthLost(true)
       else if (r.ok) {
         setAuthLost(false)
@@ -335,6 +342,9 @@ export default function SemiDashboard({ account, email }: { account: string; ema
   //  The ring: an action is finished the moment the EA takes it off the queue.
   //  Waiting past that for the value to come back added seconds without adding
   //  certainty — the watcher below covers the case where it never arrives.
+  //  Kept beside the state it mirrors, so the two can never drift apart.
+  waiting.current = (pending?.phase === "queued") || !!feed?.pendingCmd
+
   useEffect(() => {
     if (!feed || !pending) return
     if (pending.phase === "queued" && !feed.pendingCmd) {

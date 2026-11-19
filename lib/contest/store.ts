@@ -1,5 +1,6 @@
 import { createHash, randomInt } from "crypto"
 import { sanityWrite } from "@/lib/sanityWrite"
+import { memo, forget } from "@/lib/memo"
 import { blindIndex, encryptPII, decryptPII } from "@/lib/pii"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,7 +84,18 @@ const CONTEST_FIELDS = `
  * during the 2-3 judging days the homepage still shows the race people care
  * about, and round 2 is reachable by its own URL.
  */
+/**
+ * The round in play. Cached for a minute, because every EA heartbeat asks
+ * for it and the answer changes a handful of times per round.
+ *
+ * Note what this costs uncached: while no round is `live` the first query
+ * finds nothing and a second one runs, so this was TWO requests per beat.
+ */
 export async function currentContest(): Promise<Contest | null> {
+  return memo("contest:current", 60_000, currentContestFresh)
+}
+
+async function currentContestFresh(): Promise<Contest | null> {
   return sanityWrite.fetch<Contest | null>(
     `*[_type == "contest" && status in ["live", "judging"]] | order(startAt desc)[0]{${CONTEST_FIELDS}}`
   ).then(async live =>
@@ -105,9 +117,10 @@ export async function contestBySlug(slug: string): Promise<Contest | null> {
 
 /** Every round, newest first — for the archive strip. */
 export async function allContests(): Promise<Contest[]> {
-  return sanityWrite.fetch<Contest[]>(
+  //  The archive strip. It changes when a round ends, so minutes-old is fine.
+  return memo("contest:all", 300_000, () => sanityWrite.fetch<Contest[]>(
     `*[_type == "contest"] | order(startAt desc){${CONTEST_FIELDS}}`
-  )
+  ))
 }
 
 /**
@@ -119,6 +132,12 @@ export async function allContests(): Promise<Contest[]> {
  * are reported as they are.
  */
 export async function leaderboard(contestId: string): Promise<BoardRow[]> {
+  //  Ten seconds. The EA behind each row writes far less often than that,
+  //  so this cannot show a number older than the data already was.
+  return memo(`contest:board:${contestId}`, 10_000, () => leaderboardFresh(contestId))
+}
+
+async function leaderboardFresh(contestId: string): Promise<BoardRow[]> {
   const rows = await sanityWrite.fetch<BoardRow[]>(
     //  Approved and after: someone who has registered but whose account has
     //  not been checked yet is not on the public board, which is what lets
@@ -135,17 +154,17 @@ export async function leaderboard(contestId: string): Promise<BoardRow[]> {
 }
 
 export async function entryCount(contestId: string): Promise<number> {
-  return sanityWrite.fetch<number>(
+  return memo(`contest:count:${contestId}`, 60_000, () => sanityWrite.fetch<number>(
     `count(*[_type == "contestEntry" && contest._ref == $id])`, { id: contestId }
-  )
+  ))
 }
 
 /** Entries that still hold a seat — everyone except the cancelled ones. */
 export async function liveEntryCount(contestId: string): Promise<number> {
-  return sanityWrite.fetch<number>(
+  return memo(`contest:live:${contestId}`, 30_000, () => sanityWrite.fetch<number>(
     `count(*[_type == "contestEntry" && contest._ref == $id && status != "cancelled"])`,
     { id: contestId }
-  )
+  ))
 }
 
 /**
