@@ -1,0 +1,38 @@
+TheRocket MegiSemi - CONTEST BUILD
+laoforextrader.com/contest
+
+This build reports your result to the contest leaderboard. It is for the
+contest demo account only.
+
+1. Copy TheRocketMegiSemiContest.ex5 into
+     <MT5 data folder>\MQL5\Experts
+   (File > Open Data Folder in MetaTrader), then restart MT5.
+
+2. Tools > Options > Expert Advisors:
+     tick  Allow WebRequest for listed URL
+     add   https://www.laoforextrader.com
+   Without this the EA trades but reports nothing, and the entry cannot
+   be approved.
+
+3. Open an XAUUSDm chart on M5, drag the EA on, and paste the
+   ContestCode you were sent on WhatsApp.
+
+4. Turn Algo Trading on. Within a minute the panel shows CONTEST with
+   your rank.
+
+Easier: run this one line in PowerShell and it does step 1 for every
+MetaTrader on the PC:
+     irm https://www.laoforextrader.com/contest-ea | iex
+
+Full guide with pictures: https://www.laoforextrader.com/contest/install
+
+RISK
+  This EA averages down and has no stop loss by design. The risk it carries is
+  the whole account, not a fixed amount per trade. Use money you can afford to
+  lose entirely and keep the lots small. Past results do not describe the
+  future: testing was done on a window in which gold rose strongly, and the
+  same settings lost money in other periods.
+
+CONTACT
+  therocketea@gmail.com   -   WhatsApp +856 20 9233 3353
+  https://laoforextrader.com

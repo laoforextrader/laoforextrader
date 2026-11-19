@@ -120,6 +120,13 @@ export async function POST(req: Request) {
             (!!contest.startAt && Date.now() < Date.parse(contest.startAt)),
     // So the EA can show "3 days left" without trusting the local clock.
     serverTime: Math.floor(Date.now() / 1000),
+    //  How often to call back. Every call is an invocation of this function,
+    //  and the platform's ceiling pauses the whole site rather than billing
+    //  for it, so the rate belongs on this side where it can be changed
+    //  without twenty people reinstalling an EA. Before the gun there is
+    //  nothing to report but "still alive"; while the round runs it matches
+    //  how often the server stores a beat anyway (see applyHeartbeat).
+    everySec: contest.status === "live" ? 300 : 600,
     // Anything the server wants the contestant to see on the panel.
     notice: saved.newFlags.length ? saved.newFlags[0].note : "",
   })

@@ -77,5 +77,10 @@ export async function POST(req: Request) {
     lot: cmd?.lot ?? 0,
     ackRound: saved.doc.ackRound ?? 0,
     watching: isWatched(saved),
+    //  The push rate, set here rather than in the EA: a build that decides
+    //  for itself can only be changed by reinstalling it. 3s while someone
+    //  is watching the dashboard, two minutes otherwise - which is as long
+    //  as anyone should wait for the page to come alive after opening it.
+    every: isWatched(saved) ? 3 : 120,
   })
 }
