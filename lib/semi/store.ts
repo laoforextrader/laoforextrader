@@ -513,7 +513,14 @@ export async function autoLink(
   }
 
   const owner = emailOf(doc)
-  if (owner && owner.toLowerCase() !== email.toLowerCase()) return "owned-by-other"
+  //  A document no EA has ever signed for carries no proof. Anyone can create
+  //  one by typing an account number and any key into the link form, which
+  //  would then lock the real owner out of their own dashboard (their key no
+  //  longer matches, and linkAccount refuses a key that does). The EA is the
+  //  authority, and this path has already proved the login belongs to this
+  //  contestant, so an unproven document is taken over rather than obeyed.
+  const proven = !!doc.lastSeen
+  if (owner && proven && owner.toLowerCase() !== email.toLowerCase()) return "owned-by-other"
   if (owner && sameKey(keyOf(doc), key)) return "unchanged"
 
   //  patch, not createOrReplace: this runs on a live account and replacing it

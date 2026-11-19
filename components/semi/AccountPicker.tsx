@@ -26,12 +26,20 @@ export default function AccountPicker({
     try { return pickLang(localStorage.getItem("semi.lang")) } catch { return "en" }
   })
   const [account, setAccount] = useState(accounts[0]?.account ?? "")
+  //  A second trading account on the same Google sign-in is normal — the
+  //  list used to be the only way in, so an account that was not already
+  //  linked could not be reached from this screen at all.
+  const [adding, setAdding] = useState(false)
+  const [fresh, setFresh] = useState("")
   const [key, setKey] = useState("")
   const [remember, setRemember] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const router = useRouter()
   const t = DICT[lang]
+  //  One value for both ways of choosing, so the form below never has to
+  //  know which one the user used.
+  const chosen = adding ? fresh.trim() : account
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,7 +48,7 @@ export default function AccountPicker({
       const r = await fetch("/api/semi/link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ account, key, remember }),
+        body: JSON.stringify({ account: chosen, key, remember }),
       })
       const j = await r.json().catch(() => ({}))
       if (!r.ok) { setErr(j.error ?? "failed"); return }
@@ -79,8 +87,8 @@ export default function AccountPicker({
                     account === a.account ? "border-accent bg-accent-soft" : "border-bk-line bg-bk-sunken"
                   }`}>
                   <input type="radio" name="acct" value={a.account}
-                    checked={account === a.account}
-                    onChange={() => setAccount(a.account)}
+                    checked={!adding && account === a.account}
+                    onChange={() => { setAdding(false); setAccount(a.account) }}
                     className="h-4 w-4 shrink-0 accent-[var(--accent)]" />
                   <span className="font-mono text-[14px] font-semibold">{a.account}</span>
                   {a.keyTail && (
@@ -88,6 +96,26 @@ export default function AccountPicker({
                   )}
                 </label>
               ))}
+
+              {/* Another account on the same Google sign-in. Kept in the same
+                  radio group so it reads as one choice, not a second form. */}
+              <label
+                className={`flex cursor-pointer items-center gap-2.5 rounded-bk border px-3 py-2.5 ${
+                  adding ? "border-accent bg-accent-soft" : "border-dashed border-bk-line bg-bk-sunken"
+                }`}>
+                <input type="radio" name="acct" checked={adding}
+                  onChange={() => setAdding(true)}
+                  className="h-4 w-4 shrink-0 accent-[var(--accent)]" />
+                <span className="text-[13px] font-semibold">+ {t.addAnother}</span>
+              </label>
+
+              {adding && (
+                <input
+                  value={fresh} onChange={e => setFresh(e.target.value.replace(/[^0-9]/g, ""))}
+                  inputMode="numeric" autoFocus placeholder={t.acctNew}
+                  autoComplete="off" spellCheck={false}
+                  className="w-full rounded-bk border border-bk-line bg-bk-surface px-3 py-2.5 font-mono text-[15px] outline-none focus:ring-2 focus:ring-accent" />
+              )}
             </div>
           </div>
 
@@ -108,7 +136,7 @@ export default function AccountPicker({
 
             {err && <p className="rounded-bk bg-bad-soft px-3 py-2 text-[12px] font-semibold text-bad">{err}</p>}
 
-            <button type="submit" disabled={busy || !account || !key}
+            <button type="submit" disabled={busy || !chosen || !key}
               className="rounded-bk bg-accent py-3 text-[13px] font-bold text-white disabled:opacity-40">
               {t.connect}
             </button>

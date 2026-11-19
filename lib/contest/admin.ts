@@ -174,7 +174,7 @@ export function waLinkDashboard(e: AdminEntry, base: string, earlyBird: boolean)
     `\u{1f511} ວິທີເຂົ້າ`,
     `1. ເຂົ້າລະບົບດ້ວຍ Google: ${e.email || "—"}`,
     `2. ເລກບັນຊີ MT5: ${e.mtLogin}`,
-    `3. ກະແຈແດຊບອດ: ${e.dashKey}`,
+    `3. Dashboard Key: ${e.dashKey}`,
     ``,
     `ໃນແດຊບອດກົດໄດ້ທັງໝົດ: Buy / Sell · ປິດໄມ້ທັງໝົດ · ປ່ຽນໂໝດ Manual / Semi / Auto · ຕັ້ງ lot ແລະ grid`,
     `\u{1f4c8} ເບິ່ງອັນດັບສົດ: ${base}/contest`,
