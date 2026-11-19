@@ -36,6 +36,9 @@ export async function POST(req: Request) {
   const country     = clean(body.country, 40)
   const mtLogin     = clean(body.mtLogin, 16)
   const mtServer    = clean(body.mtServer, 64)
+  // One of the ids in components/contest/avatars; anything else is
+  // dropped and the board derives a mark instead.
+  const avatar      = clean(body.avatar, 24).toLowerCase().replace(/[^a-z]/g, "")
   // Read-only password. Checked for length only — whether it actually works
   // is for the admin to find out by logging in, which is the point of it.
   const investor    = clean(body.investor, 64)
@@ -65,6 +68,7 @@ export async function POST(req: Request) {
     country,
     mtLogin,
     mtServer,
+    avatar,
     startBalance: contest.startBalance ?? 0,
     investor,
     // Behind Vercel this is the real client address. It is hashed before it

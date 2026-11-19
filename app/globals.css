@@ -351,6 +351,15 @@ html { background-color: var(--bg); }
 }
 .ct-dot { animation: ctDot 2.2s ease-out infinite; }
 
+/* the schedule's live phase: the dot breathes and pushes a ring out, so the
+   reader can see which step the round is on without reading the dates */
+@keyframes ctPhase {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 currentColor; }
+  45%      { transform: scale(1.45); box-shadow: 0 0 0 5px transparent; }
+  70%      { transform: scale(1);    box-shadow: 0 0 0 0 transparent; }
+}
+.ct-phase { animation: ctPhase 2s ease-in-out infinite; }
+
 /* one rise, staggered, so the eye lands on the headline first */
 @keyframes ctRise {
   from { opacity: 0; transform: translateY(10px); }
@@ -376,7 +385,7 @@ html { background-color: var(--bg); }
 
 @media (prefers-reduced-motion: reduce) {
   .ct-sweep { display: none; }
-  .ct-gold, .ct-dot, .ct-rise, .ct-bar { animation: none; }
+  .ct-gold, .ct-dot, .ct-phase, .ct-rise, .ct-bar { animation: none; }
   .ct-rise { opacity: 1; transform: none; }
   .ct-bar  { transform: none; }
   .ct-card, .ct-cta { transition: none; }

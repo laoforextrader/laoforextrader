@@ -64,6 +64,29 @@ export const contestSchema = {
     { name: "endAt",    title: "ຈົບການແຂ່ງຂັນ",        type: "datetime", validation: (R: any) => R.required() },
     { name: "announceAt", title: "ປະກາດຜົນ",           type: "datetime" },
 
+    // --- sponsors ---
+    // Who paid for the round. Kept on the round rather than site-wide,
+    // because the answer changes between rounds and the archive has to keep
+    // showing whoever backed THAT one.
+    {
+      name: "sponsors",
+      title: "ຜູ້ສະໜັບສະໜູນ",
+      type: "array",
+      of: [{
+        type: "object",
+        name: "sponsor",
+        fields: [
+          { name: "name", title: "ຊື່", type: "string", validation: (R: any) => R.required() },
+          { name: "logo", title: "ໂລໂກ້", type: "image", options: { hotspot: true } },
+          { name: "url",  title: "ລິ້ງ", type: "url" },
+          localeText("role", "ບົດບາດ (ເຊັ່ນ ໂບຣກເກີ ຫຼື ລາງວັນ)"),
+        ],
+        preview: {
+          select: { title: "name", subtitle: "role.en", media: "logo" },
+        },
+      }],
+    },
+
     // ─── ລາງວັນ ───
     {
       name: "prizes",
@@ -104,6 +127,7 @@ export const contestSchema = {
     { name: "maxEntries", title: "ຮັບສູງສຸດ (0 = ບໍ່ຈຳກັດ)", type: "number", initialValue: 0 },
 
     // ─── ຜົນ (ໃສ່ຕອນປະກາດ) ───
+    localeText("recap", "ສະຫຼຸບຮອບ (ສຳລັບໜ້າປະຫວັດການແຂ່ງຂັນ)", 3),
     {
       name: "winners",
       title: "ຜູ້ຊະນະ",

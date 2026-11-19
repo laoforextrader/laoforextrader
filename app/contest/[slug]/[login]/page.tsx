@@ -3,6 +3,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { sanityWrite } from "@/lib/sanityWrite"
 import { contestBySlug, leaderboard } from "@/lib/contest/store"
+import { ContestAvatar, resolveAvatar } from "@/components/contest/avatars"
+import Flag from "@/components/contest/Flag"
+import { countryName } from "@/lib/contest/countries"
 
 export const dynamic = "force-dynamic"
 
@@ -28,7 +31,7 @@ export default async function ContestantPage(
 
   const entry = await sanityWrite.fetch<any>(
     `*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login][0]{
-       displayName, mtLogin, mtServer, country, entryNo, status,
+       displayName, mtLogin, mtServer, country, avatar, entryNo, status,
        equity, balance, profit, profitPct, maxDDPct, trades, lots,
        openPositions, deposits, withdrawals, firstSeen, lastSeen
      }`,
@@ -54,10 +57,20 @@ export default async function ContestantPage(
     <div className="mx-auto flex max-w-[640px] flex-col gap-4 px-4 py-6">
       <div>
         <Link href={`/contest/${slug}`} className="text-[12px] text-bk-muted hover:text-accent">← {contest.title}</Link>
-        <h1 className="mt-1 text-[20px] font-extrabold tracking-tight">{entry.displayName}</h1>
-        <p className="text-[12.5px] text-bk-muted">
-          #{entry.mtLogin}{entry.country ? ` · ${entry.country}` : ""}{rank ? ` · rank ${rank}` : ""}
-        </p>
+        <div className="mt-1 flex items-center gap-3">
+          {/* The same mark and flag the board gave them, so a reader who
+              followed a row here can see they landed on the right person. */}
+          <ContestAvatar def={resolveAvatar(entry.avatar, entry.mtLogin ?? entry.displayName)} size={40} />
+          <div>
+            <h1 className="text-[20px] font-extrabold tracking-tight">{entry.displayName}</h1>
+            <p className="flex items-center gap-1.5 text-[12.5px] text-bk-muted">
+              <Flag value={entry.country} size={14} />
+              #{entry.mtLogin}
+              {entry.country ? ` · ${countryName(entry.country, "en")}` : ""}
+              {rank ? ` · rank ${rank}` : ""}
+            </p>
+          </div>
+        </div>
       </div>
 
       <section className="grid grid-cols-2 gap-2 sm:grid-cols-3">

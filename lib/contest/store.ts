@@ -20,6 +20,7 @@ export type LocaleText = { en?: string; th?: string; lo?: string }
 
 export interface ContestPrize { place?: number; amount?: number; label?: LocaleText }
 export interface ContestRule { text?: LocaleText }
+export interface ContestSponsor { name?: string; logo?: any; url?: string; role?: LocaleText }
 export type { LocaleText as ContestLocaleText }
 
 export interface Contest {
@@ -41,6 +42,8 @@ export interface Contest {
   perks?: ContestRule[]
   earlyBirdCount?: number
   rules?: ContestRule[]
+  sponsors?: ContestSponsor[]
+  recap?: LocaleText
   maxEntries?: number
   winners?: Array<{ place?: number; verifiedProfit?: number; note?: string; entry?: any }>
 }
@@ -52,6 +55,7 @@ export interface BoardRow {
   displayName: string
   mtLogin: string
   country?: string
+  avatar?: string
   equity?: number
   balance?: number
   profit?: number
@@ -67,8 +71,8 @@ export interface BoardRow {
 const CONTEST_FIELDS = `
   _id, title, "slug": slug.current, status, broker, accountType, startBalance,
   currency, symbol, brokerSignupUrl, registerOpenAt, startAt, endAt, announceAt,
-  prizes, perks, earlyBirdCount, rules, maxEntries,
-  winners[]{ place, verifiedProfit, note, entry->{ _id, displayName, mtLogin, country, profit, profitPct } }
+  prizes, perks, earlyBirdCount, rules, sponsors, recap, maxEntries,
+  winners[]{ place, verifiedProfit, note, entry->{ _id, displayName, mtLogin, country, avatar, profit, profitPct } }
 `
 
 /**
@@ -122,7 +126,7 @@ export async function leaderboard(contestId: string): Promise<BoardRow[]> {
     //  of everyone.
     `*[_type == "contestEntry" && contest._ref == $id &&
        status in ["approved", "active", "flagged", "blown"]]{
-       _id, entryNo, displayName, mtLogin, country, equity, balance, profit, profitPct,
+       _id, entryNo, displayName, mtLogin, country, avatar, equity, balance, profit, profitPct,
        maxDDPct, trades, openPositions, deposits, status, lastSeen
      }`,
     { id: contestId }
@@ -218,6 +222,8 @@ export type RegisterInput = {
   country: string
   mtLogin: string
   mtServer: string
+  /** Chosen animal mark, or empty to let the board derive one. */
+  avatar?: string
   startBalance: number
   /** Read-only MT5 password, so the account can be checked before approval. */
   investor: string
@@ -322,6 +328,7 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
     contactHash: phoneHash,
     ipHash: ipHash || undefined,
     country: input.country,
+    avatar: input.avatar || undefined,
     mtLogin,
     mtServer: input.mtServer,
     startBalance: input.startBalance,
@@ -353,5 +360,44 @@ export async function earlyBirdWinners(contestId: string, howMany: number) {
     displayName: r.displayName,
     mtLogin: r.mtLogin,
     contact: r.contactEnc ? decryptPII(r.contactEnc) : "",
+  }))
+}
+
+/**
+ * The top three of a round, for the archive card.
+ *
+ * Reads the admin's verified winners when they exist and falls back to the
+ * board's own order when they do not — a round that has just closed has a
+ * result days before anyone has checked it, and showing nothing until then
+ * makes the archive look empty at exactly the moment people look at it.
+ */
+export async function podiumOf(contest: Contest): Promise<Array<{
+  place: number; displayName: string; mtLogin?: string; country?: string
+  avatar?: string; profit?: number; verified: boolean
+}>> {
+  const verified = (contest.winners ?? [])
+    .filter(w => w.entry)
+    .sort((a, b) => (a.place ?? 9) - (b.place ?? 9))
+    .slice(0, 3)
+  if (verified.length) {
+    return verified.map((w, i) => ({
+      place: w.place ?? i + 1,
+      displayName: w.entry?.displayName ?? "\u2014",
+      mtLogin: w.entry?.mtLogin,
+      country: w.entry?.country,
+      avatar: w.entry?.avatar,
+      profit: w.verifiedProfit ?? w.entry?.profit,
+      verified: true,
+    }))
+  }
+  const rows = await leaderboard(contest._id)
+  return rows.slice(0, 3).map((r, i) => ({
+    place: i + 1,
+    displayName: r.displayName,
+    mtLogin: r.mtLogin,
+    country: r.country,
+    avatar: r.avatar,
+    profit: r.profit,
+    verified: false,
   }))
 }

@@ -7,6 +7,8 @@ import { DICT, LANGS, LANG_LABEL, loc, pickLang, type Lang } from "@/lib/contest
 import { Dot, Ban, Shield, Arrow, External } from "@/components/contest/icons"
 import type { ContestRule } from "@/lib/contest/store"
 import { waNumber, waLooksValid } from "@/lib/contest/phone"
+import CountryPicker from "@/components/contest/CountryPicker"
+import AvatarPicker from "@/components/contest/AvatarPicker"
 
 // Registration, and the one screen where the entry code is ever shown.
 //
@@ -44,7 +46,9 @@ export default function RegisterForm({
   }, [])
   const t = DICT[lang]
 
-  const [form, setForm] = useState({ displayName: "", contact: "", country: "", mtLogin: "", mtServer: "", investor: "" })
+  const [form, setForm] = useState({
+    displayName: "", contact: "", country: "", mtLogin: "", mtServer: "", investor: "", avatar: "",
+  })
   //  Almost every contestant is in Laos, where mobile numbers are 20 XXXX XXXX.
   //  The prefix is shown rather than typed, so nobody has to think about the
   //  country code — but anyone outside Laos can switch and type it in full.
@@ -257,7 +261,6 @@ export default function RegisterForm({
           <div className="grid gap-3 sm:grid-cols-2">
           {([
             ["displayName", t.name, "text", "Souk T."],
-            ["country", t.country, "text", "Laos"],
             ["mtLogin", t.mtLogin, "numeric", "530016764"],
             ["mtServer", t.mtServer, "text", "Exness-MT5Trial9"],
           ] as const).map(([k, label, mode, ph]) => (
@@ -270,7 +273,26 @@ export default function RegisterForm({
               />
             </label>
           ))}
+          {/* A code leaves here, not free text, so the board can show a flag
+              without having to work out what "Laos :)" meant. */}
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[12px] leading-[1.7] text-bk-muted">{t.country}</span>
+            <CountryPicker
+              value={form.country}
+              onChange={code => setForm(f => ({ ...f, country: code }))}
+              lang={lang}
+              placeholder={t.countryPick}
+            />
+          </label>
           </div>
+
+          <AvatarPicker
+            value={form.avatar}
+            onChange={id => setForm(f => ({ ...f, avatar: id }))}
+            seed={form.mtLogin || form.displayName}
+            label={t.avatar}
+            hint={t.avatarHint}
+          />
 
           {/* WhatsApp, with the Lao country code and mobile prefix supplied.
               Stored in full international form so a wa.me link just works. */}

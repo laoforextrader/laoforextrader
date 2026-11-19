@@ -5,6 +5,9 @@ import Link from "next/link"
 import { DICT, LANGS, LANG_LABEL, loc, pickLang, shortDay, type Lang } from "@/lib/contest/i18n"
 import type { BoardRow, Contest } from "@/lib/contest/store"
 import { Trophy, Medal, Clock, Users, Chart, Gift, Info, Arrow, CandleBand } from "@/components/contest/icons"
+import { ContestAvatar, resolveAvatar, type AvatarDef } from "@/components/contest/avatars"
+import Flag from "@/components/contest/Flag"
+import Sponsors from "@/components/contest/Sponsors"
 
 // The public face of a round.
 //
@@ -53,7 +56,42 @@ const signed0 = (v?: number) =>
   typeof v === "number" ? (v >= 0 ? "+" : "") + round0(v) : "—"
 const pad = (n: number) => String(n).padStart(2, "0")
 
-function Podium({ rows }: { rows: BoardRow[] }) {
+/**
+ * One animal mark per contestant, and never the same one twice.
+ *
+ * A mark somebody picked is theirs. The rest are derived from the MT5 login,
+ * which is stable, and nudged along when two of them land on the same animal
+ * — two identical foxes on one board would be worse than the plain text this
+ * replaced.
+ */
+function avatarMap(rows: BoardRow[]): Map<string, AvatarDef> {
+  const taken = new Set<string>()
+  const out = new Map<string, AvatarDef>()
+  // Chosen marks are claimed first, so a derived one never takes a seat that
+  // a contestant asked for.
+  for (const r of rows) {
+    if (r.avatar) {
+      const def = resolveAvatar(r.avatar, r.mtLogin)
+      out.set(r._id, def); taken.add(def.id)
+    }
+  }
+  for (const r of rows) {
+    if (out.has(r._id)) continue
+    const def = resolveAvatar(undefined, r.mtLogin || r._id, taken)
+    out.set(r._id, def); taken.add(def.id)
+  }
+  return out
+}
+
+/** Rank 1-3 carry a cup; everyone else carries their number. */
+function RankMark({ place }: { place: number }) {
+  if (place === 1) return <span className="inline-flex text-[15px] text-gold"><Trophy /></span>
+  if (place === 2) return <span className="inline-flex text-[15px] text-bk-muted"><Medal /></span>
+  if (place === 3) return <span className="inline-flex text-[15px] text-[#c08a52]"><Medal /></span>
+  return <span className="font-mono text-[12px] font-semibold tabular-nums text-bk-muted">{place}</span>
+}
+
+function Podium({ rows, marks }: { rows: BoardRow[]; marks: Map<string, AvatarDef> }) {
   if (rows.length < 3) return null
   const cell = (r: BoardRow, place: 1 | 2 | 3) => (
     <div
@@ -68,6 +106,10 @@ function Podium({ rows }: { rows: BoardRow[] }) {
       >
         {place === 1 ? <Trophy /> : <Medal />}
       </span>
+      <div className="mt-1 flex items-center justify-center gap-1.5">
+        {marks.get(r._id) && <ContestAvatar def={marks.get(r._id)!} size={place === 1 ? 26 : 22} />}
+        <Flag value={r.country} size={14} />
+      </div>
       <div className="truncate text-[13px] font-semibold">{r.displayName}</div>
       <div className="font-mono text-[10.5px] tabular-nums text-bk-muted">{round0(r.equity)}</div>
       <div
@@ -86,6 +128,20 @@ function Podium({ rows }: { rows: BoardRow[] }) {
   )
 }
 
+/**
+ * The board.
+ *
+ * Everyone is in the table, first place included: the podium above is the
+ * headline, not the top of the list, and a reader who scrolled past it should
+ * not have to count upwards to work out who is third. Ranks 1-3 carry their
+ * cup in the row as well.
+ *
+ * Equity and Balance both have a column, and Equity is the one that decides
+ * the contest — a contestant holding a basket forty levels deep has a healthy
+ * balance and has not made that money yet. Until Friday closes, the gap
+ * between the two columns IS the floating loss, which is the number this
+ * whole system lives or dies by.
+ */
 function Board({ rows, t, slug }: { rows: BoardRow[]; t: any; slug: string }) {
   if (!rows.length) {
     return (
@@ -94,57 +150,78 @@ function Board({ rows, t, slug }: { rows: BoardRow[]; t: any; slug: string }) {
       </p>
     )
   }
-  const rest = rows.length >= 3 ? rows.slice(3) : rows
-  const offset = rows.length >= 3 ? 4 : 1
+  const marks = avatarMap(rows)
   return (
     <>
-      <Podium rows={rows} />
-      {rest.length > 0 && (
-        <table className="w-full border-collapse text-[13px]">
-          <thead>
-            <tr className="text-left text-[10.5px] uppercase tracking-[0.07em] text-bk-muted">
-              <th className="w-7 pb-2.5 pr-2 font-semibold">#</th>
-              <th className="pb-2.5 pr-2 font-semibold">{t.trader}</th>
-              <th className="pb-2.5 pr-2 text-right font-semibold">{t.balance}</th>
-              <th className="pb-2.5 text-right font-semibold">{t.profit}</th>
-              <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">%</th>
-              <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">{t.drawdown}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rest.map((r, i) => {
-              const tone = (r.profit ?? 0) >= 0 ? "text-ok" : "text-bad"
-              return (
-                <tr key={r._id} className="border-t border-bk-line">
-                  <td className="py-2.5 pr-2 font-mono text-[12px] font-semibold tabular-nums text-bk-muted">{i + offset}</td>
-                  <td className="py-2.5 pr-2">
-                    <Link href={`/contest/${slug}/${r.mtLogin}`} className="font-semibold hover:text-accent">
-                      {r.displayName}
-                    </Link>
-                    <span className="block font-mono text-[10.5px] text-bk-muted">#{r.mtLogin}</span>
-                    {r.status === "blown" && <span className="text-[10.5px] font-bold text-bad">{t.blown}</span>}
-                    {r.status === "flagged" && <span className="text-[10.5px] font-bold text-warn">{t.flagged}</span>}
-                    {r.status === "pending" && <span className="text-[10.5px] text-bk-muted">{t.waitingEa}</span>}
-                  </td>
-                  <td className="py-2.5 pr-2 text-right font-mono tabular-nums">{round0(r.equity)}</td>
-                  <td className={`py-2.5 text-right font-mono font-semibold tabular-nums ${tone}`}>{signed0(r.profit)}</td>
-                  <td className={`hidden py-2.5 pl-2 text-right font-mono tabular-nums sm:table-cell ${tone}`}>
-                    {typeof r.profitPct === "number" ? r.profitPct.toFixed(1) : "—"}
-                  </td>
-                  <td className="hidden py-2.5 pl-2 text-right font-mono tabular-nums text-bk-muted sm:table-cell">
-                    <span className="inline-flex items-center justify-end gap-1.5">
-                      <span className="block h-[3px] w-10 overflow-hidden rounded-sm bg-bk-line">
-                        <span className="block h-full bg-bk-muted" style={{ width: `${Math.min(100, Math.max(0, (r.maxDDPct ?? 0) * 2))}%` }} />
-                      </span>
-                      {typeof r.maxDDPct === "number" ? `${r.maxDDPct.toFixed(1)}%` : "—"}
+      <Podium rows={rows} marks={marks} />
+      <table className="w-full border-collapse text-[13px]">
+        <thead>
+          <tr className="text-left text-[10.5px] uppercase tracking-[0.07em] text-bk-muted">
+            <th className="w-7 pb-2.5 pr-2 font-semibold">#</th>
+            <th className="pb-2.5 pr-2 font-semibold">{t.trader}</th>
+            <th className="pb-2.5 pr-2 text-right font-semibold">{t.equity}</th>
+            <th className="hidden pb-2.5 pr-2 text-right font-semibold sm:table-cell">{t.balance}</th>
+            <th className="pb-2.5 text-right font-semibold">{t.profit}</th>
+            <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">%</th>
+            <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">{t.drawdown}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const place = i + 1
+            const tone = (r.profit ?? 0) >= 0 ? "text-ok" : "text-bad"
+            const def = marks.get(r._id)
+            // The floating part of the account, which is what separates a
+            // contestant who has banked a lead from one who is holding it.
+            const float = typeof r.equity === "number" && typeof r.balance === "number"
+              ? r.equity - r.balance : null
+            return (
+              <tr key={r._id} className={`border-t border-bk-line ${place <= 3 ? "bg-bk-sunken/40" : ""}`}>
+                <td className="py-2.5 pr-2 text-center"><RankMark place={place} /></td>
+                <td className="py-2.5 pr-2">
+                  <span className="flex items-center gap-2">
+                    {def && <ContestAvatar def={def} size={26} className="shrink-0" />}
+                    <span className="min-w-0">
+                      <Link href={`/contest/${slug}/${r.mtLogin}`} className="flex items-center gap-1.5 font-semibold hover:text-accent">
+                        <Flag value={r.country} size={14} />
+                        <span className="truncate">{r.displayName}</span>
+                      </Link>
+                      <span className="block font-mono text-[10.5px] text-bk-muted">#{r.mtLogin}</span>
+                      {r.status === "blown" && <span className="text-[10.5px] font-bold text-bad">{t.blown}</span>}
+                      {r.status === "flagged" && <span className="text-[10.5px] font-bold text-warn">{t.flagged}</span>}
+                      {r.status === "approved" && !r.lastSeen && <span className="text-[10.5px] text-bk-muted">{t.waitingEa}</span>}
                     </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      )}
+                  </span>
+                </td>
+                <td className="py-2.5 pr-2 text-right font-mono font-semibold tabular-nums">
+                  {round0(r.equity)}
+                  {/* Only when it is worth saying: a basket being carried. */}
+                  {float !== null && Math.abs(float) >= 1 && (
+                    <span className={`block text-[10px] font-normal ${float >= 0 ? "text-ok" : "text-bad"}`}>
+                      {signed0(float)} {t.floating}
+                    </span>
+                  )}
+                </td>
+                <td className="hidden py-2.5 pr-2 text-right font-mono tabular-nums text-bk-muted sm:table-cell">
+                  {round0(r.balance)}
+                </td>
+                <td className={`py-2.5 text-right font-mono font-semibold tabular-nums ${tone}`}>{signed0(r.profit)}</td>
+                <td className={`hidden py-2.5 pl-2 text-right font-mono tabular-nums sm:table-cell ${tone}`}>
+                  {typeof r.profitPct === "number" ? r.profitPct.toFixed(1) : "\u2014"}
+                </td>
+                <td className="hidden py-2.5 pl-2 text-right font-mono tabular-nums text-bk-muted sm:table-cell">
+                  <span className="inline-flex items-center justify-end gap-1.5">
+                    <span className="block h-[3px] w-10 overflow-hidden rounded-sm bg-bk-line">
+                      <span className="block h-full bg-bk-muted" style={{ width: `${Math.min(100, Math.max(0, (r.maxDDPct ?? 0) * 2))}%` }} />
+                    </span>
+                    {typeof r.maxDDPct === "number" ? `${r.maxDDPct.toFixed(1)}%` : "\u2014"}
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </>
   )
 }
@@ -369,9 +446,12 @@ export default function ContestHome({
                   i === 0 ? "border-l-transparent" : s.on ? "border-l-ok" : "border-l-bk-line"
                 } ${s.on ? "md:border-t-ok" : "md:border-t-bk-line"}`}
               >
+                {/* The live phase breathes. It is the only thing on the page
+                    that says "you are here" without words, and the schedule
+                    is read at a glance more often than it is read at all. */}
                 <span
                   className={`absolute left-[-5px] top-[17px] h-[9px] w-[9px] rounded-full md:left-0 md:top-[-5px] ${
-                    s.on ? "bg-ok shadow-[0_0_0_4px_rgba(46,203,148,0.15)]" : "bg-bk-line"
+                    s.on ? "ct-phase bg-ok text-ok" : "bg-bk-line"
                   }`}
                 />
                 <span className={`font-mono text-[11.5px] font-medium ${s.on ? "text-ok" : "text-bk-muted"}`}>{s.when}</span>
@@ -393,6 +473,12 @@ export default function ContestHome({
           </p>
         </section>
 
+        {!!contest.sponsors?.length && (
+          <section className="border-t border-bk-line py-6">
+            <Sponsors sponsors={contest.sponsors} lang={lang} title={t.sponsors} />
+          </section>
+        )}
+
         {contest.status === "done" && !!contest.winners?.length && (
           <section className="border-t border-bk-line py-6">
             <h2 className="mb-3 text-[16px] font-bold">{t.winners}</h2>
@@ -411,17 +497,19 @@ export default function ContestHome({
 
         {children}
 
-        {archive.length > 1 && (
-          <section className="flex flex-wrap items-center gap-2 border-t border-bk-line py-5">
-            <span className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-bk-muted">{t.archive}</span>
-            {archive.filter(a => a.slug !== contest.slug).map(a => (
-              <Link key={a.slug} href={`/contest/${a.slug}`}
-                className="rounded-bk border border-bk-line bg-bk-sunken px-2.5 py-1 text-[11.5px] hover:border-accent">
-                {a.title}
-              </Link>
-            ))}
-          </section>
-        )}
+        <section className="flex flex-wrap items-center gap-2 border-t border-bk-line py-5">
+          <span className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-bk-muted">{t.archive}</span>
+          {archive.filter(a => a.slug !== contest.slug).map(a => (
+            <Link key={a.slug} href={`/contest/${a.slug}`}
+              className="rounded-bk border border-bk-line bg-bk-sunken px-2.5 py-1 text-[11.5px] hover:border-accent">
+              {a.title}
+            </Link>
+          ))}
+          <Link href="/contest/history"
+            className="rounded-bk border border-bk-line px-2.5 py-1 text-[11.5px] font-semibold text-accent hover:border-accent">
+            {t.allRounds} →
+          </Link>
+        </section>
       </div>
     </div>
   )

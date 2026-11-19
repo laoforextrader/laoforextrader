@@ -31,6 +31,9 @@ export const contestEntrySchema = {
     { name: "contactHash", title: "WhatsApp (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
     { name: "ipHash",      title: "IP ຕອນສະໝັກ (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
     { name: "holderHash",  title: "ຊື່ເຈົ້າຂອງບັນຊີ (ດັດຊະນີ)", type: "string", readOnly: true, hidden: true },
+    // The animal mark beside their name on the board. Empty means the
+    // board derives one from the MT5 login (components/contest/avatars).
+    { name: "avatar", title: "Avatar", type: "string" },
     { name: "country", title: "ປະເທດ", type: "string", readOnly: true },
 
     // ─── ບັນຊີ MT5 ───
