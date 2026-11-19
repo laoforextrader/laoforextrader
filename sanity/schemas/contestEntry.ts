@@ -85,6 +85,7 @@ export const contestEntrySchema = {
           { title: "🟢 ກຳລັງແຂ່ງ (active)",         value: "active" },
           { title: "🚩 ມີທຸງ ລໍກວດ (flagged)",      value: "flagged" },
           { title: "💀 ລ້າງພອດ (blown)",            value: "blown" },
+          { title: "↩ ຍົກເລີກ ສະໝັກໃໝ່ໄດ້ (cancelled)", value: "cancelled" },
           { title: "❌ ຕັດສິດ (disqualified)",       value: "disqualified" },
         ],
         layout: "radio",
@@ -109,6 +110,18 @@ export const contestEntrySchema = {
       }],
       readOnly: true,
     },
+
+    // --- cancelled, and chasing ---
+    // A cancelled entry is a mistake, not a cheat: the MT5 number or the
+    // server was wrong, so the entry leaves the round and the same person may
+    // register again with the same email and phone. The reason is kept
+    // because it is what the WhatsApp message to them says.
+    { name: "cancelReason", title: "Cancel reason", type: "text", rows: 2, readOnly: true },
+    { name: "cancelledAt",  title: "Cancelled at", type: "datetime", readOnly: true },
+    // Written when the owner sends the "connect your EA" reminder, so the
+    // next pass down the list shows who has already been chased.
+    { name: "remindedAt",   title: "Last reminded", type: "datetime", readOnly: true },
+    { name: "remindCount",  title: "Reminders sent", type: "number", readOnly: true },
 
     // ─── ຜົນທີ່ກວດແລ້ວ (ແອດມິນໃສ່ເອງ) ───
     { name: "verifiedProfit", title: "ກຳໄລທີ່ກວດແລ້ວ", type: "number" },

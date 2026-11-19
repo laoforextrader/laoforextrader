@@ -145,6 +145,23 @@ export async function applyHeartbeat(
       `${(p.contest?.deposits ?? 0).toFixed(2)} deposited after the start — profit is counted without it`))
   }
 
+  // Traded before the round began.
+  //
+  // The contest EA locks itself until the start time, so a trade before it
+  // came either from a hand or from another EA — both of which the rules
+  // forfeit the entry for. It is raised as a flag and not acted on: the
+  // entry may have been registered on an account that had been used for
+  // something else before, and only the owner can tell those apart by
+  // looking at the history with the investor password.
+  const startsAt = contest.startAt ? Date.parse(contest.startAt) : NaN
+  const beforeStart = Number.isFinite(startsAt) && now.getTime() < startsAt
+  const touched = (p.contest?.trades ?? 0) > 0 || (p.positions?.count ?? 0) > 0
+  if (beforeStart && touched && !had("early-trade")) {
+    flags.push(flag("early-trade",
+      `traded before the start — ${p.contest?.trades ?? 0} closed, ${p.positions?.count ?? 0} open, ` +
+      `round starts ${new Date(startsAt).toISOString()}`))
+  }
+
   let status: string = entry.status === "disqualified" ? "disqualified" : "active"
   // An entry the admin has not approved yet still reports; it simply stays
   // out of the running until a human has looked at the account.

@@ -136,10 +136,47 @@ export async function entryCount(contestId: string): Promise<number> {
   )
 }
 
+/** Entries that still hold a seat — everyone except the cancelled ones. */
+export async function liveEntryCount(contestId: string): Promise<number> {
+  return sanityWrite.fetch<number>(
+    `count(*[_type == "contestEntry" && contest._ref == $id && status != "cancelled"])`,
+    { id: contestId }
+  )
+}
+
+/**
+ * Is this person on the block list?
+ *
+ * Any one of the three matching is enough. They are compared as blind
+ * indexes, so this answers "is it the same phone" without the dataset — which
+ * is public — ever holding the number itself. A block is not tied to a round:
+ * the owner's rule is that a blocked person cannot enter again at all.
+ */
+export async function isBlocked(
+  keys: { emailHash?: string; phoneHash?: string; mtLogin?: string }
+): Promise<boolean> {
+  const n = await sanityWrite.fetch<number>(
+    `count(*[_type == "contestBlock" && (
+       (defined($email) && ownerEmailHash == $email) ||
+       (defined($phone) && contactHash == $phone) ||
+       (defined($login) && mtLogin == $login)
+     )])`,
+    {
+      email: keys.emailHash || null,
+      phone: keys.phoneHash || null,
+      login: keys.mtLogin || null,
+    }
+  )
+  return n > 0
+}
+
 /** This user's entry in this round, or null. Includes the code: it is theirs. */
 export async function myEntry(email: string, contestId: string) {
+  // A person who had an entry cancelled and registered again owns two
+  // documents. The live one is the answer; the cancelled one is history.
   const entry = await sanityWrite.fetch<any>(
-    `*[_type == "contestEntry" && contest._ref == $id && ownerEmailHash == $hash][0]{
+    `*[_type == "contestEntry" && contest._ref == $id && ownerEmailHash == $hash && status != "cancelled"]
+      | order(_createdAt desc)[0]{
        _id, entryNo, displayName, mtLogin, mtServer, entryCodeEnc, status, lastSeen,
        profit, profitPct, equity
      }`,
@@ -210,7 +247,7 @@ export function investorOf(entry: { investorEnc?: string }): string {
 
 export type RegisterResult =
   | { ok: true; code: string; entryNo: number; earlyBird: boolean }
-  | { ok: false; reason: "already-registered" | "login-taken" | "phone-taken" | "closed" | "full" }
+  | { ok: false; reason: "already-registered" | "login-taken" | "phone-taken" | "closed" | "full" | "blocked" }
 
 /**
  * Register one contestant.
@@ -235,11 +272,24 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
   // it is the check that actually bites.
   const emailHash = blindIndex(email, "contestOwner")
   const phoneHash = blindIndex(input.contact, "contestPhone")
+  const ipHash = input.ip ? blindIndex(input.ip, "contestIp") : ""
+
+  // The block list is checked before anything else and spans every round:
+  // being told "this number is already registered" would invite another
+  // number, which is exactly what a blocked person would try next.
+  if (await isBlocked({ emailHash, phoneHash, mtLogin })) {
+    return { ok: false, reason: "blocked" }
+  }
+
+  // A cancelled entry is not in the round any more, so it must not stand in
+  // the way of the same person registering again — that is the whole point of
+  // cancelling rather than disqualifying. Disqualified entries DO still count:
+  // the rule the owner set is that cheating costs the seat.
   const dupe = await sanityWrite.fetch<{ mine: number; login: number; phone: number }>(
     `{
-      "mine":  count(*[_type == "contestEntry" && contest._ref == $id && ownerEmailHash == $hash]),
-      "login": count(*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login]),
-      "phone": count(*[_type == "contestEntry" && contest._ref == $id && contactHash == $phone])
+      "mine":  count(*[_type == "contestEntry" && contest._ref == $id && status != "cancelled" && ownerEmailHash == $hash]),
+      "login": count(*[_type == "contestEntry" && contest._ref == $id && status != "cancelled" && mtLogin == $login]),
+      "phone": count(*[_type == "contestEntry" && contest._ref == $id && status != "cancelled" && contactHash == $phone])
     }`,
     { id: contestId, hash: emailHash, login: mtLogin, phone: phoneHash }
   )
@@ -247,10 +297,18 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
   if (dupe.login > 0) return { ok: false, reason: "login-taken" }
   if (dupe.phone > 0) return { ok: false, reason: "phone-taken" }
 
-  const taken = await entryCount(contestId)
+  // Seats are counted as entries that still hold one. A cancelled entry gave
+  // its seat back, so it must not keep the round looking full.
+  const taken = await liveEntryCount(contestId)
   if (contest.maxEntries && taken >= contest.maxEntries) return { ok: false, reason: "full" }
 
-  const entryNo = taken + 1
+  // The number is the registration order and must never repeat, so it comes
+  // from the highest one issued rather than from how many entries exist: a
+  // cancelled #4 keeps its number and the next person is #16, not #15 again.
+  const highest = await sanityWrite.fetch<number>(
+    `math::max(*[_type == "contestEntry" && contest._ref == $id && defined(entryNo)].entryNo)`, { id: contestId }
+  )
+  const entryNo = (highest ?? 0) + 1
   const code = newEntryCode()
 
   await sanityWrite.create({
@@ -262,7 +320,7 @@ export async function registerEntry(input: RegisterInput): Promise<RegisterResul
     displayName: input.displayName,
     contactEnc: encryptPII(input.contact),
     contactHash: phoneHash,
-    ipHash: input.ip ? blindIndex(input.ip, "contestIp") : undefined,
+    ipHash: ipHash || undefined,
     country: input.country,
     mtLogin,
     mtServer: input.mtServer,

@@ -73,6 +73,7 @@ export default function RegisterForm({
     "phone-taken": t.errPhone,
     closed: t.errClosed,
     full: t.errFull,
+    blocked: t.errBlocked,
   } as Record<string, string>)[reason] ?? t.errGeneric
 
   async function submit(e: React.FormEvent) {
