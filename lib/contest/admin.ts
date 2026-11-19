@@ -210,6 +210,21 @@ export function waLinkApproved(e: AdminEntry, contest: Contest, base: string): s
  *
  * `blocking` is what should stop an approval; the rest is advice.
  */
+/**
+ * A timestamp the owner can compare against their own clock.
+ *
+ * This runs on the server, where toLocaleString() means UTC with nothing
+ * saying so — and a heartbeat from a minute ago then reads as seven hours
+ * old, which is exactly how it was misread on 2026-11-20. Vientiane is the
+ * clock everyone involved is actually looking at.
+ */
+const TZ = "Asia/Bangkok"   // = Asia/Vientiane, UTC+7, no DST
+const seenAt = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", {
+    timeZone: TZ, day: "2-digit", month: "short",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }) + " ICT"
+
 /** True when this entry is inside the round's early-bird window. */
 export const isEarlyBird = (e: AdminEntry, contest: Contest) =>
   !!e.entryNo && e.entryNo <= (contest.earlyBirdCount ?? 0)
@@ -234,7 +249,7 @@ export function readiness(e: AdminEntry, contest: Contest): Readiness[] {
       label: "EA connected",
       ok: seen,
       blocking: true,
-      detail: seen ? `last seen ${new Date(e.lastSeen!).toLocaleString()}` : "no heartbeat yet",
+      detail: seen ? `last seen ${seenAt(e.lastSeen!)}` : "no heartbeat yet",
     },
     {
       label: "Demo account",
