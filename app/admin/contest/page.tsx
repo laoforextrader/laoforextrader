@@ -84,7 +84,7 @@ export default async function AdminContestPage(
       waApproved={waLinkApproved(e, contest, base)}
       // The reason is chosen in the browser, so the link carries a token the
       // row swaps for it rather than the text itself.
-      waCancelled={waLinkCancelled(e, contest, base, "__REASON__")}
+      waCancelled={waLinkCancelled(e, contest, base, ["__REASON__"])}
       waRemind={waLinkRemind(e, contest, base)}
       earlyBird={isEarlyBird(e, contest)}
       checks={readiness(e, contest)}

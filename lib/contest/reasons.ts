@@ -32,15 +32,35 @@ export const BLOCK_REASONS: Reason[] = [
 ]
 
 /**
- * The one line that is stored and sent.
+ * The reasons as separate lines — one per thing to fix.
  *
- * The typed part is appended rather than replacing the label, so a reason
- * picked from the list keeps its wording even when the owner adds a detail
- * ("MT5 account number is wrong · 464212306 does not exist").
+ * Several at a time, because an entry that was filled in carelessly is
+ * usually wrong in more than one place, and a contestant who fixes the
+ * account number only to be cancelled again over the server name has been
+ * made to wait two rounds of messages for one mistake.
+ *
+ * The typed note is a line of its own at the end, never folded into a label.
  */
-export function reasonText(list: Reason[], id: string, typed: string): string {
-  const found = list.find(r => r.id === id)
-  const label = found?.lo ?? ""
+export function reasonLines(list: Reason[], ids: string[], typed: string): string[] {
+  const picked = list
+    .filter(r => ids.includes(r.id) && r.lo)
+    .map(r => r.lo as string)
   const extra = typed.trim()
-  return [label, extra].filter(Boolean).join(" · ").slice(0, 300)
+  if (extra) picked.push(extra)
+  return picked
 }
+
+/**
+ * The same reasons as one line, which is what the entry stores.
+ *
+ * " · " is the separator the whole site uses, and it is what the WhatsApp
+ * message splits back into bullets — so the record and the message cannot
+ * drift apart.
+ */
+export function reasonSummary(list: Reason[], ids: string[], typed: string): string {
+  return reasonLines(list, ids, typed).join(" \u00b7 ").slice(0, 300)
+}
+
+/** The stored line, back into bullets. */
+export const reasonBullets = (stored: string): string[] =>
+  stored.split(" \u00b7 ").map(x => x.trim()).filter(Boolean)

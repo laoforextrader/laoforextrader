@@ -350,21 +350,22 @@ export async function blockedLogins(): Promise<Set<string>> {
  * Registering again is possible with the same email and the same number —
  * that is what cancelling means, and the message says so plainly.
  */
-export function waLinkCancelled(e: AdminEntry, contest: Contest, base: string, reason: string): string {
+export function waLinkCancelled(e: AdminEntry, contest: Contest, base: string, reasons: string[]): string {
   return wa(e.whatsapp, [
     `ສະບາຍດີ ${e.displayName} \u{1f44b}`,
     ``,
-    `ໃບສະໝັກ "${contest.title}" ຂອງທ່ານຖືກຍົກເລີກ ເພາະຂໍ້ມູນບໍ່ຖືກຕ້ອງ`,
+    `ໃບສະໝັກ "${contest.title}" ຂອງທ່ານຖືກຍົກເລີກກ່ອນ ເພາະຂໍ້ມູນຍັງບໍ່ຖືກຕ້ອງ`,
     ``,
-    `\u274c ເຫດຜົນ: ${reason}`,
+    `❌ ສິ່ງທີ່ຕ້ອງແກ້:`,
+    ...reasons.map(r => `• ${r}`),
     ``,
-    `\u{1f504} ທ່ານ *ສະໝັກໃໝ່ໄດ້ເລີຍ* ດ້ວຍອີເມວ ແລະ ເບີເກົ່າ`,
+    `\u{1f504} ທ່ານ *ສະໝັກໃໝ່ໄດ້ເລີຍ* ດ້ວຍອີເມວ ແລະ ເບີເກົ່າ ບໍ່ຕ້ອງລໍໃໝ່`,
     `   ${base}/contest/register`,
     ``,
     `ຂໍໃຫ້ກວດຂໍ້ມູນເຫຼົ່ານີ້ໃຫ້ຖືກກ່ອນສົ່ງ:`,
-    `\u2022 ເລກບັນຊີ MT5 (ເບິ່ງໃນແອັບ MT5 ບ່ອນ Accounts)`,
-    `\u2022 ຊື່ເຊີບເວີ ເຊັ່ນ Exness-MT5Trial17`,
-    `\u2022 Investor password ທີ່ໃຊ້ເຂົ້າໄດ້ຈິງ`,
+    `• ເລກບັນຊີ MT5 (ເບິ່ງໃນແອັບ MT5 ບ່ອນ Accounts)`,
+    `• ຊື່ເຊີບເວີ ເຊັ່ນ Exness-MT5Trial17`,
+    `• Investor password ທີ່ໃຊ້ເຂົ້າໄດ້ຈິງ`,
     ``,
     `ຖ້າບໍ່ແນ່ໃຈ ຖ່າຍໜ້າຈໍ MT5 ສົ່ງມາທາງນີ້ໄດ້ເລີຍ`,
   ])
@@ -387,22 +388,22 @@ export function waLinkRemind(e: AdminEntry, contest: Contest, base: string): str
     `ສະບາຍດີ ${e.displayName} \u{1f44b}`,
     ``,
     days > 0
-      ? `\u23f3 ອີກ ${days} ມື້ "${contest.title}" ຈະເລີ່ມແລ້ວ (${when})`
+      ? `⏳ ອີກ ${days} ມື້ "${contest.title}" ຈະເລີ່ມແລ້ວ (${when})`
       : `\u{1f3c1} "${contest.title}" ເລີ່ມແລ້ວ (${when})`,
     ``,
     ...(seen ? [
-      `\u2705 ລະບົບເຫັນ EA ຂອງທ່ານແລ້ວ — ຂໍໃຫ້ເປີດໄວ້ຕໍ່ເນື່ອງຈົນຈົບການແຂ່ງຂັນ`,
+      `✅ ລະບົບເຫັນ EA ຂອງທ່ານແລ້ວ — ຂໍໃຫ້ເປີດໄວ້ຕໍ່ເນື່ອງຈົນຈົບການແຂ່ງຂັນ`,
     ] : [
-      `\u26a0\ufe0f ລະບົບ *ຍັງບໍ່ເຫັນ EA* ຂອງທ່ານເທື່ອ`,
+      `⚠️ ລະບົບ *ຍັງບໍ່ເຫັນ EA* ຂອງທ່ານເທື່ອ`,
       `ຖ້າບໍ່ໄດ້ເຊື່ອມຕໍ່ກ່ອນເວລາເລີ່ມ ຈະບໍ່ມີຕົວເລກຂຶ້ນກະດານ ແລະ ແຂ່ງບໍ່ໄດ້`,
       ``,
       `\u{1f511} ລະຫັດຜູ້ແຂ່ງຂອງທ່ານ: ${e.entryCode}`,
       `\u{1f4e5} ວິທີຕິດຕັ້ງ: ${base}/contest/install`,
       ``,
       `ສາມຢ່າງທີ່ມັກລືມ:`,
-      `\u2022 ເປີດປຸ່ມ Algo Trading ໃຫ້ເປັນສີຂຽວ`,
-      `\u2022 ອະນຸຍາດ WebRequest ໃສ່ https://www.laoforextrader.com`,
-      `\u2022 ໃສ່ ContestCode ໃນຊ່ອງຕັ້ງຄ່າຂອງ EA`,
+      `• ເປີດປຸ່ມ Algo Trading ໃຫ້ເປັນສີຂຽວ`,
+      `• ອະນຸຍາດ WebRequest ໃສ່ https://www.laoforextrader.com`,
+      `• ໃສ່ ContestCode ໃນຊ່ອງຕັ້ງຄ່າຂອງ EA`,
     ]),
     ``,
     `\u{1f4ca} ກະດານອັນດັບ: ${base}/contest`,

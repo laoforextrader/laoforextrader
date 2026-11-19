@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import type { AdminEntry, Readiness } from "@/lib/contest/admin"
-import { CANCEL_REASONS, BLOCK_REASONS, reasonText, type Reason } from "@/lib/contest/reasons"
+import {
+  CANCEL_REASONS, BLOCK_REASONS, reasonLines, reasonSummary, reasonBullets, type Reason,
+} from "@/lib/contest/reasons"
 
 // One contestant in the admin list.
 //
@@ -22,38 +24,55 @@ import { CANCEL_REASONS, BLOCK_REASONS, reasonText, type Reason } from "@/lib/co
 
 type Action = "approve" | "reject" | "cancel" | "block" | "remind"
 
-/** The reason picker that Cancel and Block share. */
+/**
+ * The reason picker that Cancel and Block share.
+ *
+ * Several at once: an entry filled in carelessly is usually wrong in more
+ * than one place, and cancelling someone over the account number only to
+ * cancel them again over the server name costs both sides two rounds of
+ * messages for one mistake. Every ticked reason becomes a bullet in the
+ * message they get.
+ */
 function ReasonPicker({
-  list, pick, setPick, typed, setTyped,
+  list, picks, toggle, typed, setTyped, preview,
 }: {
   list: Reason[]
-  pick: string
-  setPick: (v: string) => void
+  picks: string[]
+  toggle: (id: string) => void
   typed: string
   setTyped: (v: string) => void
+  /** The message's bullets, exactly as they will be sent. */
+  preview: string[]
 }) {
-  const chosen = list.find(r => r.id === pick)
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-bk border border-bk-line bg-bk-sunken p-2.5">
       <div className="flex flex-wrap gap-1.5">
-        {list.map(r => (
-          <button
-            key={r.id} type="button" onClick={() => setPick(r.id)}
-            className={`rounded-bk border px-2 py-1 text-[11.5px] font-semibold ${
-              pick === r.id ? "border-accent text-accent" : "border-bk-line text-bk-muted"
-            }`}>
-            {r.en}
-          </button>
-        ))}
+        {list.map(r => {
+          const on = picks.includes(r.id)
+          return (
+            <button
+              key={r.id} type="button" onClick={() => toggle(r.id)}
+              aria-pressed={on}
+              className={`rounded-bk border px-2 py-1 text-[11.5px] font-semibold ${
+                on ? "border-accent bg-accent-soft text-accent-ink" : "border-bk-line text-bk-muted"
+              }`}>
+              {on ? "✓ " : ""}{r.en}
+            </button>
+          )
+        })}
       </div>
-      {/* Lao is what the contestant reads, so it is shown here before it is
-          sent: the owner should see the sentence, not just its English label. */}
-      {chosen?.lo && <p className="m-0 text-[12px] text-bk-muted">{chosen.lo}</p>}
       <input
         value={typed} onChange={e => setTyped(e.target.value)}
-        placeholder="รายละเอียดเพิ่ม (ไม่บังคับ) — ข้อความนี้จะถูกส่งให้ผู้สมัครด้วย"
+        placeholder="รายละเอียดเพิ่ม (ไม่บังคับ) — จะกลายเป็นอีกข้อหนึ่งในข้อความ"
         className="w-full rounded-bk border border-bk-line bg-bk-surface px-2.5 py-2 text-[12.5px] outline-none focus:ring-2 focus:ring-accent"
       />
+      {/* Lao is what the contestant reads, so the owner sees the bullets
+          themselves rather than the English labels they were picked by. */}
+      {preview.length > 0 && (
+        <ul className="m-0 flex flex-col gap-0.5 text-[12px] text-bk-muted">
+          {preview.map((line, i) => <li key={i}>• {line}</li>)}
+        </ul>
+      )}
     </div>
   )
 }
@@ -84,13 +103,16 @@ export default function AdminEntryRow({
 
   /** Which reason panel is open, if any. */
   const [panel, setPanel] = useState<"cancel" | "block" | null>(null)
-  const [pick, setPick] = useState("")
+  const [picks, setPicks] = useState<string[]>([])
   const [typed, setTyped] = useState("")
   /** Stored, sent and shown — one string in all three places. */
   const [sentReason, setSentReason] = useState(e.cancelReason ?? "")
 
   const list = panel === "block" ? BLOCK_REASONS : CANCEL_REASONS
-  const reason = reasonText(list, pick, typed)
+  const bullets = reasonLines(list, picks, typed)
+  const reason = reasonSummary(list, picks, typed)
+  const togglePick = (id: string) =>
+    setPicks(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id]))
 
   async function send(action: Action, note?: string) {
     setBusy(true); setErr(null)
@@ -266,7 +288,7 @@ export default function AdminEntryRow({
 
         {!done && (
           <button
-            onClick={() => { setPanel(panel === "cancel" ? null : "cancel"); setPick(""); setTyped("") }}
+            onClick={() => { setPanel(panel === "cancel" ? null : "cancel"); setPicks([]); setTyped("") }}
             disabled={busy}
             className="rounded-bk border border-bk-line px-3 py-1.5 text-[12px] font-semibold text-bk-ink disabled:opacity-40">
             Cancel entry…
@@ -283,7 +305,7 @@ export default function AdminEntryRow({
         )}
         {!isBlocked ? (
           <button
-            onClick={() => { setPanel(panel === "block" ? null : "block"); setPick(""); setTyped("") }}
+            onClick={() => { setPanel(panel === "block" ? null : "block"); setPicks([]); setTyped("") }}
             disabled={busy}
             className="rounded-bk border border-bad-line bg-bad-soft px-3 py-1.5 text-[12px] font-bold text-bad disabled:opacity-40">
             Block…
@@ -298,11 +320,11 @@ export default function AdminEntryRow({
 
       {panel && (
         <>
-          <ReasonPicker list={list} pick={pick} setPick={setPick} typed={typed} setTyped={setTyped} />
+          <ReasonPicker list={list} picks={picks} toggle={togglePick} typed={typed} setTyped={setTyped} preview={bullets} />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {panel === "cancel" ? (
               <button
-                disabled={busy || reason.length < 2}
+                disabled={busy || bullets.length === 0}
                 onClick={async () => {
                   if (await send("cancel", reason)) { setSentReason(reason); setPanel(null) }
                 }}
@@ -311,7 +333,7 @@ export default function AdminEntryRow({
               </button>
             ) : (
               <button
-                disabled={busy || reason.length < 2}
+                disabled={busy || bullets.length === 0}
                 onClick={async () => {
                   if (!confirm(
                     `Block ${e.displayName} (#${e.mtLogin}) for good?\n\n${reason}\n\n` +
@@ -326,7 +348,7 @@ export default function AdminEntryRow({
             <button onClick={() => setPanel(null)} className="text-[12px] font-semibold text-bk-muted">
               back
             </button>
-            {reason.length < 2 && <span className="text-[11.5px] text-bk-muted">เลือกเหตุผลก่อน</span>}
+            {bullets.length === 0 && <span className="text-[11.5px] text-bk-muted">เลือกเหตุผลก่อน (ติ๊กได้หลายข้อ)</span>}
           </div>
         </>
       )}
@@ -336,7 +358,12 @@ export default function AdminEntryRow({
       {status === "cancelled" && sentReason && (
         <div className="mt-2">
           <a
-            href={waCancelled.replace("__REASON__", encodeURIComponent(sentReason))}
+            href={waCancelled.replace(
+              "__REASON__",
+              // The stored line, split back into the same bullets it was
+              // built from, so a reload sends the same message.
+              reasonBullets(sentReason).map(encodeURIComponent).join("%0A%E2%80%A2%20"),
+            )}
             target="_blank" rel="noopener noreferrer"
             className="inline-block rounded-bk bg-warn px-3 py-1.5 text-[12px] font-bold text-white">
             WhatsApp: tell them what to fix →
