@@ -24,9 +24,12 @@ export default function InstallCommand({ eaId }: Props) {
   const [copied, setCopied] = useState(false)
   const [shell, setShell] = useState<Shell>("ps")
 
+  //  The TLS line is on this variant too. It was only on the cmd one,
+  //  as if the problem were cmd.exe - it is the Windows version, and a
+  //  VPS owner who opens PowerShell himself hits exactly the same wall.
   const psCmd = eaId
-    ? `$env:ROCKET_EA='${eaId}'; irm https://www.laoforextrader.com/go | iex`
-    : `irm https://www.laoforextrader.com/go | iex`
+    ? `[Net.ServicePointManager]::SecurityProtocol='Tls12'; $env:ROCKET_EA='${eaId}'; irm https://www.laoforextrader.com/go | iex`
+    : `[Net.ServicePointManager]::SecurityProtocol='Tls12'; irm https://www.laoforextrader.com/go | iex`
 
   //  Two reasons this is not just the PowerShell line with a prefix:
   //  `irm` does not exist in cmd.exe, which is where a VPS session lands, and

@@ -63,8 +63,15 @@ export default function InstallGuide({
   }, [])
   const t = DICT[lang]
 
-  const short = `irm ${installUrl} | iex`
-  const long = `powershell -NoProfile -ExecutionPolicy Bypass -Command "irm ${installUrl} | iex"`
+  //  TLS 1.2 is asked for in the command itself, not just inside the
+  //  script it downloads: Windows Server 2016/2019 negotiate TLS 1.0 by
+  //  default and our host refuses it, so the `irm` that FETCHES the
+  //  installer is the call that fails - long before any line of the
+  //  script runs. Seen on a real VPS on 2026-11-20:
+  //  "The request was aborted: Could not create SSL/TLS secure channel."
+  const TLS = `[Net.ServicePointManager]::SecurityProtocol='Tls12'; `
+  const short = `${TLS}irm ${installUrl} | iex`
+  const long = `powershell -NoProfile -ExecutionPolicy Bypass -Command "${TLS}irm ${installUrl} | iex"`
 
   return (
     <div className="mx-auto max-w-[760px] px-4 py-6 sm:px-8">
