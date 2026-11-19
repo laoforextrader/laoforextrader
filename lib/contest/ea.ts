@@ -34,6 +34,16 @@ export interface EaPayload {
     maxDDPct?: number          // measured tick by tick by the EA
     trades?: number            // closed deals
     lots?: number              // total volume traded
+    /**
+     * Every balance deal except the account's first funding, as
+     * [unix seconds, amount] — negative for a withdrawal.
+     *
+     * The EA sends them all and judges none of them: only the server
+     * knows when the round starts, and that is what decides whether a
+     * top-up is part of the starting capital or a deposit that has to
+     * come back out of the score.
+     */
+    balOps?: Array<[number, number]>
   }
   positions?: { count?: number; lots?: number; floating?: number }
   /**
@@ -87,6 +97,45 @@ export function contestProfit(p: EaPayload, startBalance: number): number {
   return equity - startBalance - deposits + withdrawals
 }
 
+/**
+ * What the account was funded with before the round, and what was added or
+ * taken out after it began.
+ *
+ * `startBalance` from the EA is the first funding deal of the account's
+ * life, which is not the same thing as its starting capital: a demo opened
+ * with 10,000 and topped up to 100,000 before the start reports 10,000. Its
+ * capital is the net of everything paid in before the gun, so that is what
+ * is compared against the round and shown on the approval screen.
+ */
+export function capitalOf(p: EaPayload, contest: Contest) {
+  const startsAt = contest.startAt ? Date.parse(contest.startAt) : NaN
+  //  No start date yet means the round has not begun, so nothing can be a
+  //  mid-round deposit.
+  const started = (whenSec: number) =>
+    Number.isFinite(startsAt) && whenSec * 1000 >= startsAt
+
+  let funded = p.contest?.startBalance ?? 0
+  let deposits = 0
+  let withdrawals = 0
+
+  for (const op of p.contest?.balOps ?? []) {
+    if (!Array.isArray(op) || op.length < 2) continue
+    const when = Number(op[0])
+    const amt = Number(op[1])
+    if (!Number.isFinite(when) || !Number.isFinite(amt) || amt === 0) continue
+    if (!started(when)) {
+      //  Before the gun: part of the capital, whichever way it went. A demo
+      //  that was emptied and refilled nets out correctly here.
+      funded += amt
+    } else if (amt > 0) {
+      deposits += amt
+    } else {
+      withdrawals += -amt
+    }
+  }
+  return { funded, deposits, withdrawals }
+}
+
 export interface SaveResult {
   profit: number
   status: string
@@ -131,13 +180,16 @@ export async function applyHeartbeat(
 ): Promise<SaveResult> {
   const now = new Date()
   const expected = contest.startBalance ?? 0
-  const reported = p.contest?.startBalance ?? 0
+  //  `reported` is only the first funding deal; what the round cares
+  //  about is everything paid in before it starts.
+  const { funded, deposits, withdrawals } = capitalOf(p, contest)
+  const reported = funded
   const equity = p.money?.equity ?? 0
   const balance = p.money?.balance ?? 0
 
   // The start balance that counts is the contest's own, so a demo funded with
   // the wrong amount cannot quietly compete on a different scale.
-  const profit = contestProfit(p, expected)
+  const profit = contestProfit({ ...p, contest: { ...p.contest, deposits, withdrawals } }, expected)
 
   const flags: Flag[] = []
   const had = (kind: string) => (entry.flags ?? []).some((f: any) => f?.kind === kind)
@@ -149,9 +201,9 @@ export async function applyHeartbeat(
   if (p.acct?.demo === false && !had("live-account")) {
     flags.push(flag("live-account", "this is a LIVE account, the contest is demo only"))
   }
-  if ((p.contest?.deposits ?? 0) > 0 && !had("deposit")) {
+  if (deposits > 0 && !had("deposit")) {
     flags.push(flag("deposit",
-      `${(p.contest?.deposits ?? 0).toFixed(2)} deposited after the start — profit is counted without it`))
+      `${deposits.toFixed(2)} deposited after the start — profit is counted without it`))
   }
 
   // Traded before the round began.
@@ -204,17 +256,19 @@ export async function applyHeartbeat(
     trades: p.contest?.trades ?? 0,
     lots: +(p.contest?.lots ?? 0).toFixed(2),
     openPositions: p.positions?.count ?? 0,
-    deposits: +(p.contest?.deposits ?? 0).toFixed(2),
-    withdrawals: +(p.contest?.withdrawals ?? 0).toFixed(2),
+    deposits: +deposits.toFixed(2),
+    withdrawals: +withdrawals.toFixed(2),
     lastSeen: now.toISOString(),
     series: JSON.stringify(series),
     status,
   }
+  //  Refreshed on every beat, not frozen on the first one. An entry that
+  //  reported before its account was topped up would otherwise carry the
+  //  old number to the grave, and the approval screen would keep
+  //  refusing an account that has been correct for days.
+  set.startBalance = +(reported || expected).toFixed(2)
   const firstBeat = !entry.firstSeen
-  if (firstBeat) {
-    set.firstSeen = now.toISOString()
-    set.startBalance = reported || expected
-  }
+  if (firstBeat) set.firstSeen = now.toISOString()
   // Refreshed on every beat, not just the first: these are what the approval
   // screen checks, and a contestant who switches chart or account type after
   // being approved should show up as changed.
@@ -231,6 +285,16 @@ export async function applyHeartbeat(
   // flag on everyone at once, which is the same as it raising it on nobody.
   if (p.acct?.name && !isGenericHolder(p.acct.name)) {
     set.holderHash = blindIndex(p.acct.name, "contestHolder")
+  }
+
+  //  Clear a start-balance flag the account has since answered. The card
+  //  would otherwise show a green tick and a red flag about the same number,
+  //  and the owner has to decide which one to believe. Only done on a beat
+  //  that raises nothing new, so a set and an append never meet in one patch.
+  const staleBalance = (entry.flags ?? []).some((f: any) => f?.kind === "start-balance")
+  if (!flags.length && staleBalance && expected > 0 && reported > 0 &&
+      Math.abs(reported - expected) / expected <= 0.01) {
+    set.flags = (entry.flags ?? []).filter((f: any) => f?.kind !== "start-balance")
   }
 
   const patch = sanityWrite.patch(entry._id).set(set)
