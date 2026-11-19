@@ -47,6 +47,7 @@ function entryFromBeat(p: EaPayload, login: string, row: EntryRow): AdminEntry {
     whatsapp: "",
     entryCode: "",
     investor: "",
+    dashKey: "",
   }
 }
 

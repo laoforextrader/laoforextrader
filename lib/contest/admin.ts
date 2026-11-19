@@ -2,6 +2,7 @@ import { sanityWrite } from "@/lib/sanityWrite"
 import { decryptPII } from "@/lib/pii"
 import { codeOf, investorOf, type Contest } from "@/lib/contest/store"
 import { waRepair } from "@/lib/contest/phone"
+import { keysOfAccounts } from "@/lib/semi/store"
 
 // Admin-side reads of a contest round.
 //
@@ -43,6 +44,12 @@ export interface AdminEntry {
   whatsapp: string
   entryCode: string
   investor: string
+  /**
+   * The Semi dashboard key for this MT5 login, when the EA has sent one.
+   * Empty for anyone still running a build older than 1.01, which never
+   * sent it — the button says so rather than sending half a message.
+   */
+  dashKey: string
 }
 
 const open = (blob: string | undefined, fallback = "") => {
@@ -69,7 +76,14 @@ export async function adminEntries(contestId: string): Promise<AdminEntry[]> {
     whatsapp: open(r.contactEnc),
     entryCode: codeOf(r),
     investor: investorOf(r),
+    dashKey: "",
   }))
+
+  //  The dashboard key lives on the semiAccount document the EA linked by
+  //  itself, not on the entry — one read for the whole round rather than
+  //  one per row.
+  const keys = await keysOfAccounts(mapped.map(e => e.mtLogin).filter(Boolean))
+  for (const e of mapped) e.dashKey = keys.get(e.mtLogin) ?? ""
 
   // Same phone, same registration IP or same account holder as someone else
   // in this round. None of these is proof on its own — a family shares an
@@ -131,6 +145,42 @@ export function waLinkWelcome(e: AdminEntry, contest: Contest, base: string, ear
     `ພວກເຮົາຈະກວດບັນຊີ ແລ້ວແຈ້ງຜົນອະນຸມັດກັບມາ`,
     ``,
     `📅 ເລີ່ມແຂ່ງ: ${start}`,
+  ])
+}
+
+/**
+ * Message five: the VPS is up, and here is how to drive the EA from a phone.
+ *
+ * The only message that carries a secret, and the only place the owner can
+ * get it: the dashboard key is generated on the machine the EA runs on, so
+ * for a contestant whose VPS we built, it sits on a machine they never open.
+ * The EA sends it up the contest channel (build 1.01+), which is what puts it
+ * on this screen in the first place.
+ *
+ * Never sent before the key is known — half of this message is worse than
+ * none, because the dashboard refuses the login without it.
+ */
+export function waLinkDashboard(e: AdminEntry, base: string, earlyBird: boolean): string {
+  return wa(e.whatsapp, [
+    `ສະບາຍດີ ${e.displayName} \u{1f44b}`,
+    ``,
+    ...(earlyBird ? [
+      `\u{1f5a5} VPS ຂອງທ່ານຕິດຕັ້ງຮຽບຮ້ອຍແລ້ວ — EA ແລ່ນຢູ່ຕະຫຼອດ 24 ຊົ່ວໂມງ ບໍ່ຕ້ອງເປີດຄອມຂອງທ່ານເອງ`,
+      ``,
+    ] : []),
+    `ທ່ານສັ່ງງານ EA ຈາກມືຖືໄດ້ທີ່ແດຊບອດ:`,
+    `\u{1f4ca} ${base}/semi`,
+    ``,
+    `\u{1f511} ວິທີເຂົ້າ`,
+    `1. ເຂົ້າລະບົບດ້ວຍ Google: ${e.email || "—"}`,
+    `2. ເລກບັນຊີ MT5: ${e.mtLogin}`,
+    `3. ກະແຈແດຊບອດ: ${e.dashKey}`,
+    ``,
+    `ໃນແດຊບອດກົດໄດ້ທັງໝົດ: Buy / Sell · ປິດໄມ້ທັງໝົດ · ປ່ຽນໂໝດ Manual / Semi / Auto · ຕັ້ງ lot ແລະ grid`,
+    `\u{1f4c8} ເບິ່ງອັນດັບສົດ: ${base}/contest`,
+    ``,
+    `ເປີດ EA ໄວ້ຕໍ່ເນື່ອງຈົນຈົບການແຂ່ງຂັນ`,
+    `ຖ້າມີຄຳຖາມ ຕອບກັບຂໍ້ຄວາມນີ້ໄດ້ເລີຍ`,
   ])
 }
 

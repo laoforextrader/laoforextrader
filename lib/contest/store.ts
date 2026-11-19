@@ -246,6 +246,12 @@ export function codeOf(entry: { entryCodeEnc?: string }): string {
   try { return decryptPII(entry.entryCodeEnc) } catch { return "" }
 }
 
+/** The Google address this entry registered with. Admin and server only. */
+export function ownerEmailOf(entry: { ownerEmailEnc?: string }): string {
+  if (!entry?.ownerEmailEnc) return ""
+  try { return decryptPII(entry.ownerEmailEnc) } catch { return "" }
+}
+
 export function investorOf(entry: { investorEnc?: string }): string {
   if (!entry?.investorEnc) return ""
   try { return decryptPII(entry.investorEnc) } catch { return "" }

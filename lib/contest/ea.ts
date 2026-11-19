@@ -36,6 +36,15 @@ export interface EaPayload {
     lots?: number              // total volume traded
   }
   positions?: { count?: number; lots?: number; floating?: number }
+  /**
+   * The EA's own dashboard key, sent only on this channel.
+   *
+   * It is generated on the machine the EA runs on and never leaves it,
+   * which is fine for a customer at their own PC and useless for a
+   * contestant whose VPS we built for them. Sent here, the website links
+   * the account itself and the key can be messaged to its owner.
+   */
+  dash?: { key?: string }
 }
 
 export interface EaReply {
@@ -245,7 +254,8 @@ export async function rankOf(contestId: string, entryId: string, profit: number)
 export async function entryByLogin(contestId: string, login: string) {
   const entry = await sanityWrite.fetch<any>(
     `*[_type == "contestEntry" && contest._ref == $id && mtLogin == $login][0]{
-       _id, entryCodeEnc, status, firstSeen, flags, series, startBalance
+       _id, entryCodeEnc, status, firstSeen, flags, series, startBalance,
+       displayName, ownerEmailEnc
      }`,
     { id: contestId, login }
   )

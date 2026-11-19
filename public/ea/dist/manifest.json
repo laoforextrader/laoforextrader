@@ -96,17 +96,17 @@
       "id": "contest",
       "name": "TheRocket MegiSemi Contest",
       "blurb": "Contest build - reports to the leaderboard, entry code required",
-      "version": "1.00",
+      "version": "1.01",
       "file": "TheRocketMegiSemiContest.ex5",
-      "url": "/ea/dist/contest/1.00/TheRocketMegiSemiContest.ex5",
-      "sha256": "2f3e681fe6f3b484a66d88a31898771edcb889274afd64344753aa700564051c",
-      "size": 266708,
+      "url": "/ea/dist/contest/1.01/TheRocketMegiSemiContest.ex5",
+      "sha256": "16a63b1dbbe75ea5c98f9952212e057845238bdd6be43568493b8398e0989e39",
+      "size": 312034,
       "presetDir": "TheRocketMegiSemiContest",
       "presets": [],
       "docs": [
         {
           "file": "INSTALL.txt",
-          "url": "/ea/dist/contest/1.00/INSTALL.txt",
+          "url": "/ea/dist/contest/1.01/INSTALL.txt",
           "sha256": "0553fe909123ad12d252c280070c4c5d3f404a1f7650c9739b85835c9615ee66",
           "size": 1421
         }

@@ -78,7 +78,7 @@ function ReasonPicker({
 }
 
 export default function AdminEntryRow({
-  e, waWelcome, waApproved, waCancelled, waRemind, earlyBird, checks, blocked,
+  e, waWelcome, waApproved, waCancelled, waRemind, waDash, earlyBird, checks, blocked,
 }: {
   e: AdminEntry
   /** Code and install link — ready the moment they register. */
@@ -89,6 +89,8 @@ export default function AdminEntryRow({
   waCancelled: string
   /** Days to the start, plus what to fix when the EA has never reported. */
   waRemind: string
+  /** The dashboard link, the MT5 login and the key. Needs e.dashKey. */
+  waDash: string
   earlyBird: boolean
   checks: Readiness[]
   /** This person is already on the block list. */
@@ -216,6 +218,7 @@ export default function AdminEntryRow({
         {showSecret && (
           <span className="rounded-bk bg-bk-sunken px-2 py-1 font-mono text-[12px]">
             {e.investor || "—"} <span className="text-bk-muted">· code {e.entryCode || "—"}</span>
+            <span className="text-bk-muted"> · key {e.dashKey || "—"}</span>
           </span>
         )}
       </div>
@@ -228,6 +231,21 @@ export default function AdminEntryRow({
           className="rounded-bk border border-bk-line bg-bk-sunken px-3 py-1.5 text-[12px] font-semibold text-bk-ink">
           WhatsApp: {earlyBird ? "code + VPS" : "send code"} →
         </a>
+
+        {/* The dashboard. Only offered once the EA has sent its key up, because
+            the login needs all three — the Google address, the MT5 number and
+            the key — and a message with the third one missing just produces a
+            round of questions. Builds before 1.01 never send it. */}
+        {e.dashKey ? (
+          <a href={waDash} target="_blank" rel="noopener noreferrer"
+            className="rounded-bk border border-ok-line bg-ok-soft px-3 py-1.5 text-[12px] font-semibold text-ok-ink">
+            WhatsApp: {earlyBird ? "VPS ready + dashboard" : "dashboard + key"} →
+          </a>
+        ) : (
+          <span className="rounded-bk border border-dashed border-bk-line px-3 py-1.5 text-[11.5px] text-bk-muted">
+            dashboard key: waiting for the EA (build 1.01+)
+          </span>
+        )}
 
         {/* The chase. Opening WhatsApp has to stay inside the click the owner
             made — a popup opened after an await is blocked — so this is an

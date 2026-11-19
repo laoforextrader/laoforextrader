@@ -7,6 +7,7 @@ import { isAdminEmail } from "@/lib/admin/auth"
 import { currentContest, allContests, contestBySlug } from "@/lib/contest/store"
 import {
   adminEntries, waLinkWelcome, waLinkApproved, waLinkCancelled, waLinkRemind,
+  waLinkDashboard,
   isEarlyBird, readiness, blockList, blockedLogins,
 } from "@/lib/contest/admin"
 import AdminEntryRow from "@/components/contest/AdminEntryRow"
@@ -86,6 +87,7 @@ export default async function AdminContestPage(
       // row swaps for it rather than the text itself.
       waCancelled={waLinkCancelled(e, contest, base, ["__REASON__"])}
       waRemind={waLinkRemind(e, contest, base)}
+      waDash={waLinkDashboard(e, base, isEarlyBird(e, contest))}
       earlyBird={isEarlyBird(e, contest)}
       checks={readiness(e, contest)}
       blocked={blockedSet.has(e.mtLogin)}

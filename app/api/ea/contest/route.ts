@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { currentContest, signBody, normCode } from "@/lib/contest/store"
+import { currentContest, signBody, normCode, ownerEmailOf } from "@/lib/contest/store"
+import { autoLink } from "@/lib/semi/store"
 import { applyHeartbeat, entryByLogin, rankOf, type EaPayload } from "@/lib/contest/ea"
 import { notifyEaConnected } from "@/lib/contest/notify"
 
@@ -66,6 +67,22 @@ export async function POST(req: Request) {
   }
 
   const saved = await applyHeartbeat(entry, contest, body)
+
+  // Link this account to the Semi dashboard using the key the EA just sent.
+  // Best-effort and never fails the beat: the ranking does not depend on it,
+  // and the next heartbeat is a minute away.
+  const dashKey = String(body?.dash?.key ?? "").trim()
+  if (dashKey) {
+    void autoLink(login, dashKey, ownerEmailOf(entry), entry.displayName)
+      .then(r => {
+        if (r === "created" || r === "relinked") {
+          console.log(`[contest] MT5 ${login}: dashboard ${r}`)
+        } else if (r === "owned-by-other") {
+          console.warn(`[contest] MT5 ${login}: dashboard account belongs to another user`)
+        }
+      })
+      .catch(() => {})
+  }
 
   // First time this entry has ever reported: tell the owner, once, with the
   // approval checks already run. Best-effort on purpose — a Telegram outage

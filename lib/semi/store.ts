@@ -469,3 +469,83 @@ export async function accountsOf(
     return { account: r.account, lastSeen: r.lastSeen, keyTail: key ? key.slice(-4) : undefined }
   })
 }
+
+/**
+ * Link an account from the EA's own heartbeat, with nobody typing anything.
+ *
+ * Only the contest channel calls this, and only after that heartbeat's
+ * signature has been checked against the entry code the website issued — so
+ * the key arriving here provably comes from the EA of an account we already
+ * know belongs to this contestant. That is a stronger proof than the normal
+ * path has, where the owner retypes a key off a panel.
+ *
+ * Why do it at all: the key is generated on the machine the EA runs on and
+ * never leaves it, so for a contestant whose VPS we set up, the key is on a
+ * machine they may never open. Without this they cannot reach the dashboard
+ * at all, and the owner would have to read the key off the VPS by hand.
+ *
+ * It never takes an account away from anyone. An account already linked to a
+ * different email is left exactly as it is and the caller is told so.
+ */
+export async function autoLink(
+  account: string, key: string, email: string, name?: string
+): Promise<"created" | "relinked" | "unchanged" | "owned-by-other" | "bad-key"> {
+  if (!/^[A-Z0-9]{12,32}$/.test(compactKey(key))) return "bad-key"
+  if (!email) return "bad-key"
+  //  Stored in the EA's own dashed form, the one it signs with - see canonKey.
+  const stored = canonKey(key)
+
+  const doc = await fetchDoc(account)
+  if (!doc) {
+    await sanityWrite.createOrReplace({
+      _id: docId(account),
+      _type: "semiAccount",
+      account,
+      ...sealEmail(email),
+      ownerName: name ?? "",
+      dashKeyEnc: encryptPII(stored),
+      state: "",
+      ackRound: 0,
+      rounds: [],
+    } as any)
+    mem.delete(account)
+    return "created"
+  }
+
+  const owner = emailOf(doc)
+  if (owner && owner.toLowerCase() !== email.toLowerCase()) return "owned-by-other"
+  if (owner && sameKey(keyOf(doc), key)) return "unchanged"
+
+  //  patch, not createOrReplace: this runs on a live account and replacing it
+  //  would drop the equity curve, the closed rounds and any queued command.
+  //  The EA's key file is the authority — a rebuilt VPS means a new key, and
+  //  refusing it here would leave an EA whose signature can never verify.
+  await sanityWrite
+    .patch(docId(account))
+    .set({
+      ...sealEmail(email),
+      dashKeyEnc: encryptPII(stored),
+      dashKey: null,
+      ownerName: name ?? doc.ownerName ?? "",
+    })
+    .commit({ visibility: "async" })
+  mem.delete(account)
+  return "relinked"
+}
+
+/** The dashboard keys of these MT5 logins, for the admin screen only. */
+export async function keysOfAccounts(accounts: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>()
+  if (!accounts.length) return out
+  const rows = await sanityWrite.fetch<Array<{ account: string; dashKeyEnc?: string; legacyDashKeyPlain?: string }>>(
+    `*[_type == "semiAccount" && account in $accounts]{
+       account, dashKeyEnc, "legacyDashKeyPlain": dashKey
+     }`,
+    { accounts }
+  )
+  for (const r of rows) {
+    const key = keyOf(r as SemiDoc)
+    if (key) out.set(r.account, key)
+  }
+  return out
+}
