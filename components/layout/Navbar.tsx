@@ -63,9 +63,9 @@ export function Navbar() {
           <LoginButton />
         </div>
         <div className="flex md:hidden items-center gap-2">
-          {/* The account control belongs in the bar on a phone too — it
-              was desktop-only, so a phone showed nothing at all. */}
-          <LoginButton />
+          {/* Same bordered square as the light/dark switch beside it,
+              so the bar reads as one row of controls. */}
+          <LoginButton compact />
           <ThemeToggle />
           <button
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}

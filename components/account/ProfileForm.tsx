@@ -1,7 +1,8 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { AVATARS, ContestAvatar, avatarById } from "@/components/contest/avatars"
+import AvatarField from "@/components/account/AvatarField"
 
 //  The profile a member fills in once, after signing in with Google.
 //
@@ -80,11 +81,9 @@ export default function ProfileForm({
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
   const [saved, setSaved] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
-
-  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    if (!f) return
+  //  AvatarField owns the hidden <input type=file> now and hands over the
+  //  File itself, so there is no element to hold a ref to here.
+  async function pickAvatar(f: File) {
     setErr("")
     try {
       const small = await shrink(f)
@@ -163,40 +162,22 @@ export default function ProfileForm({
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-[12px] text-[var(--fg-4)]">ເບີ WhatsApp</span>
+        <span className="text-[12px] text-[var(--fg-4)]">ເບີໂທ</span>
         <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" maxLength={24}
           placeholder="+8562012345678"
           className="rounded-lg border border-[var(--line)] bg-[var(--bg)] px-3 py-2.5 font-mono text-[14px] text-[var(--fg)]" />
       </label>
 
-      <div className="flex flex-col gap-2">
-        <span className="text-[12px] text-[var(--fg-4)]">ຮູບໂປຣໄຟລ໌</span>
-        <div className="flex flex-wrap items-center gap-2">
-          {preview && (
-            <img src={preview} alt="" width={44} height={44}
-              className="h-11 w-11 rounded-full object-cover ring-2 ring-[var(--accent,#2563EB)]" />
-          )}
-          <button type="button" onClick={() => fileRef.current?.click()}
-            className="rounded-lg border border-[var(--line)] px-3 py-2 text-[12px] font-semibold text-[var(--fg-2)]">
-            ອັບໂຫຼດຮູບ
-          </button>
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
-            onChange={pick} className="hidden" />
-          <span className="text-[11.5px] text-[var(--fg-4)]">ຫຼື ເລືອກໄອຄອນ</span>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {AVATARS.slice(0, 24).map(a => (
-            <button key={a.id} type="button"
-              onClick={() => { setAvatarId(a.id); setFile(null); setPreview("") }}
-              aria-pressed={avatarId === a.id}
-              className={`rounded-full p-0.5 ${avatarId === a.id
-                ? "ring-2 ring-[var(--accent,#2563EB)]"
-                : "ring-1 ring-transparent hover:ring-[var(--line)]"}`}>
-              <ContestAvatar def={a} size={30} />
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* The same collapsed control as the join form: one mark, the grid
+          only when it is tapped, + for a photograph. */}
+      <AvatarField
+        label="ຮູບໂປຣໄຟລ໌"
+        hint="ກົດຮູບເພື່ອປ່ຽນ ຫຼື + ເພື່ອອັບໂຫຼດ"
+        avatarId={avatarId}
+        onAvatarId={id => { setAvatarId(id); setFile(null); setPreview("") }}
+        preview={preview}
+        onFile={pickAvatar}
+      />
 
       {/* One tick only, matching the join form — what it covers is written
           on /terms rather than crammed into a label. */}

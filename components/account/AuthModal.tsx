@@ -3,28 +3,40 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { signIn, useSession } from "next-auth/react"
-import { AVATARS, ContestAvatar } from "@/components/contest/avatars"
-import { waNumber, waLooksValid } from "@/lib/contest/phone"
+import GoogleMark from "@/components/account/GoogleMark"
+import PhoneField from "@/components/account/PhoneField"
+import AvatarField from "@/components/account/AvatarField"
+import { intlNumber, phoneLooksValid } from "@/lib/account/phone"
 
-//  One floating form for joining the site.
+//  One form for joining the site, by either door.
 //
-//  Signing in with Google is a step inside it, not the whole of it: Google
-//  returns an address and a display name, and the site still needs a number
-//  to reach somebody on and a record that they accepted the EA licence. So
-//  the form opens first, Google fills the top two fields, and the rest stays
-//  to be filled in — the same form, with what is known already in place.
+//  Google is a shortcut through two fields, not a separate way in: whichever
+//  door somebody uses they end up on this same form, fill in the same boxes
+//  and press the same button. Coming back from Google straight into a
+//  dashboard — which is what it used to do — skips the half of joining that
+//  we actually need, so the return trip lands back here with the name and
+//  address already filled.
 //
-//  Deliberately not a page. Being bounced to /login and then to a dashboard
-//  loses the thing the person was doing; a dialog puts them back where they
-//  were when it closes.
+//  Without Google the mailbox does the vouching: the profile is saved, a
+//  link is mailed, and opening it is both the proof and the sign-in. No
+//  password is invented, so none can be forgotten or leaked.
+//
+//  Rendered through a portal onto <body>. The navbar sets backdrop-filter,
+//  and a filtered element becomes the containing block for position:fixed
+//  inside it — which is why this dialog was being boxed into the 56px bar
+//  and clipped. Raising z-index does nothing for that.
 
 const PROFILE_API = "/api/account/profile"
+const REGISTER_API = "/api/account/register"
 
 const ERR: Record<string, string> = {
   name: "ກະລຸນາໃສ່ຊື່",
-  phone: "ເບີ WhatsApp ບໍ່ຖືກຕ້ອງ",
+  email: "ອີເມວບໍ່ຖືກຕ້ອງ",
+  phone: "ເບີໂທບໍ່ຖືກຕ້ອງ",
   optin: "ຕ້ອງຕິກຍອມຮັບເງື່ອນໄຂກ່ອນ",
   terms: "ຕ້ອງຕິກຍອມຮັບເງື່ອນໄຂກ່ອນ",
+  "too-many": "ລອງໃໝ່ພາຍຫຼັງ ສົ່ງຫຼາຍເທື່ອເກີນໄປ",
+  mail: "ສົ່ງອີເມວບໍ່ສຳເລັດ ລອງໃໝ່",
   "image-too-big": "ຮູບໃຫຍ່ເກີນໄປ",
   "image-type": "ຮັບສະເພາະ JPG, PNG ຫຼື WebP",
   upload: "ອັບໂຫຼດຮູບບໍ່ສຳເລັດ",
@@ -68,7 +80,8 @@ export default function AuthModal({
   const signedIn = status === "authenticated"
 
   const [name, setName] = useState(initial?.name ?? "")
-  const [lao, setLao] = useState(true)
+  const [email, setEmail] = useState("")
+  const [country, setCountry] = useState("LA")
   const [phone, setPhone] = useState(initial?.phone ?? "")
   const [avatarId, setAvatarId] = useState(initial?.avatarId ?? "")
   const [preview, setPreview] = useState(initial?.avatarUrl ?? "")
@@ -76,13 +89,28 @@ export default function AuthModal({
   const [terms, setTerms] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [mailed, setMailed] = useState("")
+  const picked = useRef(false)
 
-  //  Google knows the name; the person should not retype it. Only fills an
-  //  empty box, so a name they chose here is never overwritten on a re-render.
+  //  Google already knows these two; nobody should retype them. Only fills
+  //  an empty box, so an edit of their own is never overwritten.
   useEffect(() => {
-    if (signedIn && !name && session?.user?.name) setName(session.user.name)
-  }, [signedIn, session?.user?.name, name])
+    if (!signedIn) return
+    if (!name && session?.user?.name) setName(session.user.name)
+    if (session?.user?.email) setEmail(session.user.email)
+  }, [signedIn, session?.user?.name, session?.user?.email, name])
+
+  //  The flag the field opens on, from where the request came in. A guess,
+  //  and overruled the moment the reader touches the picker.
+  useEffect(() => {
+    if (!open) return
+    let gone = false
+    fetch("/api/geo")
+      .then(r => r.json())
+      .then(j => { if (!gone && !picked.current && j?.country) setCountry(j.country) })
+      .catch(() => {})
+    return () => { gone = true }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -96,13 +124,13 @@ export default function AuthModal({
   }, [open, onClose])
 
   if (!open) return null
+  if (typeof document === "undefined") return null
 
-  const waNum = waNumber(phone, lao)
-  const ready = signedIn && name.trim().length >= 2 && waLooksValid(waNum) && terms
+  const waNum = intlNumber(country, phone)
+  const emailOk = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email.trim())
+  const ready = name.trim().length >= 2 && emailOk && phoneLooksValid(waNum) && terms
 
-  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    if (!f) return
+  async function pickFile(f: File) {
     setErr("")
     try {
       const small = await shrink(f)
@@ -114,32 +142,43 @@ export default function AuthModal({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (!ready || busy) return
     setErr(""); setBusy(true)
     try {
       const fd = new FormData()
       fd.set("name", name)
       fd.set("phone", waNum)
       fd.set("avatarId", avatarId)
-      fd.set("optIn", terms ? "1" : "0")
-      fd.set("termsVer", terms ? termsVer : "")
+      fd.set("optIn", "1")
+      fd.set("termsVer", termsVer)
       if (file) fd.set("avatar", file, "avatar.jpg")
-      const r = await fetch(PROFILE_API, { method: "POST", body: fd })
+      if (!signedIn) fd.set("email", email.trim())
+
+      const r = await fetch(signedIn ? PROFILE_API : REGISTER_API, { method: "POST", body: fd })
       const j = await r.json().catch(() => ({}))
       if (!r.ok || !j.ok) { setErr(ERR[j.error as string] ?? ERR.save); return }
-      //  Server components decide what is unlocked, so the page has to come
-      //  back from the server before the download links appear.
-      window.location.reload()
+
+      //  Signed in: the server decides what is unlocked, so the page has to
+      //  come back from the server. By mail: nothing is unlocked yet, and
+      //  saying where to look next is the whole of the next step.
+      if (signedIn) window.location.reload()
+      else setMailed(email.trim())
     } catch { setErr(ERR.network) } finally { setBusy(false) }
   }
 
-  const L = "font-lao"
+  //  Back to this page with the form open, rather than off to a dashboard.
+  function google() {
+    const u = new URL(window.location.href)
+    u.searchParams.set("join", "1")
+    signIn("google", { callbackUrl: u.toString() })
+  }
 
-  //  Hung on <body>, not where it is written. The navbar has
-  //  backdrop-filter, and any filtered element becomes the containing
-  //  block for position:fixed inside it — so the dialog was being boxed
-  //  into a 56px-tall bar and clipped. A portal is the fix; raising
-  //  z-index is not.
-  if (typeof document === "undefined") return null
+  const L = "font-lao"
+  const labelStyle = { fontSize: 12, color: "var(--fg-4)" } as const
+  const inputStyle = {
+    borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg)",
+    padding: "11px 12px", fontSize: 14, color: "var(--fg)", width: "100%",
+  } as const
 
   return createPortal(
     <div
@@ -155,20 +194,22 @@ export default function AuthModal({
         style={{
           width: "100%", maxWidth: 430, maxHeight: "92vh", overflowY: "auto",
           background: "var(--surface)", border: "1px solid var(--line)",
-          borderRadius: 18, padding: "26px 24px",
+          borderRadius: 18, padding: "24px 22px",
           boxShadow: "0 24px 70px rgba(2,6,23,.5)",
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
             <h2 className={L} style={{ fontSize: 19, fontWeight: 800, color: "var(--fg)", margin: 0 }}>
-              {signedIn ? "ຕື່ມຂໍ້ມູນສະມາຊິກ" : "ເຂົ້າສູ່ລະບົບ"}
+              {mailed ? "ກວດອີເມວຂອງທ່ານ" : signedIn ? "ຕື່ມຂໍ້ມູນສະມາຊິກ" : "ສະໝັກສະມາຊິກ"}
             </h2>
-            <p className={L} style={{ fontSize: 12.5, color: "var(--fg-3)", margin: "6px 0 0", lineHeight: 1.7 }}>
-              {signedIn
-                ? "ອີກສອງສາມຊ່ອງ ແລ້ວຈະເຫັນລິງກ໌ດາວໂຫຼດ EA"
-                : "ເຂົ້າດ້ວຍ Google ກ່ອນ ແລ້ວຕື່ມຂໍ້ມູນຕໍ່ໃນຟອມນີ້"}
-            </p>
+            {!mailed && (
+              <p className={L} style={{ fontSize: 12.5, color: "var(--fg-3)", margin: "6px 0 0", lineHeight: 1.7 }}>
+                {signedIn
+                  ? "ເຫຼືອອີກສອງສາມຊ່ອງ ແລ້ວກົດສະໝັກ"
+                  : "ຕື່ມຂໍ້ມູນແລ້ວກົດສະໝັກ ຫຼື ໃຊ້ Google ເພື່ອຕື່ມໃຫ້ໄວຂຶ້ນ"}
+              </p>
+            )}
           </div>
           <button onClick={onClose} aria-label="close"
             style={{
@@ -180,161 +221,131 @@ export default function AuthModal({
           </button>
         </div>
 
-        {/* Step one. Stays visible afterwards, as the row that says who you are. */}
-        <div style={{ margin: "18px 0 0" }}>
-          {signedIn ? (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-              borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface-2)",
-            }}>
-              <span style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "rgba(22,163,74,.15)", color: "#16A34A",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-              }}>✓</span>
-              <span style={{ minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--fg)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {mailed ? (
+          <div style={{ marginTop: 18 }}>
+            <p className={L} style={{ fontSize: 13.5, color: "var(--fg-2)", lineHeight: 1.9, margin: 0 }}>
+              ສົ່ງລິງກ໌ຢືນຢັນໄປທີ່ <b style={{ wordBreak: "break-all" }}>{mailed}</b> ແລ້ວ.
+              ເປີດອີເມວແລ້ວກົດລິງກ໌ເພື່ອຢືນຢັນ ແລະ ເຂົ້າສູ່ລະບົບ — ລິງກ໌ໃຊ້ໄດ້ຄັ້ງດຽວ ພາຍໃນ 24 ຊົ່ວໂມງ.
+            </p>
+            <p className={L} style={{ fontSize: 12, color: "var(--fg-4)", lineHeight: 1.8, margin: "12px 0 0" }}>
+              ບໍ່ເຫັນອີເມວ? ກວດກ່ອງ Spam ນຳ.
+            </p>
+            <button onClick={onClose} className={L}
+              style={{
+                marginTop: 18, borderRadius: 10, border: "1px solid var(--line)",
+                background: "none", color: "var(--fg-2)", padding: "11px 22px",
+                fontSize: 13.5, fontWeight: 700, cursor: "pointer",
+              }}>
+              ປິດ
+            </button>
+          </div>
+        ) : (
+          <>
+            {!signedIn && (
+              <>
+                <button type="button" onClick={google}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                    padding: "12px 16px", borderRadius: 11, cursor: "pointer", marginTop: 18,
+                    border: "1px solid var(--line)", background: "var(--surface-2)",
+                    fontSize: 14, fontWeight: 700, color: "var(--fg)",
+                  }}>
+                  <GoogleMark size={18} />
+                  <span className={L}>ເຂົ້າດ້ວຍ Google</span>
+                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0 2px" }}>
+                  <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+                  <span className={L} style={{ fontSize: 11.5, color: "var(--fg-4)" }}>ຫຼື ຕື່ມເອງ</span>
+                  <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+                </div>
+              </>
+            )}
+
+            {signedIn && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", marginTop: 18,
+                borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface-2)",
+              }}>
+                <GoogleMark size={16} />
+                <span style={{
+                  minWidth: 0, fontSize: 12.5, fontWeight: 700, color: "var(--fg)",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
                   {session?.user?.email}
                 </span>
-                <span className={L} style={{ display: "block", fontSize: 11, color: "var(--fg-4)" }}>
-                  ເຂົ້າດ້ວຍ Google ແລ້ວ
-                </span>
-              </span>
-            </div>
-          ) : (
-            <button type="button" onClick={() => signIn("google")}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                padding: "13px 16px", borderRadius: 11, cursor: "pointer",
-                border: "1px solid var(--line)", background: "var(--surface-2)",
-                fontSize: 14, fontWeight: 700, color: "var(--fg)",
-              }}>
-              <img src="/email/google.png" alt="" width={18} height={18}
-                style={{ display: "block" }}
-                onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none" }} />
-              <span className={L}>ເຂົ້າດ້ວຍ Google</span>
-            </button>
-          )}
-        </div>
-
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 18, opacity: signedIn ? 1 : 0.45, pointerEvents: signedIn ? "auto" : "none" }}>
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span className={L} style={{ fontSize: 12, color: "var(--fg-4)" }}>ຊື່</span>
-            <input value={name} onChange={e => setName(e.target.value)} maxLength={60}
-              style={{
-                borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg)",
-                padding: "11px 12px", fontSize: 14, color: "var(--fg)",
-              }} />
-          </label>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-              <span className={L} style={{ fontSize: 12, color: "var(--fg-4)" }}>ເບີ WhatsApp</span>
-              <button type="button" onClick={() => { setLao(!lao); setPhone("") }}
-                className={L} style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  fontSize: 11.5, fontWeight: 700, color: "var(--accent)",
-                }}>
-                {lao ? "ເບີຕ່າງປະເທດ" : "ເບີລາວ"}
-              </button>
-            </span>
-            <span style={{ display: "flex" }}>
-              {lao && (
-                <span style={{
-                  display: "flex", alignItems: "center", padding: "0 11px",
-                  borderRadius: "9px 0 0 9px", border: "1px solid var(--line)", borderRight: "none",
-                  background: "var(--surface-2)", fontFamily: "ui-monospace,monospace",
-                  fontSize: 13.5, color: "var(--fg-3)",
-                }}>
-                  +856 20
-                </span>
-              )}
-              <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel"
-                placeholder={lao ? "9xxxxxxx" : "+66812345678"}
-                style={{
-                  flex: 1, minWidth: 0,
-                  borderRadius: lao ? "0 9px 9px 0" : 9,
-                  border: "1px solid var(--line)", background: "var(--bg)",
-                  padding: "11px 12px", fontFamily: "ui-monospace,monospace",
-                  fontSize: 14, color: "var(--fg)",
-                }} />
-            </span>
-            {waNum.length >= 10 && (
-              <span style={{ fontSize: 11, color: "var(--fg-4)", fontFamily: "ui-monospace,monospace" }}>
-                → +{waNum}
-              </span>
+              </div>
             )}
-          </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span className={L} style={{ fontSize: 12, color: "var(--fg-4)" }}>ຮູບໂປຣໄຟລ໌</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              {preview && (
-                <img src={preview} alt="" width={40} height={40}
-                  style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
-              )}
-              <button type="button" onClick={() => fileRef.current?.click()}
-                className={L} style={{
-                  borderRadius: 9, border: "1px solid var(--line)", background: "none",
-                  padding: "8px 12px", fontSize: 12, fontWeight: 700, color: "var(--fg-2)", cursor: "pointer",
+            <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 13, marginTop: 16 }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span className={L} style={labelStyle}>ຊື່</span>
+                <input value={name} onChange={e => setName(e.target.value)} maxLength={60}
+                  autoComplete="name" style={inputStyle} />
+              </label>
+
+              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span className={L} style={labelStyle}>ອີເມວ</span>
+                {/*  Signed in, the address is Google's answer rather than a
+                    field: editing it here would file the profile under an
+                    address nobody has proved they hold. */}
+                <input value={email} onChange={e => setEmail(e.target.value)} maxLength={120}
+                  type="email" inputMode="email" autoComplete="email"
+                  readOnly={signedIn} placeholder="you@example.com"
+                  style={{ ...inputStyle, opacity: signedIn ? 0.65 : 1 }} />
+              </label>
+
+              <PhoneField
+                label="ເບີໂທ"
+                country={country}
+                onCountry={c => { picked.current = true; setCountry(c) }}
+                value={phone}
+                onValue={setPhone}
+              />
+
+              <AvatarField
+                label="ຮູບໂປຣໄຟລ໌"
+                hint="ກົດຮູບເພື່ອປ່ຽນ ຫຼື + ເພື່ອອັບໂຫຼດ"
+                avatarId={avatarId}
+                onAvatarId={id => { setAvatarId(id); setFile(null); setPreview("") }}
+                preview={preview}
+                onFile={pickFile}
+              />
+
+              <label style={{
+                display: "flex", gap: 10, cursor: "pointer", padding: "11px 12px",
+                borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg)",
+              }}>
+                <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)}
+                  style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0 }} />
+                <span className={L} style={{ fontSize: 12.5, lineHeight: 1.7, color: "var(--fg-2)" }}>
+                  ຂ້ອຍໄດ້ອ່ານ ແລະ ຍອມຮັບ{" "}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", fontWeight: 700 }}>ເງື່ອນໄຂການໃຊ້ງານ</a>
+                </span>
+              </label>
+
+              {err && (
+                <p className={L} style={{
+                  margin: 0, borderRadius: 9, padding: "9px 11px", fontSize: 12.5,
+                  border: "1px solid rgba(220,38,38,.35)", background: "rgba(220,38,38,.08)", color: "#DC2626",
                 }}>
-                ອັບໂຫຼດຮູບ
+                  {err}
+                </p>
+              )}
+
+              {/* A button the size of the word on it. */}
+              <button type="submit" disabled={!ready || busy}
+                className={L} style={{
+                  alignSelf: "flex-start", borderRadius: 10, border: "none",
+                  padding: "12px 30px", cursor: ready && !busy ? "pointer" : "not-allowed",
+                  background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff",
+                  fontSize: 14, fontWeight: 800, opacity: ready && !busy ? 1 : 0.4,
+                }}>
+                {busy ? "ກຳລັງສົ່ງ..." : "ສະໝັກ"}
               </button>
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
-                onChange={pick} style={{ display: "none" }} />
-              <span className={L} style={{ fontSize: 11.5, color: "var(--fg-4)" }}>ຫຼື ເລືອກໄອຄອນ</span>
-            </span>
-            <span style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {AVATARS.slice(0, 18).map(a => (
-                <button key={a.id} type="button"
-                  onClick={() => { setAvatarId(a.id); setFile(null); setPreview("") }}
-                  style={{
-                    borderRadius: "50%", padding: 2, cursor: "pointer", background: "none",
-                    border: avatarId === a.id ? "2px solid var(--accent)" : "2px solid transparent",
-                    lineHeight: 0,
-                  }}>
-                  <ContestAvatar def={a} size={28} />
-                </button>
-              ))}
-            </span>
-          </div>
-
-          {/* One tick, and it says only that (owner's call, 2026-11-22).
-              Somebody joining the site is not necessarily here for an EA, so
-              the box must not read like an EA licence; what accepting covers
-              — email, trading risk, the EA terms if they use one — is set out
-              on /terms, which is one tap away. */}
-          <label style={{
-            display: "flex", gap: 10, cursor: "pointer", padding: "11px 12px",
-            borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg)",
-          }}>
-            <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)}
-              style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0 }} />
-            <span className={L} style={{ fontSize: 12.5, lineHeight: 1.7, color: "var(--fg-2)" }}>
-              ຂ້ອຍໄດ້ອ່ານ ແລະ ຍອມຮັບ{" "}
-              <a href="/terms" target="_blank" rel="noopener noreferrer"
-                style={{ color: "var(--accent)", fontWeight: 700 }}>ເງື່ອນໄຂການໃຊ້ງານ</a>
-            </span>
-          </label>
-
-          {err && (
-            <p className={L} style={{
-              margin: 0, borderRadius: 9, padding: "9px 11px", fontSize: 12.5,
-              border: "1px solid rgba(220,38,38,.35)", background: "rgba(220,38,38,.08)", color: "#DC2626",
-            }}>
-              {err}
-            </p>
-          )}
-
-          <button type="submit" disabled={!ready || busy}
-            className={L} style={{
-              borderRadius: 10, border: "none", padding: "13px 16px", cursor: ready ? "pointer" : "not-allowed",
-              background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff",
-              fontSize: 14, fontWeight: 800, opacity: ready && !busy ? 1 : 0.4,
-            }}>
-            {busy ? "ກຳລັງບັນທຶກ..." : "ສຳເລັດການສະໝັກ"}
-          </button>
-        </form>
+            </form>
+          </>
+        )}
       </div>
     </div>,
     document.body,

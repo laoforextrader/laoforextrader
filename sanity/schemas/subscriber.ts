@@ -38,6 +38,13 @@ export const subscriberSchema = {
     { name: "optInSource",   title: "ຍິນຍອມຈາກໜ້າໃດ",      type: "string",
       description: "dashboard | footer | manual" },
 
+    //  The live registration link, if one is out. Written when the mail
+    //  is sent and unset the moment the link is opened — that is what
+    //  makes it single-use. Never shown to anyone: holding it is holding
+    //  the account, which is also why it is not a field anybody edits.
+    { name: "loginNonce",    title: "Login link (one-time)", type: "string", readOnly: true, hidden: true },
+    { name: "loginNonceAt",  title: "Login link issued",     type: "datetime", readOnly: true, hidden: true },
+
     { name: "verified",      title: "ຢັ້ງຢືນແລ້ວ",            type: "boolean", initialValue: false,
       description: "Google login users are auto-verified; newsletter signups are not until they confirm." },
     // Written by scripts/send-newsletter.ts so a re-run after a crash resumes

@@ -1,13 +1,18 @@
 import Link from "next/link"
 import { sanityClient } from "@/lib/sanity"
 
-//  "There is a new build" — the one line that belongs on the EA page itself.
+//  What changed, for every EA at once.
 //
-//  Somebody who already runs an EA does not come here to read the pitch; they
-//  come to find out whether anything changed. Burying that inside a download
-//  page they have to pick first makes them hunt for it, so the newest release
-//  of any build is stated here with its date, and the whole strip is the link
-//  to the notes.
+//  It used to show the newest release only, which answers the wrong
+//  question: somebody running MegiHedge does not care that SGrid moved, and
+//  a single strip told them nothing about their own build. So every EA that
+//  has ever had a release gets a line here, newest first, and each line
+//  carries the only three things worth scanning for — which EA, which
+//  version, how long ago (owner's call, 2026-11-22).
+//
+//  One line each, truncated rather than wrapped: six EAs that each take two
+//  lines is a wall, and the headline is a teaser for the notes page, not the
+//  notes themselves.
 
 const NAMES: Record<string, string> = {
   sgrid: "TheRocket SGrid",
@@ -34,68 +39,105 @@ const WHEN = (iso: string) => {
   return stamp
 }
 
+/** True while a release is new enough to be worth a flag beside it. */
+const FRESH = (iso: string) => Date.now() - new Date(iso).getTime() < 14 * 86_400_000
+
 export default async function UpdateBanner() {
   let rows: Row[] = []
   try {
     rows = await sanityClient.fetch<Row[]>(
-      `*[_type == "eaRelease"] | order(releasedAt desc)[0...3]{ _id, eaId, version, releasedAt, headline }`)
+      `*[_type == "eaRelease"] | order(releasedAt desc)[0...40]{ _id, eaId, version, releasedAt, headline }`)
   } catch {}
   if (!rows.length) return null
+
+  //  Newest per EA. The query is already in date order, so the first time an
+  //  eaId appears is its current build.
+  const latest: Row[] = []
+  const seen = new Set<string>()
+  for (const r of rows) {
+    if (seen.has(r.eaId)) continue
+    seen.add(r.eaId)
+    latest.push(r)
+  }
 
   return (
     <section style={{ background: "#050816", borderBottom: "1px solid #1E1B4B" }}>
       <div style={{ maxWidth: 1060, margin: "0 auto", padding: "22px 24px" }}>
-        <Link href="/ea-system/updates" style={{ textDecoration: "none", display: "block" }}>
+        <div style={{
+          background: "#0B1020", border: "1px solid rgba(148,163,184,.18)",
+          borderRadius: 14, overflow: "hidden",
+        }}>
           <div style={{
-            display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
-            background: "#0B1020", border: "1px solid rgba(148,163,184,.18)",
-            borderRadius: 14, padding: "14px 18px",
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "11px 16px", borderBottom: "1px solid rgba(148,163,184,.14)",
           }}>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0,
+              display: "inline-flex", alignItems: "center", gap: 8,
               fontFamily: MONO, fontSize: 10.5, fontWeight: 800, letterSpacing: "0.1em",
               color: "#4ADE80",
             }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ADE80" }} />
-              UPDATE
+              UPDATES
             </span>
-
-            <span style={{ minWidth: 0, flex: 1 }}>
-              <span style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: "#F1F5F9", fontFamily: "Arial,sans-serif" }}>
-                  {NAMES[rows[0].eaId] ?? rows[0].eaId}
-                </span>
-                <span style={{
-                  fontFamily: MONO, fontSize: 12, fontWeight: 800, color: "#93C5FD",
-                  background: "rgba(96,165,250,.12)", border: "1px solid rgba(96,165,250,.3)",
-                  borderRadius: 5, padding: "1px 7px",
-                }}>
-                  v{rows[0].version}
-                </span>
-                <span style={{ fontFamily: MONO, fontSize: 11, color: "#64748B" }}>
-                  {WHEN(rows[0].releasedAt)}
-                </span>
-              </span>
-              <span className="font-lao" style={{
-                display: "block", fontSize: 12.5, color: "#CBD5E1",
-                marginTop: 4, lineHeight: 1.7,
-              }}>
-                {rows[0].headline}
-              </span>
-            </span>
-
-            <span className="font-lao" style={{
-              flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 7,
-              fontSize: 12.5, fontWeight: 700, color: "#93C5FD",
+            <Link href="/ea-system/updates" className="font-lao" style={{
+              marginLeft: "auto", fontSize: 12, fontWeight: 700,
+              color: "#93C5FD", textDecoration: "none",
             }}>
-              ເບິ່ງການອັບເດດ
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12h13" /><polyline points="12 5 19 12 12 19" />
-              </svg>
-            </span>
+              ເບິ່ງທັງໝົດ →
+            </Link>
           </div>
-        </Link>
+
+          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+            {latest.map((r, i) => (
+              <li key={r._id} style={{ borderTop: i ? "1px solid rgba(148,163,184,.10)" : "none" }}>
+                <Link href="/ea-system/updates" style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "11px 16px", textDecoration: "none", minWidth: 0,
+                }}>
+                  <span className="font-lao" style={{
+                    fontSize: 13, fontWeight: 700, color: "#F1F5F9",
+                    whiteSpace: "nowrap", flexShrink: 0,
+                  }}>
+                    {NAMES[r.eaId] ?? r.eaId}
+                  </span>
+
+                  <span style={{
+                    fontFamily: MONO, fontSize: 11.5, fontWeight: 800, color: "#93C5FD",
+                    background: "rgba(96,165,250,.12)", border: "1px solid rgba(96,165,250,.3)",
+                    borderRadius: 5, padding: "1px 7px", flexShrink: 0,
+                  }}>
+                    v{r.version}
+                  </span>
+
+                  {FRESH(r.releasedAt) && (
+                    <span style={{
+                      fontFamily: MONO, fontSize: 9.5, fontWeight: 800, letterSpacing: "0.08em",
+                      padding: "2px 6px", borderRadius: 4, flexShrink: 0,
+                      background: "rgba(74,222,128,.14)", color: "#4ADE80",
+                    }}>
+                      NEW
+                    </span>
+                  )}
+
+                  {/* The sentence, as much of it as the row has room for. */}
+                  <span className="font-lao hide-sm" style={{
+                    flex: 1, minWidth: 0, fontSize: 12, color: "#94A3B8",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {r.headline}
+                  </span>
+
+                  <span style={{
+                    marginLeft: "auto", fontFamily: MONO, fontSize: 10.5, color: "#64748B",
+                    whiteSpace: "nowrap", flexShrink: 0,
+                  }}>
+                    {WHEN(r.releasedAt)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   )
