@@ -77,7 +77,6 @@ export default function ProfileForm({
   const [preview, setPreview] = useState(initialAvatarUrl)
   const [file, setFile] = useState<Blob | null>(null)
   const [terms, setTerms] = useState(done)
-  const [mail, setMail] = useState(done)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
   const [saved, setSaved] = useState(false)
@@ -106,7 +105,7 @@ export default function ProfileForm({
       fd.set("name", name)
       fd.set("phone", phone)
       fd.set("avatarId", avatarId)
-      fd.set("optIn", mail ? "1" : "0")
+      fd.set("optIn", terms ? "1" : "0")
       fd.set("termsVer", terms ? termsVer : "")
       if (file) fd.set("avatar", file, "avatar.jpg")
       const r = await fetch("/api/account/profile", { method: "POST", body: fd })
@@ -127,7 +126,7 @@ export default function ProfileForm({
   }
 
   const ready = name.trim().length >= 2 &&
-    phone.replace(/[^\d]/g, "").length >= 8 && terms && mail
+    phone.replace(/[^\d]/g, "").length >= 8 && terms
 
   if (done && !open) {
     return (
@@ -199,27 +198,17 @@ export default function ProfileForm({
         </div>
       </div>
 
+      {/* One tick only, matching the join form — what it covers is written
+          on /terms rather than crammed into a label. */}
       <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--bg)] p-3">
         <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)}
           className="mt-[3px] h-4 w-4 shrink-0" />
         <span className="text-[12.5px] leading-[1.7] text-[var(--fg-2)]">
-          ຂ້ອຍອ່ານ ແລະ ຍອມຮັບ{" "}
+          ຂ້ອຍໄດ້ອ່ານ ແລະ ຍອມຮັບ{" "}
           <a href="/terms" target="_blank" rel="noopener noreferrer"
             className="font-semibold text-[var(--accent,#2563EB)] underline underline-offset-2">
-            ເງື່ອນໄຂການໃຊ້ EA
-          </a>{" "}
-          ແລ້ວ — ຮູ້ວ່າລະບົບນີ້ບໍ່ມີ Stop Loss ຕໍ່ໄມ້ ແລະ ສາມາດເສຍເງິນທັງບັນຊີໄດ້
-        </span>
-      </label>
-
-      <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--bg)] p-3">
-        <input type="checkbox" checked={mail} onChange={e => setMail(e.target.checked)}
-          className="mt-[3px] h-4 w-4 shrink-0" />
-        <span className="text-[12.5px] leading-[1.7] text-[var(--fg-2)]">
-          ຍິນຍອມຮັບອີເມວເລື່ອງການອັບເດດ EA ແລະ ຂ່າວຂອງເວັບ
-          <span className="mt-0.5 block text-[11.5px] text-[var(--fg-4)]">
-            ຈຳເປັນ ເພາະເວີຊັນໃໝ່ ແລະ ການແກ້ບັນຫາສຳຄັນແຈ້ງທາງອີເມວ · ຍົກເລີກໄດ້ທຸກເວລາ
-          </span>
+            ເງື່ອນໄຂການໃຊ້ງານ
+          </a>
         </span>
       </label>
 

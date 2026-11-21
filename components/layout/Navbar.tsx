@@ -63,6 +63,9 @@ export function Navbar() {
           <LoginButton />
         </div>
         <div className="flex md:hidden items-center gap-2">
+          {/* The account control belongs in the bar on a phone too — it
+              was desktop-only, so a phone showed nothing at all. */}
+          <LoginButton />
           <ThemeToggle />
           <button
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
@@ -111,20 +114,18 @@ export function Navbar() {
               className="text-fg-3 hover:text-accent font-sans font-semibold text-sm py-1"
               onClick={() => setOpen(false)}>{item.label}</Link>
           ))}
-          <div className="pt-3 border-t border-line-2">
-            {session
-              ? <>
-                  {/* Their own page first: sign out was the only thing a
-                      signed-in member could press in this menu. */}
-                  <Link href="/dashboard" onClick={() => setOpen(false)}
-                    className="block font-sans text-sm text-fg-2 font-semibold py-1">
-                    ບັນຊີຂອງຂ້ອຍ
-                  </Link>
-                  <button onClick={() => signOut({ callbackUrl:"/" })} className="font-sans text-sm text-red-500 py-1">ອອກຈາກລະບົບ</button>
-                </>
-              : <Link href="/login" className="btn-primary block text-center py-2.5" onClick={() => setOpen(false)}>ເຂົ້າສູ່ລະບົບ / ສະໝັກ</Link>
-            }
-          </div>
+          {/* Signing in lives on the bar icon now, so this part is only for
+              somebody already signed in; a second door to /login would be a
+              different form from the one the icon opens. */}
+          {session && (
+            <div className="pt-3 border-t border-line-2">
+              <Link href="/dashboard" onClick={() => setOpen(false)}
+                className="block font-sans text-sm text-fg-2 font-semibold py-1">
+                ບັນຊີຂອງຂ້ອຍ
+              </Link>
+              <button onClick={() => signOut({ callbackUrl:"/" })} className="font-sans text-sm text-red-500 py-1">ອອກຈາກລະບົບ</button>
+            </div>
+          )}
         </div>
       )}
     </nav>

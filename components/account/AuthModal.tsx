@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { signIn, useSession } from "next-auth/react"
 import { AVATARS, ContestAvatar } from "@/components/contest/avatars"
 import { waNumber, waLooksValid } from "@/lib/contest/phone"
@@ -22,7 +23,7 @@ const PROFILE_API = "/api/account/profile"
 const ERR: Record<string, string> = {
   name: "ກະລຸນາໃສ່ຊື່",
   phone: "ເບີ WhatsApp ບໍ່ຖືກຕ້ອງ",
-  optin: "ຕ້ອງຕິກຍອມຮັບກ່ອນ",
+  optin: "ຕ້ອງຕິກຍອມຮັບເງື່ອນໄຂກ່ອນ",
   terms: "ຕ້ອງຕິກຍອມຮັບເງື່ອນໄຂກ່ອນ",
   "image-too-big": "ຮູບໃຫຍ່ເກີນໄປ",
   "image-type": "ຮັບສະເພາະ JPG, PNG ຫຼື WebP",
@@ -73,7 +74,6 @@ export default function AuthModal({
   const [preview, setPreview] = useState(initial?.avatarUrl ?? "")
   const [file, setFile] = useState<Blob | null>(null)
   const [terms, setTerms] = useState(false)
-  const [mail, setMail] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
   const fileRef = useRef<HTMLInputElement>(null)
@@ -98,7 +98,7 @@ export default function AuthModal({
   if (!open) return null
 
   const waNum = waNumber(phone, lao)
-  const ready = signedIn && name.trim().length >= 2 && waLooksValid(waNum) && terms && mail
+  const ready = signedIn && name.trim().length >= 2 && waLooksValid(waNum) && terms
 
   async function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
@@ -120,7 +120,7 @@ export default function AuthModal({
       fd.set("name", name)
       fd.set("phone", waNum)
       fd.set("avatarId", avatarId)
-      fd.set("optIn", mail ? "1" : "0")
+      fd.set("optIn", terms ? "1" : "0")
       fd.set("termsVer", terms ? termsVer : "")
       if (file) fd.set("avatar", file, "avatar.jpg")
       const r = await fetch(PROFILE_API, { method: "POST", body: fd })
@@ -134,7 +134,14 @@ export default function AuthModal({
 
   const L = "font-lao"
 
-  return (
+  //  Hung on <body>, not where it is written. The navbar has
+  //  backdrop-filter, and any filtered element becomes the containing
+  //  block for position:fixed inside it — so the dialog was being boxed
+  //  into a 56px-tall bar and clipped. A portal is the fix; raising
+  //  z-index is not.
+  if (typeof document === "undefined") return null
+
+  return createPortal(
     <div
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
       style={{
@@ -292,6 +299,11 @@ export default function AuthModal({
             </span>
           </div>
 
+          {/* One tick, and it says only that (owner's call, 2026-11-22).
+              Somebody joining the site is not necessarily here for an EA, so
+              the box must not read like an EA licence; what accepting covers
+              — email, trading risk, the EA terms if they use one — is set out
+              on /terms, which is one tap away. */}
           <label style={{
             display: "flex", gap: 10, cursor: "pointer", padding: "11px 12px",
             borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg)",
@@ -299,24 +311,9 @@ export default function AuthModal({
             <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)}
               style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0 }} />
             <span className={L} style={{ fontSize: 12.5, lineHeight: 1.7, color: "var(--fg-2)" }}>
-              ຂ້ອຍຍອມຮັບ{" "}
+              ຂ້ອຍໄດ້ອ່ານ ແລະ ຍອມຮັບ{" "}
               <a href="/terms" target="_blank" rel="noopener noreferrer"
-                style={{ color: "var(--accent)", fontWeight: 700 }}>ເງື່ອນໄຂການໃຊ້ EA</a>{" "}
-              — ລະບົບນີ້ບໍ່ມີ Stop Loss ຕໍ່ໄມ້ ແລະ ເສຍທັງບັນຊີໄດ້
-            </span>
-          </label>
-
-          <label style={{
-            display: "flex", gap: 10, cursor: "pointer", padding: "11px 12px",
-            borderRadius: 9, border: "1px solid var(--line)", background: "var(--bg)",
-          }}>
-            <input type="checkbox" checked={mail} onChange={e => setMail(e.target.checked)}
-              style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0 }} />
-            <span className={L} style={{ fontSize: 12.5, lineHeight: 1.7, color: "var(--fg-2)" }}>
-              ຍິນຍອມຮັບອີເມວເລື່ອງການອັບເດດ EA
-              <span style={{ display: "block", fontSize: 11, color: "var(--fg-4)", marginTop: 2 }}>
-                ເວີຊັນໃໝ່ ແລະ ການແກ້ບັນຫາສຳຄັນແຈ້ງທາງອີເມວ · ຍົກເລີກໄດ້ທຸກເວລາ
-              </span>
+                style={{ color: "var(--accent)", fontWeight: 700 }}>ເງື່ອນໄຂການໃຊ້ງານ</a>
             </span>
           </label>
 
@@ -339,6 +336,7 @@ export default function AuthModal({
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
