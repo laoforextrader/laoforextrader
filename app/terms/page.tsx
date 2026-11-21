@@ -1,0 +1,132 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "ເງື່ອນໄຂການໃຊ້ EA",
+  description: "ເງື່ອນໄຂການໃຊ້ງານ EA ຂອງ TheRocket — ຄວາມສ່ຽງ, ລິຂະສິດ ແລະ ຂໍ້ມູນສ່ວນຕົວ",
+}
+
+import { TERMS_VERSION } from "@/lib/terms"
+
+//  Written plainly on purpose. A licence nobody reads protects nobody, and
+//  the one thing a person must understand before running this EA — that a
+//  grid with no stop loss can lose the whole account — does not survive
+//  being buried in legal prose.
+const SECTIONS: { title: string; body: string[] }[] = [
+  {
+    title: "1. EA ນີ້ເຮັດວຽກແນວໃດ",
+    body: [
+      "EA ຂອງ TheRocket ເປັນລະບົບ grid ທີ່ເປີດໄມ້ເພີ່ມເປັນຊັ້ນໆເມື່ອລາຄາແລ່ນສວນທາງ ແລ້ວປິດທັງຕະກະຣ້າພ້ອມກັນເມື່ອລວມແລ້ວເປັນກຳໄລ. ມັນບໍ່ມີ Stop Loss ຕໍ່ໄມ້ — ນີ້ແມ່ນການອອກແບບ ບໍ່ແມ່ນຄວາມຜິດພາດ.",
+      "ຕັ້ງແຕ່ 2026-11-22 ມີ input ຊື່ EquityFloorPct ໃຫ້ທ່ານຕັ້ງເສັ້ນພື້ນຕັດຂາດທຶນເອງໄດ້. ຄ່າເລີ່ມຕົ້ນແມ່ນ 0 ຄື ບໍ່ມີເສັ້ນພື້ນ ແລະ ຮັບຄວາມສ່ຽງເຕັມ 100% ຂອງບັນຊີ.",
+    ],
+  },
+  {
+    title: "2. ຄວາມສ່ຽງ — ອ່ານໃຫ້ຈົບກ່ອນໃຊ້",
+    body: [
+      "ລະບົບແບບນີ້ສາມາດເສຍເງິນທັງບັນຊີໄດ້ ແລະ ເຄີຍເກີດຂຶ້ນແລ້ວໃນການທົດສອບຍ້ອນຫຼັງ. ເມື່ອລາຄາແລ່ນໄປທາງດຽວເປັນໄລຍະໄກໂດຍບໍ່ຫຍໍ້ກັບ ຕະກະຣ້າຈະຖືກລາກຈົນເຕັມຂັ້ນໄດ ແລ້ວຂາດທຶນລອຍຈະໂຕຕໍ່ໄປໂດຍບໍ່ມີຈຸດຢຸດ.",
+      "ຕົວເລກກຳໄລທຸກຕົວທີ່ສະແດງຢູ່ໃນເວັບນີ້ມາຈາກຊ່ວງເວລາສະເພາະ ແລະ ບໍ່ແມ່ນຄຳສັນຍາວ່າອະນາຄົດຈະເປັນແບບນັ້ນ. ຕະຫຼາດທີ່ຕ່າງອອກໄປໃຫ້ຜົນຕ່າງອອກໄປ.",
+      "ການຕັ້ງເສັ້ນພື້ນຕັດຂາດທຶນບໍ່ໄດ້ແປວ່າປອດໄພຂຶ້ນ. ການວັດຜົນຂອງພວກເຮົາພົບວ່າທຸກຄັ້ງທີ່ໃສ່ເພດານໃຫ້ລະບົບນີ້ ຜົນລວມກັບແຍ່ລົງ ເພາະມັນປ່ຽນຂາດທຶນລອຍເປັນຂາດທຶນຈິງເປັນສາຍ.",
+      "ໃຫ້ໃຊ້ພຽງເງິນທີ່ທ່ານຍອມເສຍໄດ້ທັງໝົດ.",
+    ],
+  },
+  {
+    title: "3. ບໍ່ແມ່ນຄຳແນະນຳການລົງທຶນ",
+    body: [
+      "TheRocket ເປັນເຄື່ອງມື ບໍ່ແມ່ນທີ່ປຶກສາທາງການເງິນ. ພວກເຮົາບໍ່ຮູ້ສະພາບການເງິນ ແລະ ຄວາມສາມາດຮັບຄວາມສ່ຽງຂອງທ່ານ. ການຕັດສິນໃຈເປີດບັນຊີ, ເລືອກຂະໜາດທຶນ ແລະ ເປີດ EA ແມ່ນຂອງທ່ານຜູ້ດຽວ ແລະ ຜົນທີ່ຕາມມາກໍເປັນຂອງທ່ານ.",
+    ],
+  },
+  {
+    title: "4. ລິຂະສິດ ແລະ ການໃຊ້ງານ",
+    body: [
+      "ສິດການໃຊ້ງານຜູກກັບເລກບັນຊີເທຣດຂອງທ່ານ ບໍ່ແມ່ນກັບໄຟລ໌. ທ່ານໃຊ້ໄດ້ກັບບັນຊີທີ່ລົງທະບຽນໄວ້ເທົ່ານັ້ນ.",
+      "ຫ້າມສົ່ງຕໍ່, ຂາຍຕໍ່, ແຈກຢາຍ ຫຼື ແກະຖອດໄຟລ໌ EA. ການເຮັດແບບນັ້ນຖືວ່າສິດສິ້ນສຸດທັນທີໂດຍບໍ່ຕ້ອງແຈ້ງລ່ວງໜ້າ.",
+      "ບັນຊີເດໂມໃຊ້ໄດ້ບໍ່ຈຳກັດ ແລະ ບໍ່ຕ້ອງລົງທະບຽນ.",
+    ],
+  },
+  {
+    title: "5. ຂໍ້ມູນທີ່ພວກເຮົາເກັບ",
+    body: [
+      "ເມື່ອທ່ານເຂົ້າສູ່ລະບົບດ້ວຍ Google ແລະ ຕື່ມໂປຣໄຟລ໌ ພວກເຮົາເກັບ: ອີເມວ, ຊື່ທີ່ທ່ານໃສ່, ເບີ WhatsApp ແລະ ຮູບໂປຣໄຟລ໌ທີ່ທ່ານເລືອກ.",
+      "ອີເມວ ແລະ ເບີໂທຖືກເຂົ້າລະຫັດກ່ອນບັນທຶກ ແລະ ເປີດອ່ານໄດ້ສະເພາະຝັ່ງເຊີບເວີຂອງພວກເຮົາ. ພວກເຮົາບໍ່ຂາຍຂໍ້ມູນໃຫ້ບຸກຄົນທີສາມ.",
+      "EA ສົ່ງສະຖິຕິການເທຣດຂອງບັນຊີທີ່ລົງທະບຽນມາທີ່ເວັບ ເພື່ອສະແດງຜົນ ແລະ ກວດສິດການໃຊ້ງານ. ມັນບໍ່ສົ່ງລະຫັດຜ່ານ ແລະ ບໍ່ສາມາດຖອນເງິນໄດ້.",
+      "ທ່ານຂໍລຶບຂໍ້ມູນທັງໝົດໄດ້ທຸກເວລາທີ່ laoforextrader@gmail.com",
+    ],
+  },
+  {
+    title: "6. ອີເມວ",
+    body: [
+      "ຊ່ອງຕິກຍິນຍອມຮັບອີເມວໃນໜ້າໂປຣໄຟລ໌ແມ່ນການອະນຸຍາດໃຫ້ພວກເຮົາສົ່ງເລື່ອງການອັບເດດ EA, ເວີຊັນໃໝ່ ແລະ ຂ່າວຂອງເວັບ.",
+      "ທຸກອີເມວມີລິງກ໌ຍົກເລີກຢູ່ທ້າຍ ແລະ ຍົກເລີກໄດ້ເອງໃນໜ້າໂປຣໄຟລ໌. ການຍົກເລີກບໍ່ກະທົບສິດການໃຊ້ EA.",
+    ],
+  },
+  {
+    title: "7. ການຮັບປະກັນ ແລະ ຄວາມຮັບຜິດຊອບ",
+    body: [
+      "EA ໃຫ້ມາຕາມສະພາບທີ່ເປັນຢູ່ ໂດຍບໍ່ມີການຮັບປະກັນວ່າຈະມີກຳໄລ ຫຼື ຈະເຮັດວຽກໄດ້ຕໍ່ເນື່ອງ. ໂບຣກເກີ, ອິນເຕີເນັດ, VPS ແລະ MetaTrader ເປັນສິ່ງທີ່ພວກເຮົາຄວບຄຸມບໍ່ໄດ້.",
+      "ພວກເຮົາບໍ່ຮັບຜິດຊອບຕໍ່ການຂາດທຶນທີ່ເກີດຈາກການໃຊ້ EA ບໍ່ວ່າຈະໃນກໍລະນີໃດ.",
+    ],
+  },
+  {
+    title: "8. ການປ່ຽນແປງເງື່ອນໄຂ",
+    body: [
+      "ເມື່ອເງື່ອນໄຂນີ້ປ່ຽນໃນສາລະສຳຄັນ ພວກເຮົາຈະຂໍໃຫ້ທ່ານຍອມຮັບໃໝ່ໃນເທື່ອຕໍ່ໄປທີ່ເຂົ້າໜ້າດາວໂຫຼດ. ສະບັບປັດຈຸບັນລະບຸຢູ່ທ້າຍໜ້ານີ້.",
+    ],
+  },
+]
+
+export default function TermsPage() {
+  return (
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 24px" }}>
+        <div style={{ background: "var(--surface)", borderRadius: 16, border: "1px solid var(--line)", padding: "48px 52px" }}>
+
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-4)", marginBottom: 12 }}>
+            Terms
+          </div>
+
+          <h1 style={{ fontSize: 38, fontWeight: 800, color: "var(--fg)", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 16 }}>
+            ເງື່ອນໄຂ
+            <br />
+            <span style={{ background: "linear-gradient(135deg,#2563EB,#4F46E5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              ການໃຊ້ EA
+            </span>
+          </h1>
+
+          <div style={{ width: 40, height: 2, background: "#111827", marginBottom: 28 }} />
+
+          {/* The one line that matters most, where nobody can miss it. */}
+          <div style={{
+            border: "1px solid rgba(220,38,38,0.35)", background: "rgba(220,38,38,0.06)",
+            borderRadius: 12, padding: "16px 18px", marginBottom: 36,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#DC2626", marginBottom: 6 }}>
+              ອ່ານກ່ອນ
+            </div>
+            <p style={{ fontSize: 13.5, color: "var(--fg-2)", lineHeight: 1.8, margin: 0, fontFamily: "'Noto Sans Lao', sans-serif" }}>
+              EA ນີ້ເປັນລະບົບ grid ທີ່ບໍ່ມີ Stop Loss ຕໍ່ໄມ້ ແລະ <b>ສາມາດເສຍເງິນທັງບັນຊີໄດ້</b>.
+              ໃຫ້ໃຊ້ພຽງເງິນທີ່ທ່ານຍອມເສຍໄດ້ທັງໝົດ.
+            </p>
+          </div>
+
+          {SECTIONS.map(s => (
+            <div key={s.title} style={{ marginBottom: 30 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--fg)", marginBottom: 10 }}>{s.title}</h2>
+              {s.body.map((p, i) => (
+                <p key={i} style={{
+                  fontSize: 14, color: "var(--fg-2)", lineHeight: 1.9,
+                  fontFamily: "'Noto Sans Lao', sans-serif", margin: "0 0 10px",
+                }}>
+                  {p}
+                </p>
+              ))}
+            </div>
+          ))}
+
+          <div style={{ marginTop: 44, paddingTop: 20, borderTop: "1px solid var(--line-2)", fontSize: 11, color: "var(--fg-4)" }}>
+            ສະບັບ {TERMS_VERSION} · ຕິດຕໍ່ laoforextrader@gmail.com
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}

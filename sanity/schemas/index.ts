@@ -18,5 +18,6 @@ import { semiAccountSchema } from "./semiAccount"
 import { contestSchema } from "./contest"
 import { contestEntrySchema } from "./contestEntry"
 import { contestBlockSchema } from "./contestBlock"
+import { eaReleaseSchema } from "./eaRelease"
 
-export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, brokerNewsSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema, clickStatSchema, semiAccountSchema, contestSchema, contestEntrySchema, contestBlockSchema]
+export const schemaTypes = [articleSchema, brokerSchema, authorSchema, likeSchema, commentSchema, quizSchema, eaStatsSchema, broadcastScheduleSchema, dailyUpdateSchema, brokerNewsSchema, subscriberSchema, chatQuotaSchema, chatSessionSchema, adminMessageSchema, supportThreadSchema, clickStatSchema, semiAccountSchema, contestSchema, contestEntrySchema, contestBlockSchema, eaReleaseSchema]

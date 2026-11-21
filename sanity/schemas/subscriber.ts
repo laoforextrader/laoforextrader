@@ -47,6 +47,27 @@ export const subscriberSchema = {
 
     { name: "unsubscribed",  title: "ຍົກເລີກສະມາຊິກແລ້ວ", type: "boolean", initialValue: false },
     { name: "unsubscribedAt", title: "ວັນທີຍົກເລີກ",         type: "datetime" },
+
+    //  Profile, filled in by the member on /account after a Google sign-in.
+    //  Signing in gives us an address; it does not tell us who the person is
+    //  or how to reach them on WhatsApp, and the EA download is gated on
+    //  having both plus an accepted licence.
+    //
+    //  The phone is sealed like the email and indexed the same way, so two
+    //  accounts on one number can be spotted without the number being
+    //  readable in a public dataset.
+    { name: "phoneEnc",   title: "WhatsApp (sealed)",      type: "string", readOnly: true },
+    { name: "phoneHash",  title: "WhatsApp (blind index)", type: "string", readOnly: true },
+    //  Either a built-in avatar id (no upload) or an image the member sent,
+    //  resized before it ever reaches storage.
+    { name: "avatarId",   title: "ໄອຄອນໂປຣໄຟລ໌",          type: "string" },
+    { name: "avatar",     title: "ຮູບໂປຣໄຟລ໌",             type: "image" },
+    { name: "profileAt",  title: "ຕື່ມໂປຣໄຟລ໌ເມື່ອ",        type: "datetime" },
+    //  Licence acceptance is its own record with its own timestamp and the
+    //  version accepted: "they ticked a box once" is not an answer when the
+    //  terms change.
+    { name: "termsAt",    title: "ຍອມຮັບເງື່ອນໄຂເມື່ອ",     type: "datetime" },
+    { name: "termsVer",   title: "ເງື່ອນໄຂສະບັບ",           type: "string" },
   ],
   preview: {
     select: { title: "emailHash", subtitle: "source", createdAt: "createdAt" },

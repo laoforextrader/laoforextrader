@@ -16,7 +16,7 @@
 // points at a photo of the person, so it is no longer written.
 
 import { sanityWrite } from "@/lib/sanityWrite"
-import { blindIndex, encryptPII, piiReady } from "@/lib/pii"
+import { blindIndex, decryptOr, encryptPII, piiReady } from "@/lib/pii"
 
 type SubscriberSource = "google" | "newsletter" | "manual"
 
@@ -146,5 +146,125 @@ export async function getEmailOptIn(email: string): Promise<boolean> {
     return !!doc?.emailOptIn && !doc?.unsubscribed
   } catch {
     return false
+  }
+}
+
+// ------------------------------------------------------------------ //
+//  Member profile — name, WhatsApp, avatar, licence acceptance
+//
+//  A Google sign-in gives an address and nothing else. Downloading an EA
+//  needs more: a name to put on a licence, a number to reach the person on
+//  when their account does something strange, and a record that they read
+//  what they were agreeing to. All three live here.
+//
+//  The phone is sealed and blind-indexed exactly like the email, because the
+//  dataset is public and a WhatsApp number is as identifying as an address.
+// ------------------------------------------------------------------ //
+
+export interface MemberProfile {
+  name: string
+  phone: string
+  avatarId: string
+  avatarUrl: string
+  emailOptIn: boolean
+  termsAt: string
+  termsVer: string
+  complete: boolean
+}
+
+export interface SaveProfileArgs {
+  email: string
+  name: string
+  phone: string
+  avatarId?: string
+  /** Sanity asset _id of an uploaded picture, when the member sent one. */
+  avatarAssetId?: string
+  optIn: boolean
+  termsVer: string
+}
+
+/**
+ * Write the profile a member filled in. Returns false when anything is
+ * missing rather than storing half a record — the download gate reads this
+ * and a half-filled profile would open it.
+ */
+export async function saveProfile(a: SaveProfileArgs): Promise<boolean> {
+  if (!a.email || !process.env.SANITY_API_TOKEN || !piiReady()) return false
+  const name = a.name.trim()
+  const phone = a.phone.replace(/[^\d+]/g, "")
+  //  Both are required: the gate is "we know who you are and how to reach
+  //  you", and an empty string answers neither.
+  if (name.length < 2 || phone.length < 8) return false
+  if (!a.optIn) return false
+
+  const emailHash = blindIndex(a.email.trim().toLowerCase(), "subscriber")
+  const now = new Date().toISOString()
+
+  try {
+    const existing = await sanityWrite.fetch<{ _id: string } | null>(
+      `*[_type == "subscriber" && emailHash == $emailHash][0]{ _id }`,
+      { emailHash },
+    )
+    if (!existing) return false
+
+    const set: Record<string, unknown> = {
+      nameEnc: encryptPII(name),
+      phoneEnc: encryptPII(phone),
+      phoneHash: blindIndex(phone, "subscriberPhone"),
+      profileAt: now,
+      termsAt: now,
+      termsVer: a.termsVer,
+      //  Reaching this point means the box was ticked on a form that said
+      //  what the mail is for, which is the same promise setEmailOptIn makes.
+      emailOptIn: true,
+      optInAt: now,
+      optInSource: "dashboard",
+      unsubscribed: false,
+    }
+    if (a.avatarAssetId) {
+      set.avatar = { _type: "image", asset: { _type: "reference", _ref: a.avatarAssetId } }
+      set.avatarId = ""
+    } else if (a.avatarId) {
+      set.avatarId = a.avatarId
+      set.avatar = null
+    }
+
+    await sanityWrite.patch(existing._id).set(set).commit()
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** What the dashboard renders and the download gate checks. */
+export async function getProfile(email: string): Promise<MemberProfile | null> {
+  if (!email || !piiReady()) return null
+  try {
+    const emailHash = blindIndex(email.trim().toLowerCase(), "subscriber")
+    const d = await sanityWrite.fetch<any>(
+      `*[_type == "subscriber" && emailHash == $emailHash][0]{
+         nameEnc, phoneEnc, avatarId, "avatarUrl": avatar.asset->url,
+         emailOptIn, unsubscribed, termsAt, termsVer
+       }`,
+      { emailHash },
+    )
+    if (!d) return null
+    const name = decryptOr(d.nameEnc, "")
+    const phone = decryptOr(d.phoneEnc, "")
+    const optIn = !!d.emailOptIn && !d.unsubscribed
+    return {
+      name,
+      phone,
+      avatarId: d.avatarId ?? "",
+      avatarUrl: d.avatarUrl ?? "",
+      emailOptIn: optIn,
+      termsAt: d.termsAt ?? "",
+      termsVer: d.termsVer ?? "",
+      //  "Complete" is what the download gate asks. Every part has to be
+      //  there: a name, a number, consent, and an accepted licence.
+      complete: name.length >= 2 && phone.length >= 8 && optIn && !!d.termsAt,
+    }
+  } catch {
+    return null
   }
 }

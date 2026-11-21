@@ -1,5 +1,9 @@
 import Link from "next/link"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { getProfile } from "@/lib/subscribers"
 import InstallCommand from "@/components/ea/InstallCommand"
+import ReleaseNotes, { type Release } from "@/components/ea/ReleaseNotes"
 import { LOSS_BAR_PX, scaledBars } from "@/lib/eaChart"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { capitalBase, fmtMoney, fmtMoneyPlain, pctMoney, toRealMoney } from "@/lib/eaMoney"
@@ -78,6 +82,27 @@ interface Props {
 export default async function EADownloadPage({
   eaId, badge, headline, blurb, files, accent, installId,
 }: Props) {
+  //  The download links and the install command are behind a door: signed in
+  //  with Google, profile filled in, licence accepted. Everything above this
+  //  — what the EA is, how it has performed, the risk — stays open, because
+  //  somebody deciding whether they want it should not have to hand over a
+  //  phone number first. Owner's rule, 2026-11-22.
+  const session = await getServerSession(authOptions)
+  const email = session?.user?.email ?? ""
+  const profile = email ? await getProfile(email) : null
+  const unlocked = !!profile?.complete
+
+  //  Release notes for this EA, newest first. Shown to everybody, signed in
+  //  or not: knowing what changed is part of deciding whether you want it.
+  let releases: Release[] = []
+  try {
+    releases = await sanityClient.fetch<Release[]>(
+      `*[_type == "eaRelease" && eaId == $eaId] | order(releasedAt desc)[0...20]{
+         _id, eaId, version, releasedAt, headline, added, changed, breaking }`,
+      { eaId: installId ?? eaId },
+    )
+  } catch {}
+
   let stats: EAStats | null = null
   try {
     stats = await sanityClient.fetch<EAStats>(QUERIES.eaStatsByEaId(eaId))
@@ -285,10 +310,47 @@ export default async function EADownloadPage({
           </a>
         </section>
 
+        {/* ── what changed ─────────────────────────────────────────────── */}
+        <ReleaseNotes releases={releases} limit={3} moreHref="/ea-system/updates" />
+
         {/* ── install in one line ──────────────────────────────────────── */}
-        {installId !== undefined && <InstallCommand eaId={installId} />}
+        {unlocked && installId !== undefined && <InstallCommand eaId={installId} />}
+
+        {/* ── the door ─────────────────────────────────────────────────── */}
+        {!unlocked && (
+          <section style={{
+            background: "var(--surface)", border: "1px solid var(--line)",
+            borderRadius: 16, padding: 24, marginBottom: 20,
+          }}>
+            <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 6px" }}>
+              {email ? "ຕື່ມຂໍ້ມູນສະມາຊິກກ່ອນ" : "ເຂົ້າສູ່ລະບົບກ່ອນດາວໂຫຼດ"}
+            </h2>
+            <p className="font-lao" style={{ fontSize: 13, color: "var(--fg-3)", lineHeight: 1.8, margin: "0 0 16px" }}>
+              {email
+                ? "ລິງກ໌ດາວໂຫຼດ ແລະ ຄຳສັ່ງຕິດຕັ້ງຈະສະແດງຂຶ້ນ ເມື່ອຕື່ມຊື່, ເບີ WhatsApp ແລະ ຍອມຮັບເງື່ອນໄຂການໃຊ້ EA ແລ້ວ"
+                : "ລິງກ໌ດາວໂຫຼດ ແລະ ຄຳສັ່ງຕິດຕັ້ງສະແດງສະເພາະສະມາຊິກທີ່ເຂົ້າສູ່ລະບົບດ້ວຍ Google ແລະ ຍອມຮັບເງື່ອນໄຂການໃຊ້ EA ແລ້ວ"}
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <Link href={email ? "/dashboard" : "/login"} className="font-lao" style={{
+                display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 20px",
+                borderRadius: 10, background: "var(--accent)", color: "#fff",
+                fontSize: 13.5, fontWeight: 700, textDecoration: "none",
+              }}>
+                {email ? "ໄປຕື່ມຂໍ້ມູນ →" : "ເຂົ້າສູ່ລະບົບດ້ວຍ Google →"}
+              </Link>
+              <Link href="/terms" className="font-lao" style={{
+                display: "inline-flex", alignItems: "center", padding: "12px 18px",
+                borderRadius: 10, border: "1px solid var(--line)", color: "var(--fg-2)",
+                fontSize: 13, fontWeight: 600, textDecoration: "none",
+              }}>
+                ອ່ານເງື່ອນໄຂ
+              </Link>
+            </div>
+          </section>
+        )}
 
         {/* ── download ─────────────────────────────────────────────────── */}
+        {unlocked && (
         <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
           <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 4px" }}>ໄຟລ໌ດາວໂຫຼດ</h2>
           <p className="font-lao" style={{ fontSize: 12, color: "var(--fg-3)", margin: "0 0 16px" }}>
@@ -318,6 +380,7 @@ export default async function EADownloadPage({
             ))}
           </div>
         </section>
+        )}
 
         {/* ── channels ─────────────────────────────────────────────────── */}
         <section style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, marginBottom: 20 }}>

@@ -2,7 +2,9 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/admin/auth"
-import { getEmailOptIn } from "@/lib/subscribers"
+import { getEmailOptIn, getProfile } from "@/lib/subscribers"
+import ProfileForm from "@/components/account/ProfileForm"
+import { TERMS_VERSION } from "@/lib/terms"
 import { accountOverview } from "@/lib/account/overview"
 import { CopyEmail, SignOutButton } from "@/components/account/AccountActions"
 import { EmailOptInCard } from "@/components/newsletter/EmailOptInCard"
@@ -24,6 +26,10 @@ export default async function DashboardPage() {
   const user = session.user
   const isAdmin = isAdminEmail(user?.email)
   const optIn = user?.email ? await getEmailOptIn(user.email) : false
+  //  The same record the EA download gate reads. Filling it in here is what
+  //  opens the links over there, so the form lives at the top of the page
+  //  until it is done and folds away to one line afterwards.
+  const profile = user?.email ? await getProfile(user.email) : null
   //  What this person actually owns: their contest entry, their linked EA
   //  accounts, and what they have left on the site.
   const mine = user?.email
@@ -51,8 +57,20 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Member profile — the EA download gate reads this */}
+        <div style={{ marginBottom: 20 }}>
+          <ProfileForm
+            initialName={profile?.name || (user?.name ?? "")}
+            initialPhone={profile?.phone ?? ""}
+            initialAvatarId={profile?.avatarId ?? ""}
+            initialAvatarUrl={profile?.avatarUrl ?? ""}
+            termsVer={TERMS_VERSION}
+            done={!!profile?.complete}
+          />
+        </div>
+
         {/* Email consent — asked for here, never assumed from a sign-in */}
-        <EmailOptInCard initialOptIn={optIn} />
+        {!profile?.complete && <EmailOptInCard initialOptIn={optIn} />}
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
