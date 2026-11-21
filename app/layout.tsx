@@ -10,6 +10,7 @@ import { GoogleAnalytics } from "@next/third-parties/google"
 import { JsonLd, organizationLd, websiteLd } from "@/lib/structuredData"
 import ThemeScript from "@/components/theme/ThemeScript"
 import LangProvider from "@/components/i18n/LangProvider"
+import AutoTranslate from "@/components/i18n/AutoTranslate"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.laoforextrader.com"),
@@ -62,6 +63,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ChatWidgetLoader />
           {/* Turns the login checkbox into real consent once the session lands */}
           <OptInSync />
+          {/* The Lao the dictionary does not cover — articles, headings,
+              card copy — translated after render for a Thai or English
+              reader, and nothing at all for a Lao one. */}
+          <AutoTranslate />
         </SessionProviderWrapper>
         </LangProvider>
       </body>
