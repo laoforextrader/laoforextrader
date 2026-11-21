@@ -52,13 +52,18 @@ const money = (v?: number, currency?: string) => {
 }
 const round0 = (v?: number) =>
   typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—"
-//  The board's own numbers carry their unit. In the table the column head
-//  says it once; on the podium there is no head, so the figure says it
-//  itself — a number with no unit beside a prize in dollars is a guess.
+//  Every figure on the board carries its unit, written after the number the
+//  way a person says it: "100,000 USD". Owner's call — a unit in the column
+//  head alone leaves each row ambiguous once a row is read on its own.
+const UNIT: Record<string, string> = { USD: "USD", cent: "¢" }
+const withUnit = (text: string, currency?: string) => {
+  const u = currency ? UNIT[currency] : ""
+  return u ? `${text} ${u}` : text
+}
 const cur0 = (v?: number, currency?: string) =>
-  typeof v !== "number" ? "—" : money(v, currency)
+  typeof v !== "number" ? "—" : withUnit(round0(v), currency)
 const curSigned0 = (v?: number, currency?: string) =>
-  typeof v !== "number" ? "—" : (v >= 0 ? "+" : "-") + money(Math.abs(v), currency)
+  typeof v !== "number" ? "—" : withUnit(signed0(v), currency)
 const signed0 = (v?: number) =>
   typeof v === "number" ? (v >= 0 ? "+" : "") + round0(v) : "—"
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -150,9 +155,6 @@ function Podium({ rows, marks, currency }: { rows: BoardRow[]; marks: Map<string
  * whole system lives or dies by.
  */
 function Board({ rows, t, slug, currency }: { rows: BoardRow[]; t: any; slug: string; currency?: string }) {
-  //  Said once in the column head rather than on every row: three hundred
-  //  dollar signs down a table is noise, one unit at the top is an answer.
-  const unit = currency === "USD" ? " USD" : currency === "cent" ? " ¢" : ""
   if (!rows.length) {
     return (
       <p className="rounded-bk border border-dashed border-bk-line bg-bk-sunken p-4 text-[12.5px] text-bk-muted">
@@ -169,9 +171,9 @@ function Board({ rows, t, slug, currency }: { rows: BoardRow[]; t: any; slug: st
           <tr className="text-left text-[10.5px] uppercase tracking-[0.07em] text-bk-muted">
             <th className="w-7 pb-2.5 pr-2 font-semibold">#</th>
             <th className="pb-2.5 pr-2 font-semibold">{t.trader}</th>
-            <th className="pb-2.5 pr-2 text-right font-semibold">{t.equity}{unit}</th>
-            <th className="hidden pb-2.5 pr-2 text-right font-semibold sm:table-cell">{t.balance}{unit}</th>
-            <th className="pb-2.5 text-right font-semibold">{t.profit}{unit}</th>
+            <th className="pb-2.5 pr-2 text-right font-semibold">{t.equity}</th>
+            <th className="hidden pb-2.5 pr-2 text-right font-semibold sm:table-cell">{t.balance}</th>
+            <th className="pb-2.5 text-right font-semibold">{t.profit}</th>
             <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">%</th>
             <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">{t.drawdown}</th>
           </tr>
@@ -204,7 +206,7 @@ function Board({ rows, t, slug, currency }: { rows: BoardRow[]; t: any; slug: st
                   </span>
                 </td>
                 <td className="py-2.5 pr-2 text-right font-mono font-semibold tabular-nums">
-                  {round0(r.equity)}
+                  {cur0(r.equity, currency)}
                   {/* Only when it is worth saying: a basket being carried. */}
                   {float !== null && Math.abs(float) >= 1 && (
                     <span className={`block text-[10px] font-normal ${float >= 0 ? "text-ok" : "text-bad"}`}>
@@ -213,9 +215,9 @@ function Board({ rows, t, slug, currency }: { rows: BoardRow[]; t: any; slug: st
                   )}
                 </td>
                 <td className="hidden py-2.5 pr-2 text-right font-mono tabular-nums text-bk-muted sm:table-cell">
-                  {round0(r.balance)}
+                  {cur0(r.balance, currency)}
                 </td>
-                <td className={`py-2.5 text-right font-mono font-semibold tabular-nums ${tone}`}>{signed0(r.profit)}</td>
+                <td className={`py-2.5 text-right font-mono font-semibold tabular-nums ${tone}`}>{curSigned0(r.profit, currency)}</td>
                 <td className={`hidden py-2.5 pl-2 text-right font-mono tabular-nums sm:table-cell ${tone}`}>
                   {typeof r.profitPct === "number" ? r.profitPct.toFixed(1) : "\u2014"}
                 </td>
