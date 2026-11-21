@@ -4,17 +4,17 @@
       "id": "sgrid",
       "name": "TheRocket SGrid",
       "blurb": "Automatic XAUUSD grid - 3 settings, factory 50k",
-      "version": "1.10",
+      "version": "1.20",
       "file": "TheRocketSGrid.ex5",
-      "url": "/ea/dist/sgrid/1.10/TheRocketSGrid.ex5",
-      "sha256": "05df5b6c440e58cd7e6b469e0cc2fd4b072c6b53343c9e97805187c5af349a80",
-      "size": 128724,
+      "url": "/ea/dist/sgrid/1.20/TheRocketSGrid.ex5",
+      "sha256": "899b7761d4e72ad3cf9bb477fcb18f6a3b7992eec64c5ceb88ac43af98c16af4",
+      "size": 128348,
       "presetDir": "TheRocketSGrid",
       "presets": [],
       "docs": [
         {
           "file": "INSTALL.txt",
-          "url": "/ea/dist/sgrid/1.10/INSTALL.txt",
+          "url": "/ea/dist/sgrid/1.20/INSTALL.txt",
           "sha256": "166ad3577bdc00cae274ebd82d82ec57cb305a0e9fd4e173131e84644072ea6c",
           "size": 2165
         }
@@ -44,17 +44,17 @@
       "id": "megihedge",
       "name": "TheRocket MegiHedge v2.0",
       "blurb": "Hedge rider + partial close - 3 settings, factory 50k",
-      "version": "2.00",
+      "version": "2.10",
       "file": "TheRocketMegiHedge.ex5",
-      "url": "/ea/dist/megihedge/2.00/TheRocketMegiHedge.ex5",
-      "sha256": "b5acf321ca359ac18beaca8fc4cfe650f9214d96ae5c67422c232e1dc5751936",
-      "size": 173546,
+      "url": "/ea/dist/megihedge/2.10/TheRocketMegiHedge.ex5",
+      "sha256": "6a449ce949c66ee1b9ad4d3d5e177e7dbb0e045cce414cd09577b58a93114b97",
+      "size": 176720,
       "presetDir": "TheRocketMegiHedge",
       "presets": [],
       "docs": [
         {
           "file": "INSTALL.txt",
-          "url": "/ea/dist/megihedge/2.00/INSTALL.txt",
+          "url": "/ea/dist/megihedge/2.10/INSTALL.txt",
           "sha256": "03839e16fadd521297270b45656abba9cb8cd11e716a3a4c4ff476344017578e",
           "size": 2352
         }

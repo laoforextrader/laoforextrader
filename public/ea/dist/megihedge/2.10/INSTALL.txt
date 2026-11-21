@@ -1,0 +1,54 @@
+TheRocket MegiHedge v2.0 - release build
+========================================
+
+  The hedge build: a two-way XAUUSD grid with a hedge rider that opens on the
+  other side when a basket is being dragged, plus partial close. It is the
+  configuration we run on our own account, with every setting locked to it
+  except three.
+
+FILES
+  TheRocketMegiHedge.ex5   the Expert Advisor - this is the only file to install
+  INSTALL.txt              this file
+
+INSTALL
+  1. In MT5: File > Open Data Folder > MQL5 > Experts
+  2. Copy TheRocketMegiHedge.ex5 into that folder
+  3. Back in MT5: right-click Navigator > Refresh
+
+FIRST RUN
+  1. Open a XAUUSD chart and switch it to M5. The EA needs M5.
+  2. Drag the EA onto the chart.
+  3. In the properties window tick:
+       Allow Algo Trading
+       Allow DLL imports        (needed for the licence check on a real account)
+  4. Press the Algo Trading button on the MT5 toolbar so it turns green.
+
+SETTINGS
+  Only three are exposed:
+       Grid step        distance between ladder levels, in points (150 tested)
+       Max levels       how deep the ladder may go (80 tested)
+       Auto scale lots  grow the lots with the balance (off by default)
+  Everything else - hedge rider, partial close, the filters and the emergency
+  guards - is locked to the 50k configuration that was tested on real ticks.
+
+LICENCE
+  Strategy Tester / Demo      free, no time limit, no network at all
+  Real account, licensed      no time limit
+  Real account, unlicensed    10 days from the first run, after which the EA
+                              opens no new basket and no new hedge round -
+                              what is already open is still managed until it
+                              closes
+
+  To be licensed, send your MT5 account number. It unlocks within 5 minutes;
+  there is no new file to install.
+
+RISK
+  This EA averages down and has no stop loss by design. The risk it carries is
+  the whole account, not a fixed amount per trade. Use money you can afford to
+  lose entirely and keep the lots small. Past results do not describe the
+  future: testing was done on a window in which gold rose strongly, and the
+  same settings lost money in other periods.
+
+CONTACT
+  therocketea@gmail.com   -   WhatsApp +856 20 9233 3353
+  https://laoforextrader.com
