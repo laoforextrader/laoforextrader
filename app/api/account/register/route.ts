@@ -5,6 +5,7 @@ import { blindIndex, piiReady } from "@/lib/pii"
 import { upsertSubscriber, saveProfile } from "@/lib/subscribers"
 import { loginToken, loginUrl, newNonce } from "@/lib/account/loginLink"
 import { sendEmail } from "@/lib/newsletter/send"
+import { verifyMail, VERIFY_SUBJECT } from "@/lib/account/verifyEmail"
 
 //  Joining without Google.
 //
@@ -42,30 +43,6 @@ function tooMany(key: string): boolean {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i
-
-function mailBody(name: string, url: string) {
-  const safeName = name.replace(/[<>&]/g, "")
-  const html = `<!doctype html><html><body style="margin:0;background:#F1F5F9;padding:28px 14px;font-family:'Noto Sans Lao',Arial,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
-<table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border-radius:16px;padding:32px 30px">
-  <tr><td style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#64748B">LAOFOREXTRADER</td></tr>
-  <tr><td style="padding-top:12px;font-size:21px;font-weight:800;color:#0F172A">ຢືນຢັນການສະໝັກ</td></tr>
-  <tr><td style="padding-top:12px;font-size:14px;line-height:1.9;color:#334155">
-    ສະບາຍດີ ${safeName} — ກົດປຸ່ມລຸ່ມນີ້ເພື່ອຢືນຢັນອີເມວ ແລະ ເຂົ້າສູ່ລະບົບ. ລິງກ໌ນີ້ໃຊ້ໄດ້ຄັ້ງດຽວ ພາຍໃນ 24 ຊົ່ວໂມງ.
-  </td></tr>
-  <tr><td style="padding-top:22px">
-    <a href="${url}" style="display:inline-block;background:#2563EB;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 26px;border-radius:10px">ຢືນຢັນ ແລະ ເຂົ້າສູ່ລະບົບ</a>
-  </td></tr>
-  <tr><td style="padding-top:20px;font-size:12px;line-height:1.8;color:#64748B">
-    ຖ້າປຸ່ມກົດບໍ່ໄດ້ ໃຫ້ກັອບລິງກ໌ນີ້ໃສ່ບຣາວເຊີ:<br><span style="color:#2563EB;word-break:break-all">${url}</span>
-  </td></tr>
-  <tr><td style="padding-top:22px;border-top:1px solid #E2E8F0;font-size:11.5px;line-height:1.8;color:#94A3B8">
-    ຖ້າທ່ານບໍ່ໄດ້ສະໝັກ ບໍ່ຕ້ອງເຮັດຫຍັງ — ບໍ່ມີບັນຊີໃດຖືກເປີດຈົນກວ່າລິງກ໌ນີ້ຖືກກົດ.
-  </td></tr>
-</table></td></tr></table></body></html>`
-  const text = `ສະບາຍດີ ${safeName}\n\nຢືນຢັນອີເມວ ແລະ ເຂົ້າສູ່ລະບົບ:\n${url}\n\nລິງກ໌ໃຊ້ໄດ້ຄັ້ງດຽວ ພາຍໃນ 24 ຊົ່ວໂມງ.\nຖ້າທ່ານບໍ່ໄດ້ສະໝັກ ບໍ່ຕ້ອງເຮັດຫຍັງ.`
-  return { html, text }
-}
 
 export async function POST(req: Request) {
   if (!piiReady() || !process.env.SANITY_API_TOKEN)
@@ -139,12 +116,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "save" }, { status: 500 })
   }
 
-  const { html, text } = mailBody(name, loginUrl(loginToken(emailHash, nonce)))
-  const sent = await sendEmail({
-    to: email,
-    subject: "ຢືນຢັນການສະໝັກ · LaoForexTrader",
-    html, text, emailHash,
-  })
+  const { html, text } = verifyMail(name, loginUrl(loginToken(emailHash, nonce)))
+  const sent = await sendEmail({ to: email, subject: VERIFY_SUBJECT, html, text, emailHash })
   if (!sent.ok) return NextResponse.json({ ok: false, error: "mail" }, { status: 502 })
 
   return NextResponse.json({ ok: true })
