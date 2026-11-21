@@ -84,7 +84,7 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
       {showTitle && (
         <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-line-2">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">🟢 LIVE STATS</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1 flex items-center gap-1.5">{/* A drawn dot, not a coloured emoji: the emoji renders at a different size on every platform and sits off the baseline. */}<span className="inline-block h-[7px] w-[7px] rounded-full bg-emerald-500" />LIVE STATS</div>
             <h3 className="text-[18px] font-extrabold text-fg tracking-tight">{stats.title}</h3>
           </div>
           {stats.lastUpdate && (
@@ -159,7 +159,7 @@ export default async function EAStatsCard({ eaId, showTitle = true }: Props) {
       {/* What the percentages are a percentage OF */}
       {base && (
         <div className="px-6 py-3 border-b border-line-2 bg-surface-2 text-[11px] text-fg-3 leading-relaxed">
-          ℹ️ ທຸກ % ຄິດທຽບກັບ<strong className="text-fg-2 font-bold"> ທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}</strong>
+          ທຸກ % ຄິດທຽບກັບ<strong className="text-fg-2 font-bold"> ທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}</strong>
           {mWithdrawn && mWithdrawn.amount > 0 && (
             <> · ຖອນອອກແລ້ວ {fmtMoneyPlain(mWithdrawn.amount, mWithdrawn.currency, 0)}</>
           )}

@@ -43,7 +43,7 @@ export default function SGridProDownloadPage() {
     <EADownloadPage
       eaId="sgride"
       installId="sgridpro"
-      badge="🛠 TheRocket SGrid Pro"
+      badge="TheRocket SGrid Pro"
       headline="ດາວໂຫຼດ EA ຮຸ່ນປັບເອງ"
       blurb="ເຄື່ອງຈັກດຽວກັນກັບ SGrid ແຕ່ເປີດໃຫ້ປັບໄດ້ຄົບ 71 ຄ່າ — Grid, ບັນໄດ lot, ຊົ່ວໂມງເທຣດ, ຕົວກັ່ນຕອງ Velocity / Stochastic / Trend ແລະ Recovery. ເໝາະກັບຜູ້ທີ່ Backtest ເອງ. ຖ້າຢາກໃຫ້ມັນເຮັດວຽກເອງເລີຍ ໃຫ້ໃຊ້ SGrid."
       files={FILES}

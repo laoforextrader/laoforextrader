@@ -50,7 +50,7 @@ export default function SemiDownloadPage() {
     <EADownloadPage
       eaId="semi"
       installId="semi"
-      badge="🎮 TheRocket MegiSemi"
+      badge="TheRocket MegiSemi"
       headline="ດາວໂຫຼດ EA ເຄິ່ງອັດຕະໂນມັດ"
       blurb="ທ່ານເປັນຄົນເລືອກວ່າຈະເປີດເທື່ອໃດ ແລະ ຂ້າງໃດ ແລ້ວ EA ດູແລບັນໄດຕໍ່ໃຫ້ຈົນປິດ. ສັ່ງໄດ້ຈາກປຸ່ມເທິງຊາດ ຈາກແອັບ MT5 ເທິງມືຖື ຫຼື ຈາກ Dashboard ເທິງເວັບ."
       files={FILES}

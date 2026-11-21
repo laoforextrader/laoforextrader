@@ -126,9 +126,9 @@ export default function ABSBacktestPage() {
             marginTop: 22, fontSize: 11, color: "rgba(255,255,255,0.4)",
             fontFamily: "Noto Sans Lao, sans-serif",
           }}>
-            <span>📊 Strategy Tester</span>
-            <span>🥇 Gold + EUR/JPY</span>
-            <span>🛡 Protect Stop</span>
+            <span>Strategy Tester</span>
+            <span>Gold + EUR/JPY</span>
+            <span>Protect Stop</span>
           </div>
         </div>
       </section>
@@ -256,7 +256,7 @@ export default function ABSBacktestPage() {
             fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em",
             marginBottom: 8, fontFamily: "Noto Sans Lao, sans-serif",
           }}>
-            ເລີ່ມໃຊ້ ABS v2.0 ມື້ນີ້ 🚀
+            ເລີ່ມໃຊ້ ABS v2.0 ມື້ນີ້
           </h2>
           <p style={{
             fontSize: 14, color: "rgba(255,255,255,0.82)", marginBottom: 26,

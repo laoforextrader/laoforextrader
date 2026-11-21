@@ -44,7 +44,7 @@ export default function MegiHedgeDownloadPage() {
     <EADownloadPage
       eaId="megihedge"
       installId="megihedge"
-      badge="⚡ TheRocket MegiHedge v2.0"
+      badge="TheRocket MegiHedge v2.0"
       headline="ດາວໂຫຼດ EA"
       blurb="Hedging EA ທີ່ພວກເຮົາຮັນຢູ່ໃນບັນຊີຈິງ ບໍ່ແມ່ນ Backtest. ຮຸ່ນແຈກນີ້ຕັ້ງຄ່າພຽງ 3 ຢ່າງ ສ່ວນທີ່ເຫຼືອ — hedge rider, partial close ແລະ ດ່ານປ້ອງກັນທັງໝົດ — ລ໋ອກໄວ້ຕາມຊຸດ 50k ທີ່ພວກເຮົາໃຊ້ຢູ່."
       files={FILES}

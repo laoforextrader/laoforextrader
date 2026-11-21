@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth"
 import { getProfile } from "@/lib/subscribers"
 import InstallCommand from "@/components/ea/InstallCommand"
 import ReleaseNotes, { type Release } from "@/components/ea/ReleaseNotes"
+import LockedGate from "@/components/ea/LockedGate"
+import { TERMS_VERSION } from "@/lib/terms"
 import { LOSS_BAR_PX, scaledBars } from "@/lib/eaChart"
 import { sanityClient, QUERIES } from "@/lib/sanity"
 import { capitalBase, fmtMoney, fmtMoneyPlain, pctMoney, toRealMoney } from "@/lib/eaMoney"
@@ -65,7 +67,7 @@ function monthLabel(m: string): string {
 
 interface Props {
   eaId: string
-  /** Pill above the headline, e.g. "🚀 TheRocket EA SGrid". */
+  /** Pill above the headline, e.g. "TheRocket EA SGrid". */
   badge: string
   headline: string
   blurb: string
@@ -187,7 +189,7 @@ export default async function EADownloadPage({
               without this the money figures read as a rate of return. */}
           {base && (
             <p className="font-lao" style={{ fontSize: 11, color: "#8B95B5", marginTop: 14, lineHeight: 1.7 }}>
-              ℹ️ % ແລະ ຈຳນວນເງິນ ຄິດທຽບກັບທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}
+              % ແລະ ຈຳນວນເງິນ ຄິດທຽບກັບທຶນເລີ່ມຕົ້ນ {fmtMoneyPlain(base.amount, base.currency, 0)}
             </p>
           )}
 
@@ -313,41 +315,9 @@ export default async function EADownloadPage({
         {/* ── what changed ─────────────────────────────────────────────── */}
         <ReleaseNotes releases={releases} limit={3} moreHref="/ea-system/updates" />
 
-        {/* ── install in one line ──────────────────────────────────────── */}
+        {/* ── the door, or the command once it is open ─────────────────── */}
+        {!unlocked && <LockedGate termsVer={TERMS_VERSION} signedIn={!!email} />}
         {unlocked && installId !== undefined && <InstallCommand eaId={installId} />}
-
-        {/* ── the door ─────────────────────────────────────────────────── */}
-        {!unlocked && (
-          <section style={{
-            background: "var(--surface)", border: "1px solid var(--line)",
-            borderRadius: 16, padding: 24, marginBottom: 20,
-          }}>
-            <h2 className="font-lao" style={{ fontSize: 17, fontWeight: 700, color: "var(--fg)", margin: "0 0 6px" }}>
-              {email ? "ຕື່ມຂໍ້ມູນສະມາຊິກກ່ອນ" : "ເຂົ້າສູ່ລະບົບກ່ອນດາວໂຫຼດ"}
-            </h2>
-            <p className="font-lao" style={{ fontSize: 13, color: "var(--fg-3)", lineHeight: 1.8, margin: "0 0 16px" }}>
-              {email
-                ? "ລິງກ໌ດາວໂຫຼດ ແລະ ຄຳສັ່ງຕິດຕັ້ງຈະສະແດງຂຶ້ນ ເມື່ອຕື່ມຊື່, ເບີ WhatsApp ແລະ ຍອມຮັບເງື່ອນໄຂການໃຊ້ EA ແລ້ວ"
-                : "ລິງກ໌ດາວໂຫຼດ ແລະ ຄຳສັ່ງຕິດຕັ້ງສະແດງສະເພາະສະມາຊິກທີ່ເຂົ້າສູ່ລະບົບດ້ວຍ Google ແລະ ຍອມຮັບເງື່ອນໄຂການໃຊ້ EA ແລ້ວ"}
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              <Link href={email ? "/dashboard" : "/login"} className="font-lao" style={{
-                display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 20px",
-                borderRadius: 10, background: "var(--accent)", color: "#fff",
-                fontSize: 13.5, fontWeight: 700, textDecoration: "none",
-              }}>
-                {email ? "ໄປຕື່ມຂໍ້ມູນ →" : "ເຂົ້າສູ່ລະບົບດ້ວຍ Google →"}
-              </Link>
-              <Link href="/terms" className="font-lao" style={{
-                display: "inline-flex", alignItems: "center", padding: "12px 18px",
-                borderRadius: 10, border: "1px solid var(--line)", color: "var(--fg-2)",
-                fontSize: 13, fontWeight: 600, textDecoration: "none",
-              }}>
-                ອ່ານເງື່ອນໄຂ
-              </Link>
-            </div>
-          </section>
-        )}
 
         {/* ── download ─────────────────────────────────────────────────── */}
         {unlocked && (
@@ -368,7 +338,7 @@ export default async function EADownloadPage({
                   border: "1px solid var(--line)", background: "var(--surface-2)", textDecoration: "none",
                 }}
               >
-                <span style={{ fontSize: 20 }}>{f.ready ? "⬇" : "💬"}</span>
+                <span style={{ display: "flex", color: f.ready ? "var(--accent)" : "var(--fg-3)" }}>{f.ready ? (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v12" /><polyline points="6 12 12 18 18 12" /></svg>) : (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.3-.6L3 21l1.8-5A8.3 8.3 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5z" /></svg>)}</span>
                 <span style={{ flex: 1 }}>
                   <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--fg)", fontFamily: "Arial,sans-serif" }}>{f.label}</span>
                   <span className="font-lao" style={{ display: "block", fontSize: 11.5, color: "var(--fg-3)", marginTop: 2 }}>

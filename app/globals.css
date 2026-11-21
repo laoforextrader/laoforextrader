@@ -501,3 +501,10 @@ html.dark:not(:has([data-force-light])) img:not([data-no-dim]) { filter: brightn
 /* Semi landing hero — product shot beside the steps on wide screens */
 .semi-hero { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center; }
 @media (min-width: 900px) { .semi-hero { grid-template-columns: 1.15fr 0.85fr; gap: 36px; } }
+
+/*  Label that folds away on a phone.
+    The header has search, theme and menu beside the account control; at
+    phone width the word pushes them out of the row, so the icon stands on
+    its own there and the label returns when there is space for it. */
+.hide-sm { display: inline; }
+@media (max-width: 640px) { .hide-sm { display: none; } }

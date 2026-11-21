@@ -51,7 +51,7 @@ export default function SGridDownloadPage() {
     <EADownloadPage
       eaId="sgride"
       installId="sgrid"
-      badge="🚀 TheRocket SGrid"
+      badge="TheRocket SGrid"
       headline="ດາວໂຫຼດ EA"
       blurb="Grid EA ທີ່ພວກເຮົາຮັນຢູ່ໃນບັນຊີຈິງ ບໍ່ແມ່ນ Backtest. ຮຸ່ນນີ້ຕັ້ງຄ່າພຽງ 3 ຢ່າງ ສ່ວນທີ່ເຫຼືອລ໋ອກໄວ້ຕາມຄ່າທີ່ທົດສອບມາແລ້ວ. ຜູ້ທີ່ຢາກປັບເອງທຸກຄ່າໃຫ້ໃຊ້ SGrid Pro."
       files={FILES}

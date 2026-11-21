@@ -2,6 +2,7 @@ import Link from "next/link"
 import TrackedLink from "@/components/analytics/TrackedLink"
 import { Rocket, Zap } from "lucide-react"
 import EAShowcaseSection from "@/components/sections/EAShowcaseSection"
+import UpdateBanner from "@/components/ea/UpdateBanner"
 import type { Metadata } from "next"
 
 export const revalidate = 60
@@ -72,12 +73,38 @@ export default function EASystemPage() {
             marginTop: 24, fontSize: 11, color: "rgba(255,255,255,0.4)",
             fontFamily: "Noto Sans Lao, sans-serif",
           }}>
-            <span>⚡ Live Account</span>
-            <span>📈 Real Trading</span>
-            <span>🤖 24/5 Auto</span>
+            {/*  Drawn marks, not emoji: an emoji renders as a different
+                 picture on every platform and as a grey box on some Windows
+                 builds, and three of them in a row read as decoration. */}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              Live Account
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                <polyline points="16 7 22 7 22 13" />
+              </svg>
+              Real Trading
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15.5 14" />
+              </svg>
+              24/5 Auto
+            </span>
           </div>
         </div>
       </section>
+
+      {/* ── newest build, straight under the hero ─────────────────────── */}
+      <UpdateBanner />
 
       {/* ── EA #0 — RocketMegi Semi ────────────────────────────────────
           Same two-column anatomy as the three EAs below, but the right-hand
