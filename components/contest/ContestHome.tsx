@@ -52,6 +52,13 @@ const money = (v?: number, currency?: string) => {
 }
 const round0 = (v?: number) =>
   typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—"
+//  The board's own numbers carry their unit. In the table the column head
+//  says it once; on the podium there is no head, so the figure says it
+//  itself — a number with no unit beside a prize in dollars is a guess.
+const cur0 = (v?: number, currency?: string) =>
+  typeof v !== "number" ? "—" : money(v, currency)
+const curSigned0 = (v?: number, currency?: string) =>
+  typeof v !== "number" ? "—" : (v >= 0 ? "+" : "-") + money(Math.abs(v), currency)
 const signed0 = (v?: number) =>
   typeof v === "number" ? (v >= 0 ? "+" : "") + round0(v) : "—"
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -91,7 +98,7 @@ function RankMark({ place }: { place: number }) {
   return <span className="font-mono text-[12px] font-semibold tabular-nums text-bk-muted">{place}</span>
 }
 
-function Podium({ rows, marks }: { rows: BoardRow[]; marks: Map<string, AvatarDef> }) {
+function Podium({ rows, marks, currency }: { rows: BoardRow[]; marks: Map<string, AvatarDef>; currency?: string }) {
   if (rows.length < 3) return null
   const cell = (r: BoardRow, place: 1 | 2 | 3) => (
     <div
@@ -108,14 +115,14 @@ function Podium({ rows, marks }: { rows: BoardRow[]; marks: Map<string, AvatarDe
       </span>
       <div className="mt-1 flex items-center justify-center gap-1.5">
         {marks.get(r._id) && <ContestAvatar def={marks.get(r._id)!} size={place === 1 ? 26 : 22} />}
-        <Flag value={r.country} size={14} />
+        <Flag value={r.country} size={14} fallback="LA" />
       </div>
       <div className="truncate text-[13px] font-semibold">{r.displayName}</div>
-      <div className="font-mono text-[10.5px] tabular-nums text-bk-muted">{round0(r.equity)}</div>
+      <div className="font-mono text-[10.5px] tabular-nums text-bk-muted">{cur0(r.equity, currency)}</div>
       <div
         className={`mt-1.5 font-mono font-bold tabular-nums ${(r.profit ?? 0) >= 0 ? "text-ok" : "text-bad"} ${place === 1 ? "text-[19px]" : "text-[16px]"}`}
       >
-        {signed0(r.profit)}
+        {curSigned0(r.profit, currency)}
       </div>
     </div>
   )
@@ -142,7 +149,10 @@ function Podium({ rows, marks }: { rows: BoardRow[]; marks: Map<string, AvatarDe
  * between the two columns IS the floating loss, which is the number this
  * whole system lives or dies by.
  */
-function Board({ rows, t, slug }: { rows: BoardRow[]; t: any; slug: string }) {
+function Board({ rows, t, slug, currency }: { rows: BoardRow[]; t: any; slug: string; currency?: string }) {
+  //  Said once in the column head rather than on every row: three hundred
+  //  dollar signs down a table is noise, one unit at the top is an answer.
+  const unit = currency === "USD" ? " USD" : currency === "cent" ? " ¢" : ""
   if (!rows.length) {
     return (
       <p className="rounded-bk border border-dashed border-bk-line bg-bk-sunken p-4 text-[12.5px] text-bk-muted">
@@ -153,15 +163,15 @@ function Board({ rows, t, slug }: { rows: BoardRow[]; t: any; slug: string }) {
   const marks = avatarMap(rows)
   return (
     <>
-      <Podium rows={rows} marks={marks} />
+      <Podium rows={rows} marks={marks} currency={currency} />
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr className="text-left text-[10.5px] uppercase tracking-[0.07em] text-bk-muted">
             <th className="w-7 pb-2.5 pr-2 font-semibold">#</th>
             <th className="pb-2.5 pr-2 font-semibold">{t.trader}</th>
-            <th className="pb-2.5 pr-2 text-right font-semibold">{t.equity}</th>
-            <th className="hidden pb-2.5 pr-2 text-right font-semibold sm:table-cell">{t.balance}</th>
-            <th className="pb-2.5 text-right font-semibold">{t.profit}</th>
+            <th className="pb-2.5 pr-2 text-right font-semibold">{t.equity}{unit}</th>
+            <th className="hidden pb-2.5 pr-2 text-right font-semibold sm:table-cell">{t.balance}{unit}</th>
+            <th className="pb-2.5 text-right font-semibold">{t.profit}{unit}</th>
             <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">%</th>
             <th className="hidden pb-2.5 pl-2 text-right font-semibold sm:table-cell">{t.drawdown}</th>
           </tr>
@@ -183,7 +193,7 @@ function Board({ rows, t, slug }: { rows: BoardRow[]; t: any; slug: string }) {
                     {def && <ContestAvatar def={def} size={26} className="shrink-0" />}
                     <span className="min-w-0">
                       <Link href={`/contest/${slug}/${r.mtLogin}`} className="flex items-center gap-1.5 font-semibold hover:text-accent">
-                        <Flag value={r.country} size={14} />
+                        <Flag value={r.country} size={14} fallback="LA" />
                         <span className="truncate">{r.displayName}</span>
                       </Link>
                       <span className="block font-mono text-[10.5px] text-bk-muted">#{r.mtLogin}</span>
@@ -343,12 +353,29 @@ export default function ContestHome({
                   )}
                 </>
               ) : (
-                <div className="text-[12.5px]">
-                  <span className="font-bold text-bk-muted">
-                    {full && contest.status === "register" ? t.seatsFull : t.registerClosed}
+                /* A full round is the first thing a visitor needs to know;
+                   grey small print was being read as "register here". */
+                <div className={`inline-flex items-center gap-3 rounded-bk border px-4 py-3 ${
+                  full && contest.status === "register"
+                    ? "border-warn-line bg-warn-soft"
+                    : "border-bk-line bg-bk-sunken"
+                }`}>
+                  <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[17px] font-extrabold ${
+                    full && contest.status === "register"
+                      ? "bg-warn text-white"
+                      : "bg-bk-line text-bk-muted"
+                  }`}>
+                    {full && contest.status === "register" ? String(seats) : "—"}
                   </span>
-                  <span className="mt-0.5 block text-bk-muted">
-                    {contest.status === "done" ? t.nextRound : t.watchOnly}
+                  <span>
+                    <span className={`block text-[15px] font-extrabold leading-tight ${
+                      full && contest.status === "register" ? "text-warn" : "text-bk-muted"
+                    }`}>
+                      {full && contest.status === "register" ? t.seatsFull : t.registerClosed}
+                    </span>
+                    <span className="mt-0.5 block text-[12px] text-bk-muted">
+                      {contest.status === "done" ? t.nextRound : t.watchOnly}
+                    </span>
                   </span>
                 </div>
               )}
@@ -467,7 +494,7 @@ export default function ContestHome({
             <h2 className="text-[16px] font-bold tracking-[-0.01em]">{t.leaderboard}</h2>
             <span className="text-[11.5px] text-bk-muted">{entries} {t.trader}</span>
           </div>
-          <Board rows={board} t={t} slug={contest.slug} />
+          <Board rows={board} t={t} slug={contest.slug} currency={contest.currency} />
           <p className="mt-3 flex items-center gap-2 text-[11.5px] text-bk-muted">
             <Info /> {t.unverified}
           </p>

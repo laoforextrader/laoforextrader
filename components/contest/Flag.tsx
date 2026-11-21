@@ -14,9 +14,14 @@ import { toCode } from "@/lib/contest/countries"
 // beside someone's name is worse than no flag.
 
 export default function Flag({
-  value, size = 16, className = "",
-}: { value?: string | null; size?: number; className?: string }) {
-  const code = toCode(value)
+  value, size = 16, className = "", fallback = "",
+}: { value?: string | null; size?: number; className?: string; fallback?: string }) {
+  //  `fallback` is for a board whose round has a home country: an entry that
+  //  left the field blank shows that flag rather than a gap in the row. It is
+  //  passed in by the caller, never assumed here — on any other screen an
+  //  unknown value still renders nothing, because a wrong flag beside
+  //  someone's name is worse than no flag.
+  const code = toCode(value) || toCode(fallback)
   if (!code) return null
   const w = size
   return (

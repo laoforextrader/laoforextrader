@@ -137,8 +137,15 @@ export default function AdminEntryRow({
     }
   }
 
+  //  Approval is a decision the owner made; `status` is where the entry
+  //  stands right now. The EA owns the second one — every beat rewrites it
+  //  to "active" — which used to wipe the approval off this screen and bring
+  //  the Approve button back on entries already approved (seen 2026-11-21).
+  //  The decision lives in approvedAt, which only an approval ever writes.
+  const isApproved = !!e.approvedAt || status === "approved"
+
   const tone =
-    status === "approved" ? "text-ok" :
+    isApproved ? "text-ok" :
     status === "disqualified" ? "text-bad" :
     status === "cancelled" ? "text-bk-muted" :
     status === "flagged" || status === "blown" ? "text-warn" : "text-bk-muted"
@@ -269,7 +276,7 @@ export default function AdminEntryRow({
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        {status !== "approved" && !done && (
+        {!isApproved && !done && (
           <button
             onClick={() => {
               if (blockers.length && !confirm(
@@ -293,11 +300,11 @@ export default function AdminEntryRow({
             telling someone they are in before looking at their account is
             how a wrongly funded one ends up on the board. */}
         <a
-          href={status === "approved" ? waApproved : undefined}
+          href={isApproved ? waApproved : undefined}
           target="_blank" rel="noopener noreferrer"
-          aria-disabled={status !== "approved"}
+          aria-disabled={!isApproved}
           className={`rounded-bk px-3 py-1.5 text-[12px] font-bold ${
-            status === "approved"
+            isApproved
               ? "bg-ok text-white"
               : "pointer-events-none bg-bk-sunken text-bk-muted"
           }`}>

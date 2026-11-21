@@ -67,6 +67,11 @@ export default function RegisterForm({
   const [errReason, setErrReason] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
+  //  Two things have to exist before this form is any use: an account to
+  //  score and a machine to keep the EA running. People were registering
+  //  without either and only finding out afterwards, which costs them a seat
+  //  and the owner a round of messages — so the form asks first.
+  const [ready, setReady] = useState(false)
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
@@ -190,6 +195,8 @@ export default function RegisterForm({
                   ? (requirements.currency === "USD" ? "$" : "") + requirements.startBalance.toLocaleString("en-US", { maximumFractionDigits: 0 })
                   : "—"}</b></li>
               <li>• Symbol: {requirements.symbol}</li>
+              <li>• {t.reqAccountReady}</li>
+              <li>• {t.reqRunner}</li>
             </ul>
             {requirements.signupUrl && (
               <a href={requirements.signupUrl} target="_blank" rel="noopener noreferrer"
@@ -362,8 +369,17 @@ export default function RegisterForm({
             </div>
           )}
 
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-bk border border-bk-line bg-bk-sunken p-3">
+            <input type="checkbox" checked={ready} onChange={e => setReady(e.target.checked)}
+              className="mt-[3px] h-4 w-4 shrink-0 accent-[var(--accent,#4d7cfe)]" />
+            <span className="text-[12.5px] leading-[1.65]">
+              <b className="font-semibold">{t.agreeReady}</b>
+              <span className="mt-0.5 block text-[11.5px] text-bk-muted">{t.agreeHint}</span>
+            </span>
+          </label>
+
           <button type="submit"
-            disabled={busy || !open || !form.displayName || !waLooksValid(waNum) || !form.mtLogin || !form.investor}
+            disabled={busy || !open || !ready || !form.displayName || !waLooksValid(waNum) || !form.mtLogin || !form.investor}
             className="rounded-bk bg-accent py-3 text-[13px] font-bold text-white disabled:opacity-40">
             {busy ? t.submitting : t.submit}
           </button>

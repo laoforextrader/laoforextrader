@@ -161,8 +161,15 @@ export async function entryCount(contestId: string): Promise<number> {
 
 /** Entries that still hold a seat — everyone except the cancelled ones. */
 export async function liveEntryCount(contestId: string): Promise<number> {
+  //  A seat is held by an entry that is still in the running. Cancelled and
+  //  disqualified entries are not, so both give the seat back and somebody
+  //  else can take it (owner's rule, 2026-11-21 — before that a disqualified
+  //  entry kept its seat and the round stayed full one person short).
+  //  Giving the seat back is not the same as letting that person back in:
+  //  the duplicate check below still counts a disqualified entry, so the
+  //  seat opens for someone new while the disqualified one stays out.
   return memo(`contest:live:${contestId}`, 30_000, () => sanityWrite.fetch<number>(
-    `count(*[_type == "contestEntry" && contest._ref == $id && status != "cancelled"])`,
+    `count(*[_type == "contestEntry" && contest._ref == $id && !(status in ["cancelled", "disqualified"])])`,
     { id: contestId }
   ))
 }
