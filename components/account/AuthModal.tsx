@@ -7,6 +7,8 @@ import GoogleMark from "@/components/account/GoogleMark"
 import PhoneField from "@/components/account/PhoneField"
 import AvatarField from "@/components/account/AvatarField"
 import { intlNumber, phoneLooksValid } from "@/lib/account/phone"
+import { useT } from "@/components/i18n/LangProvider"
+import type { Strings } from "@/lib/i18n/dict"
 
 //  One form for joining the site, by either door.
 //
@@ -29,19 +31,21 @@ import { intlNumber, phoneLooksValid } from "@/lib/account/phone"
 const PROFILE_API = "/api/account/profile"
 const REGISTER_API = "/api/account/register"
 
-const ERR: Record<string, string> = {
-  name: "ກະລຸນາໃສ່ຊື່",
-  email: "ອີເມວບໍ່ຖືກຕ້ອງ",
-  phone: "ເບີໂທບໍ່ຖືກຕ້ອງ",
-  optin: "ຕ້ອງຕິກຍອມຮັບເງື່ອນໄຂກ່ອນ",
-  terms: "ຕ້ອງຕິກຍອມຮັບເງື່ອນໄຂກ່ອນ",
-  "too-many": "ລອງໃໝ່ພາຍຫຼັງ ສົ່ງຫຼາຍເທື່ອເກີນໄປ",
-  mail: "ສົ່ງອີເມວບໍ່ສຳເລັດ ລອງໃໝ່",
-  "image-too-big": "ຮູບໃຫຍ່ເກີນໄປ",
-  "image-type": "ຮັບສະເພາະ JPG, PNG ຫຼື WebP",
-  upload: "ອັບໂຫຼດຮູບບໍ່ສຳເລັດ",
-  save: "ບັນທຶກບໍ່ສຳເລັດ ລອງໃໝ່",
-  network: "ເຊື່ອມຕໍ່ບໍ່ໄດ້ ລອງໃໝ່",
+/** Server error codes, in the reader's language. */
+function errText(code: unknown, t: Strings): string {
+  const e = t.auth.err
+  switch (String(code)) {
+    case "name": return e.name
+    case "email": return e.email
+    case "phone": return e.phone
+    case "optin": case "terms": return e.terms
+    case "too-many": return e.tooMany
+    case "mail": return e.mail
+    case "image-too-big": return e.imageBig
+    case "image-type": return e.imageType
+    case "upload": return e.upload
+    default: return e.save
+  }
 }
 
 const AVATAR_PX = 256
@@ -78,6 +82,7 @@ export default function AuthModal({
 }) {
   const { data: session, status } = useSession()
   const signedIn = status === "authenticated"
+  const t = useT()
 
   const [name, setName] = useState(initial?.name ?? "")
   const [email, setEmail] = useState("")
@@ -100,8 +105,8 @@ export default function AuthModal({
     if (session?.user?.email) setEmail(session.user.email)
   }, [signedIn, session?.user?.name, session?.user?.email, name])
 
-  //  The flag the field opens on, from where the request came in. A guess,
-  //  and overruled the moment the reader touches the picker.
+  //  The flag the phone field opens on, from where the request came in. A
+  //  guess, overruled the moment the reader touches the picker.
   useEffect(() => {
     if (!open) return
     let gone = false
@@ -137,7 +142,7 @@ export default function AuthModal({
       setFile(small)
       setPreview(URL.createObjectURL(small))
       setAvatarId("")
-    } catch { setErr(ERR["image-type"]) }
+    } catch { setErr(t.auth.err.imageType) }
   }
 
   async function submit(e: React.FormEvent) {
@@ -156,14 +161,14 @@ export default function AuthModal({
 
       const r = await fetch(signedIn ? PROFILE_API : REGISTER_API, { method: "POST", body: fd })
       const j = await r.json().catch(() => ({}))
-      if (!r.ok || !j.ok) { setErr(ERR[j.error as string] ?? ERR.save); return }
+      if (!r.ok || !j.ok) { setErr(errText(j.error, t)); return }
 
       //  Signed in: the server decides what is unlocked, so the page has to
       //  come back from the server. By mail: nothing is unlocked yet, and
       //  saying where to look next is the whole of the next step.
       if (signedIn) window.location.reload()
       else setMailed(email.trim())
-    } catch { setErr(ERR.network) } finally { setBusy(false) }
+    } catch { setErr(t.auth.err.network) } finally { setBusy(false) }
   }
 
   //  Back to this page with the form open, rather than off to a dashboard.
@@ -201,17 +206,15 @@ export default function AuthModal({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
             <h2 className={L} style={{ fontSize: 19, fontWeight: 800, color: "var(--fg)", margin: 0 }}>
-              {mailed ? "ກວດອີເມວຂອງທ່ານ" : signedIn ? "ຕື່ມຂໍ້ມູນສະມາຊິກ" : "ສະໝັກສະມາຊິກ"}
+              {mailed ? t.auth.mailedTitle : signedIn ? t.auth.fillTitle : t.auth.joinTitle}
             </h2>
             {!mailed && (
               <p className={L} style={{ fontSize: 12.5, color: "var(--fg-3)", margin: "6px 0 0", lineHeight: 1.7 }}>
-                {signedIn
-                  ? "ເຫຼືອອີກສອງສາມຊ່ອງ ແລ້ວກົດສະໝັກ"
-                  : "ຕື່ມຂໍ້ມູນແລ້ວກົດສະໝັກ ຫຼື ໃຊ້ Google ເພື່ອຕື່ມໃຫ້ໄວຂຶ້ນ"}
+                {signedIn ? t.auth.fillLead : t.auth.joinLead}
               </p>
             )}
           </div>
-          <button onClick={onClose} aria-label="close"
+          <button onClick={onClose} aria-label={t.auth.close}
             style={{
               flexShrink: 0, width: 30, height: 30, borderRadius: 8, cursor: "pointer",
               border: "1px solid var(--line)", background: "none", color: "var(--fg-3)",
@@ -224,11 +227,12 @@ export default function AuthModal({
         {mailed ? (
           <div style={{ marginTop: 18 }}>
             <p className={L} style={{ fontSize: 13.5, color: "var(--fg-2)", lineHeight: 1.9, margin: 0 }}>
-              ສົ່ງລິງກ໌ຢືນຢັນໄປທີ່ <b style={{ wordBreak: "break-all" }}>{mailed}</b> ແລ້ວ.
-              ເປີດອີເມວແລ້ວກົດລິງກ໌ເພື່ອຢືນຢັນ ແລະ ເຂົ້າສູ່ລະບົບ — ລິງກ໌ໃຊ້ໄດ້ຄັ້ງດຽວ ພາຍໃນ 24 ຊົ່ວໂມງ.
+              <b style={{ wordBreak: "break-all" }}>{mailed}</b>
+              <br />
+              {t.auth.mailedLead}
             </p>
             <p className={L} style={{ fontSize: 12, color: "var(--fg-4)", lineHeight: 1.8, margin: "12px 0 0" }}>
-              ບໍ່ເຫັນອີເມວ? ກວດກ່ອງ Spam ນຳ.
+              {t.auth.mailedSpam}
             </p>
             <button onClick={onClose} className={L}
               style={{
@@ -236,7 +240,7 @@ export default function AuthModal({
                 background: "none", color: "var(--fg-2)", padding: "11px 22px",
                 fontSize: 13.5, fontWeight: 700, cursor: "pointer",
               }}>
-              ປິດ
+              {t.auth.close}
             </button>
           </div>
         ) : (
@@ -251,11 +255,11 @@ export default function AuthModal({
                     fontSize: 14, fontWeight: 700, color: "var(--fg)",
                   }}>
                   <GoogleMark size={18} />
-                  <span className={L}>ເຂົ້າດ້ວຍ Google</span>
+                  <span className={L}>{t.auth.google}</span>
                 </button>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0 2px" }}>
                   <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
-                  <span className={L} style={{ fontSize: 11.5, color: "var(--fg-4)" }}>ຫຼື ຕື່ມເອງ</span>
+                  <span className={L} style={{ fontSize: 11.5, color: "var(--fg-4)" }}>{t.auth.orFill}</span>
                   <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
                 </div>
               </>
@@ -278,13 +282,13 @@ export default function AuthModal({
 
             <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 13, marginTop: 16 }}>
               <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span className={L} style={labelStyle}>ຊື່</span>
+                <span className={L} style={labelStyle}>{t.auth.name}</span>
                 <input value={name} onChange={e => setName(e.target.value)} maxLength={60}
                   autoComplete="name" style={inputStyle} />
               </label>
 
               <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span className={L} style={labelStyle}>ອີເມວ</span>
+                <span className={L} style={labelStyle}>{t.auth.email}</span>
                 {/*  Signed in, the address is Google's answer rather than a
                     field: editing it here would file the profile under an
                     address nobody has proved they hold. */}
@@ -295,7 +299,8 @@ export default function AuthModal({
               </label>
 
               <PhoneField
-                label="ເບີໂທ"
+                label={t.auth.phone}
+                searchLabel={t.auth.searchCountry}
                 country={country}
                 onCountry={c => { picked.current = true; setCountry(c) }}
                 value={phone}
@@ -303,8 +308,8 @@ export default function AuthModal({
               />
 
               <AvatarField
-                label="ຮູບໂປຣໄຟລ໌"
-                hint="ກົດຮູບເພື່ອປ່ຽນ ຫຼື + ເພື່ອອັບໂຫຼດ"
+                label={t.auth.avatar}
+                hint={t.auth.avatarHint}
                 avatarId={avatarId}
                 onAvatarId={id => { setAvatarId(id); setFile(null); setPreview("") }}
                 preview={preview}
@@ -318,9 +323,9 @@ export default function AuthModal({
                 <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)}
                   style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0 }} />
                 <span className={L} style={{ fontSize: 12.5, lineHeight: 1.7, color: "var(--fg-2)" }}>
-                  ຂ້ອຍໄດ້ອ່ານ ແລະ ຍອມຮັບ{" "}
+                  {t.auth.terms}{" "}
                   <a href="/terms" target="_blank" rel="noopener noreferrer"
-                    style={{ color: "var(--accent)", fontWeight: 700 }}>ເງື່ອນໄຂການໃຊ້ງານ</a>
+                    style={{ color: "var(--accent)", fontWeight: 700 }}>{t.auth.termsLink}</a>
                 </span>
               </label>
 
@@ -341,7 +346,7 @@ export default function AuthModal({
                   background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff",
                   fontSize: 14, fontWeight: 800, opacity: ready && !busy ? 1 : 0.4,
                 }}>
-                {busy ? "ກຳລັງສົ່ງ..." : "ສະໝັກ"}
+                {busy ? t.auth.sending : t.auth.submit}
               </button>
             </form>
           </>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import AuthModal from "@/components/account/AuthModal"
+import { useT } from "@/components/i18n/LangProvider"
 
 //  The padlock over the download block.
 //
@@ -29,6 +30,7 @@ export default function LockedGate({
   signedIn: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const t = useT()
 
   return (
     <section style={{
@@ -46,12 +48,10 @@ export default function LockedGate({
         </span>
         <div style={{ minWidth: 0 }}>
           <h2 className="font-lao" style={{ fontSize: 16.5, fontWeight: 700, color: "var(--fg)", margin: "2px 0 6px" }}>
-            {signedIn ? "ຕື່ມຂໍ້ມູນສະມາຊິກກ່ອນ" : "ສ່ວນນີ້ຕ້ອງລັອກອິນກ່ອນ"}
+            {signedIn ? t.gate.profileTitle : t.gate.lockedTitle}
           </h2>
           <p className="font-lao" style={{ fontSize: 13, color: "var(--fg-3)", lineHeight: 1.8, margin: "0 0 16px" }}>
-            {signedIn
-              ? "ເຫຼືອອີກສອງສາມຊ່ອງ — ຊື່, ເບີ WhatsApp ແລະ ຍອມຮັບເງື່ອນໄຂ ແລ້ວລິງກ໌ດາວໂຫຼດ ແລະ ຄຳສັ່ງຕິດຕັ້ງຈະສະແດງຂຶ້ນ"
-              : "ລິງກ໌ດາວໂຫຼດ ແລະ ຄຳສັ່ງຕິດຕັ້ງ EA ເປີດໃຫ້ສະມາຊິກທີ່ລັອກອິນ ແລະ ຍອມຮັບເງື່ອນໄຂການໃຊ້ແລ້ວເທົ່ານັ້ນ"}
+            {signedIn ? t.gate.profileLead : t.gate.lockedLead}
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             <button onClick={() => setOpen(true)} className="font-lao"
@@ -61,7 +61,7 @@ export default function LockedGate({
                 background: "linear-gradient(135deg,#2563EB,#4F46E5)", color: "#fff",
                 fontSize: 13.5, fontWeight: 800,
               }}>
-              {signedIn ? "ຕື່ມຂໍ້ມູນ" : "ລັອກອິນ"}
+              {signedIn ? t.gate.fill : t.gate.open}
             </button>
             <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-lao"
               style={{
@@ -69,7 +69,7 @@ export default function LockedGate({
                 borderRadius: 10, border: "1px solid var(--line)", color: "var(--fg-2)",
                 fontSize: 13, fontWeight: 600, textDecoration: "none",
               }}>
-              ອ່ານເງື່ອນໄຂ
+              {t.gate.readTerms}
             </a>
           </div>
         </div>

@@ -23,13 +23,14 @@ import { dialOf, SAMPLE } from "@/lib/account/dialCodes"
 const NEAR = ["LA", "TH", "VN", "KH", "MM", "CN", "US", "GB", "AU", "KR"]
 
 export default function PhoneField({
-  country, onCountry, value, onValue, label,
+  country, onCountry, value, onValue, label, searchLabel = "ຄົ້ນຫາ / search / ค้นหา",
 }: {
   country: string
   onCountry: (code: string) => void
   value: string
   onValue: (v: string) => void
   label: string
+  searchLabel?: string
 }) {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState("")
@@ -91,7 +92,7 @@ export default function PhoneField({
             boxShadow: "0 18px 40px rgba(2,6,23,.35)",
           }}>
             <input autoFocus value={q} onChange={e => setQ(e.target.value)}
-              placeholder="ຄົ້ນຫາ / search / ค้นหา"
+              placeholder={searchLabel}
               style={{
                 width: "100%", border: "none", borderBottom: "1px solid var(--line)",
                 background: "var(--surface-2)", padding: "10px 12px",

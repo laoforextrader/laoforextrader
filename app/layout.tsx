@@ -9,6 +9,7 @@ import { OptInSync } from "@/components/newsletter/OptInSync"
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { JsonLd, organizationLd, websiteLd } from "@/lib/structuredData"
 import ThemeScript from "@/components/theme/ThemeScript"
+import LangProvider from "@/components/i18n/LangProvider"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.laoforextrader.com"),
@@ -47,6 +48,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         display: "flex",
         flexDirection: "column",
       }}>
+        {/*  Language wraps everything, including the bar: the picker
+             lives up there and the footer reads the same choice.
+             Lao is rendered on the server and swapped after mount —
+             see components/i18n/LangProvider for why that is the deal
+             we took in exchange for keeping one URL per page. */}
+        <LangProvider>
         <SessionProviderWrapper>
           <Navbar />
           <MarketTicker />
@@ -56,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Turns the login checkbox into real consent once the session lands */}
           <OptInSync />
         </SessionProviderWrapper>
+        </LangProvider>
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />

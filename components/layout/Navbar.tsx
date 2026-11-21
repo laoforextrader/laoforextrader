@@ -6,20 +6,24 @@ import { useSession, signOut } from "next-auth/react"
 import { Menu, X, Search } from "lucide-react"
 import LoginButton from "@/components/LoginButton"
 import ThemeToggle from "@/components/theme/ThemeToggle"
+import LangPicker from "@/components/i18n/LangPicker"
 import { SearchBar } from "@/components/layout/SearchBar"
+import { useT } from "@/components/i18n/LangProvider"
+import type { Strings } from "@/lib/i18n/dict"
 
-const NAV = [
-  { label:"ໂບຣກເກີ",  href:"/broker"    },
-  { label:"EA System", href:"/ea-system" },
-  { label:"Signal",    href:"/signal/trs-signal-pro" },
-  { label:"ບົດຮຽນ",   href:"/lessons"   },
-  { label:"ການສຶກສາ", href:"/education"  },
-  { label:"Quizzes",  href:"/quiz"      },
-  { label:"ຂ່າວ",     href:"/news"      },
-  { label:"ວິເຄາະ",   href:"/analysis"  },
-  { label:"ເຄື່ອງມື", href:"/tools"     },
+//  The destinations are fixed; only their names change with the language,
+//  so the table holds the key rather than the word.
+const NAV: { key: keyof Strings["nav"]; href: string }[] = [
+  { key: "broker",    href: "/broker" },
+  { key: "ea",        href: "/ea-system" },
+  { key: "signal",    href: "/signal/trs-signal-pro" },
+  { key: "lessons",   href: "/lessons" },
+  { key: "education", href: "/education" },
+  { key: "quizzes",   href: "/quiz" },
+  { key: "news",      href: "/news" },
+  { key: "analysis",  href: "/analysis" },
+  { key: "tools",     href: "/tools" },
 ]
-
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
@@ -27,14 +31,15 @@ export function Navbar() {
   const [mobileQ, setMobileQ] = useState("")
   const { data: session } = useSession()
   const router = useRouter()
+  const t = useT()
 
   const submitMobile = (e: React.FormEvent) => {
     e.preventDefault()
-    const t = mobileQ.trim()
-    if (t.length >= 2) {
+    const q = mobileQ.trim()
+    if (q.length >= 2) {
       setMobileSearchOpen(false)
       setOpen(false)
-      router.push(`/search?q=${encodeURIComponent(t)}`)
+      router.push(`/search?q=${encodeURIComponent(q)}`)
     }
   }
 
@@ -52,29 +57,32 @@ export function Navbar() {
             <li key={item.href}>
               <Link href={item.href}
                 className="text-fg-3 hover:text-accent text-[10.5px] font-semibold uppercase tracking-wider transition-colors font-sans whitespace-nowrap">
-                {item.label}
+                {t.nav[item.key]}
               </Link>
             </li>
           ))}
         </ul>
         <div className="hidden md:flex items-center gap-2 flex-shrink-0">
           <SearchBar />
+          <LangPicker />
           <ThemeToggle />
           <LoginButton />
         </div>
         <div className="flex md:hidden items-center gap-2">
           {/* Same bordered square as the light/dark switch beside it,
               so the bar reads as one row of controls. */}
+          <LangPicker />
           <LoginButton compact />
           <ThemeToggle />
           <button
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
             className="text-fg-3 hover:text-fg"
-            aria-label="Search"
+            aria-label={t.nav.search}
           >
             <Search size={20} />
           </button>
-          <button onClick={() => setOpen(!open)} className="text-fg-3 hover:text-fg">
+          <button onClick={() => setOpen(!open)} className="text-fg-3 hover:text-fg"
+            aria-label={t.nav.menu}>
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
@@ -90,7 +98,7 @@ export function Navbar() {
               type="text"
               value={mobileQ}
               onChange={e => setMobileQ(e.target.value)}
-              placeholder="ຄົ້ນຫາ…"
+              placeholder={t.nav.search}
               className="w-full pl-9 pr-9 py-2 bg-surface-2 border border-line-2 rounded-full text-[13px] font-lao text-fg placeholder:text-fg-4 focus:outline-none focus:border-blue-500"
             />
             {mobileQ && (
@@ -112,7 +120,7 @@ export function Navbar() {
           {NAV.map(item => (
             <Link key={item.href} href={item.href}
               className="text-fg-3 hover:text-accent font-sans font-semibold text-sm py-1"
-              onClick={() => setOpen(false)}>{item.label}</Link>
+              onClick={() => setOpen(false)}>{t.nav[item.key]}</Link>
           ))}
           {/* Signing in lives on the bar icon now, so this part is only for
               somebody already signed in; a second door to /login would be a
@@ -121,9 +129,10 @@ export function Navbar() {
             <div className="pt-3 border-t border-line-2">
               <Link href="/dashboard" onClick={() => setOpen(false)}
                 className="block font-sans text-sm text-fg-2 font-semibold py-1">
-                ບັນຊີຂອງຂ້ອຍ
+                {t.auth.account}
               </Link>
-              <button onClick={() => signOut({ callbackUrl:"/" })} className="font-sans text-sm text-red-500 py-1">ອອກຈາກລະບົບ</button>
+              <button onClick={() => signOut({ callbackUrl:"/" })}
+                className="font-sans text-sm text-red-500 py-1">{t.auth.signOut}</button>
             </div>
           )}
         </div>

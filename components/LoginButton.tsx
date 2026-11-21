@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import AuthModal from '@/components/account/AuthModal'
 import { TERMS_VERSION } from '@/lib/terms'
+import { useT } from '@/components/i18n/LangProvider'
 
 //  Two states, never both at once:
 //
@@ -55,6 +56,7 @@ let claimed = false
 export default function LoginButton({ compact = false }: { compact?: boolean }) {
   const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
+  const t = useT()
 
   useEffect(() => {
     if (claimed) return
@@ -74,7 +76,7 @@ export default function LoginButton({ compact = false }: { compact?: boolean }) 
 
   if (session) {
     return (
-      <Link href="/dashboard" title={session.user?.email ?? 'ບັນຊີຂອງຂ້ອຍ'}
+      <Link href="/dashboard" title={session.user?.email ?? t.auth.account}
         style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', lineHeight: 0 }}>
         <Avatar src={session.user?.image} name={session.user?.name} box={compact ? 30 : 30} />
       </Link>
@@ -85,7 +87,7 @@ export default function LoginButton({ compact = false }: { compact?: boolean }) 
     <>
       {compact ? (
         <button type="button" onClick={() => setOpen(true)}
-          className="theme-toggle" aria-label="ເຂົ້າສູ່ລະບົບ" title="ເຂົ້າສູ່ລະບົບ / ສະໝັກ">
+          className="theme-toggle" aria-label={t.auth.login} title={t.auth.login}>
           <PersonIcon size={18} />
         </button>
       ) : (
@@ -98,7 +100,7 @@ export default function LoginButton({ compact = false }: { compact?: boolean }) 
             fontFamily: "'Noto Sans Lao', sans-serif", letterSpacing: '0.01em',
           }}>
           <PersonIcon />
-          <span className="hide-sm">ເຂົ້າສູ່ລະບົບ</span>
+          <span className="hide-sm">{t.auth.login}</span>
         </button>
       )}
       <AuthModal open={open} onClose={() => setOpen(false)} termsVer={TERMS_VERSION} />

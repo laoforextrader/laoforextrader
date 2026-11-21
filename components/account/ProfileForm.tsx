@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { AVATARS, ContestAvatar, avatarById } from "@/components/contest/avatars"
 import AvatarField from "@/components/account/AvatarField"
+import { useT } from "@/components/i18n/LangProvider"
 
 //  The profile a member fills in once, after signing in with Google.
 //
@@ -81,6 +82,7 @@ export default function ProfileForm({
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
   const [saved, setSaved] = useState(false)
+  const t = useT()
   //  AvatarField owns the hidden <input type=file> now and hands over the
   //  File itself, so there is no element to hold a ref to here.
   async function pickAvatar(f: File) {
@@ -172,7 +174,7 @@ export default function ProfileForm({
           only when it is tapped, + for a photograph. */}
       <AvatarField
         label="ຮູບໂປຣໄຟລ໌"
-        hint="ກົດຮູບເພື່ອປ່ຽນ ຫຼື + ເພື່ອອັບໂຫຼດ"
+        hint={t.auth.avatarHint}
         avatarId={avatarId}
         onAvatarId={id => { setAvatarId(id); setFile(null); setPreview("") }}
         preview={preview}
