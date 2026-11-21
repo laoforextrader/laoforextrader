@@ -153,10 +153,16 @@ async function leaderboardFresh(contestId: string): Promise<BoardRow[]> {
   return rows.sort((a, b) => (b.profit ?? -Infinity) - (a.profit ?? -Infinity))
 }
 
+//  How many people are in this round — the number the seat counter, the
+//  register page and the history list all mean when they say "entries".
+//
+//  It counts the same rows `liveEntryCount` does, and that is the point: for
+//  a while it counted every row ever created, so a round with two cancelled
+//  entries and one disqualified showed 20/20 and said "full" while
+//  registration was still accepting people (seen 2026-11-21). Two counts of
+//  the same thing will drift; there is one.
 export async function entryCount(contestId: string): Promise<number> {
-  return memo(`contest:count:${contestId}`, 60_000, () => sanityWrite.fetch<number>(
-    `count(*[_type == "contestEntry" && contest._ref == $id])`, { id: contestId }
-  ))
+  return liveEntryCount(contestId)
 }
 
 /** Entries that still hold a seat — everyone except the cancelled ones. */
