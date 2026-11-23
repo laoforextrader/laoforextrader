@@ -173,8 +173,13 @@ export default function AdminEntryRow({
           <span className="font-mono text-[12px] text-bk-muted">{e.mtLogin}</span>
           {e.country && <span className="text-[11.5px] text-bk-muted">· {e.country}</span>}
         </div>
+        {/*  The heartbeat rewrites `status` to "active" on every beat, so an
+             entry approved a week ago still reads ACTIVE and looks as though
+             the approval was lost. It was not — it is in approvedAt — and
+             this is the word that says so. A flag, a blow-up or a block
+             still wins, because those are what the owner is scanning for. */}
         <span className={`text-[11.5px] font-bold uppercase ${isBlocked ? "text-bad" : tone}`}>
-          {isBlocked ? "blocked" : status}
+          {isBlocked ? "blocked" : (isApproved && status === "active" ? "approved" : status)}
         </span>
       </div>
 

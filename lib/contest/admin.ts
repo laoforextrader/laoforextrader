@@ -237,6 +237,21 @@ export interface Readiness {
 }
 
 export function readiness(e: AdminEntry, contest: Contest): Readiness[] {
+  //  Two of the checks below only mean anything before the gun. Once the
+  //  round is running, open positions and closed trades are the contestant
+  //  doing exactly what they entered to do — leaving them as orange
+  //  warnings made an approved, healthy entry look like a problem, which
+  //  is what the owner saw on the first morning of round 1.
+  //
+  //  Trading before the start is still caught, and caught properly: the
+  //  heartbeat raises an `early-trade` flag at the moment it happens
+  //  (lib/contest/ea.ts), with the counts and the start time recorded. That
+  //  flag stays on the entry and is shown above these checks. A number
+  //  computed now, hours later, cannot tell early trades from honest ones —
+  //  it never could, because `trades` has no time attached to it.
+  const started = contest.startAt
+    ? Date.now() >= Date.parse(contest.startAt)
+    : contest.status === "live"
   const seen = !!e.lastSeen
   const expected = contest.startBalance ?? 0
   const balOk = typeof e.startBalance === "number" && expected > 0 &&
@@ -269,18 +284,29 @@ export function readiness(e: AdminEntry, contest: Contest): Readiness[] {
       blocking: false,
       detail: gotSymbol || "unknown",
     },
-    {
-      label: "No open positions",
-      ok: (e.openPositions ?? 0) === 0,
-      blocking: false,
-      detail: e.openPositions ? `${e.openPositions} open` : undefined,
-    },
-    {
-      label: "No trades before the start",
-      ok: (e.trades ?? 0) === 0,
-      blocking: false,
-      detail: e.trades ? `${e.trades} already closed` : undefined,
-    },
+    ...(started
+      ? [{
+          //  Information, not a test: after the start this line answers
+          //  "is this account actually doing anything".
+          label: "Trading",
+          ok: true,
+          blocking: false,
+          detail: `${e.openPositions ?? 0} open · ${e.trades ?? 0} closed`,
+        }]
+      : [
+          {
+            label: "No open positions",
+            ok: (e.openPositions ?? 0) === 0,
+            blocking: false,
+            detail: e.openPositions ? `${e.openPositions} open` : undefined,
+          },
+          {
+            label: "No trades before the start",
+            ok: (e.trades ?? 0) === 0,
+            blocking: false,
+            detail: e.trades ? `${e.trades} already closed` : undefined,
+          },
+        ]),
   ]
 }
 
