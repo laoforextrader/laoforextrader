@@ -43,6 +43,7 @@ const config: Config = {
           ink: "var(--accent-ink)",
         },
         ok:   { DEFAULT: "var(--success)", soft: "var(--success-soft)", line: "var(--success-line)", ink: "var(--success-ink)" },
+        cta:  { DEFAULT: "var(--cta)", ink: "var(--cta-ink)" },
         bad:  { DEFAULT: "var(--danger)",  soft: "var(--danger-soft)",  line: "var(--danger-line)",  ink: "var(--danger-ink)" },
         warn: { DEFAULT: "var(--warn)",    soft: "var(--warn-soft)",    line: "var(--warn-line)",    ink: "var(--warn-ink)" },
         // Contest only: prize money and rank one. The instrument is XAUUSD,

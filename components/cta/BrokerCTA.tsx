@@ -27,6 +27,7 @@ import {
   spreadLabel,
   laoDepositState,
   LAO_DEPOSIT_SHORT,
+  LAO_DEPOSIT_OK,
   registerHref,
   gradeColor,
   gradeInk,
@@ -64,7 +65,7 @@ export default function BrokerCTA({ broker, name, slug, fallbackRegisterUrl }: P
         {
           label: 'ຝາກຜ່ານທະນາຄານລາວ',
           value: LAO_DEPOSIT_SHORT[laoDepositState(broker)],
-          strong: laoDepositState(broker) === 'full',
+          strong: LAO_DEPOSIT_OK[laoDepositState(broker)],
         },
       ]
     : []

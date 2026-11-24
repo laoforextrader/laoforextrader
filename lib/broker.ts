@@ -217,6 +217,20 @@ export function laoDepositState(broker: Broker): LaoDepositState {
   return hasBank ? "partial" : "none"
 }
 
+/**
+ * Whether the Lao-bank line should read as a win — green, bold.
+ *
+ * Both "full" and "partial" are a yes: either way the reader can fund the
+ * account from their own Lao bank, and only the currency differs. Green was
+ * reserved for "full" at first, which left "ສະເພາະ USD" looking like a failure
+ * next to a broker that cannot take a Lao bank transfer at all.
+ */
+export const LAO_DEPOSIT_OK: Record<LaoDepositState, boolean> = {
+  full: true,
+  partial: true,
+  none: false,
+}
+
 export const LAO_DEPOSIT_LABEL: Record<LaoDepositState, string> = {
   full: "ຝາກເງິນກີບໄດ້",
   partial: "ຝາກໄດ້ສະເພາະ USD",

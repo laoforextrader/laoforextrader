@@ -14,6 +14,7 @@ import {
   depositMethodsOf,
   faqOf,
   laoDepositState,
+  LAO_DEPOSIT_OK,
   licensesOf,
   minDepositLabel,
   registerHref,
@@ -31,7 +32,7 @@ import {
   ScoreBars,
   Stars,
   btnOutline,
-  btnSolid,
+  btnCta,
 } from "./BrokerBits"
 import CountUp from "./CountUp"
 import FaqAccordion from "./FaqAccordion"
@@ -107,7 +108,7 @@ export default function BrokerReview({
               href={register}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className={`${btnSolid} shrink-0 px-4 text-sm sm:px-6 sm:text-[15px]`}
+              className={`${btnCta} shrink-0 px-4 text-sm sm:px-6 sm:text-[15px]`}
             >
               ເປີດບັນຊີ
             </a>
@@ -181,10 +182,10 @@ export default function BrokerReview({
             href={register}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className={`${btnSolid} mt-7 min-h-[56px] w-full text-[17px] hover:scale-[1.012]`}
+            className={`${btnCta} mt-7 w-full sm:w-auto`}
           >
             ເປີດບັນຊີ {broker.name}
-            <ArrowIcon size={18} />
+            <ArrowIcon size={16} />
           </a>
         )}
 
@@ -444,7 +445,11 @@ export default function BrokerReview({
             Lao reader came for, and hiding it from whoever fills the doc too. */}
         <section className="mt-12">
           <h2 className={`${H2} mb-2`}>ການຝາກ-ຖອນເງິນ ສຳລັບຄົນລາວ</h2>
-          <p className="mb-4 text-[15px] leading-relaxed text-bk-muted">
+          <p
+            className={`mb-4 text-[15px] leading-relaxed ${
+              LAO_DEPOSIT_OK[lao] ? "font-semibold text-ok-ink dark:text-ok" : "text-bk-muted"
+            }`}
+          >
             {lao === "full"
               ? "ຝາກ-ຖອນຜ່ານທະນາຄານລາວເປັນເງິນກີບໄດ້"
               : lao === "partial"
@@ -516,10 +521,10 @@ export default function BrokerReview({
                 href={register}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
-                className={`${btnSolid} mt-7 min-h-[56px] w-full text-[17px] hover:scale-[1.012]`}
+                className={`${btnCta} mt-7 w-full sm:w-auto`}
               >
                 ເປີດບັນຊີ {broker.name} ດຽວນີ້
-                <ArrowIcon size={18} />
+                <ArrowIcon size={16} />
               </a>
             )}
           </div>

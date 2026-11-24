@@ -26,6 +26,7 @@ import {
   spreadLabel,
   laoDepositState,
   LAO_DEPOSIT_SHORT,
+  LAO_DEPOSIT_OK,
   registerHref,
   sortBrokers,
   gradeColor,
@@ -309,7 +310,7 @@ function BrokerRow({
             <span>·</span>
             <span className="font-mono">{broker.maxLeverage ?? "—"}</span>
             <span>·</span>
-            <span className={lao === "full" ? "font-semibold text-ok-ink dark:text-ok" : ""}>
+            <span className={LAO_DEPOSIT_OK[lao] ? "font-semibold text-ok-ink dark:text-ok" : ""}>
               {LAO_DEPOSIT_SHORT[lao]}
             </span>
             {/* Spread only earns a slot once there is a tested number for it */}

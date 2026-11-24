@@ -100,6 +100,14 @@ html.dark:has([data-force-light]) {
   --success-soft: #ECFDF5;
   --success-line: #A7F3D0;
   --success-ink: #065F46;  /* dark ink ON --success-soft */
+
+  /* The "open an account" button on /broker/*. Green rather than ink,
+     because it is the one control on the page that is an offer and not
+     navigation. --success itself is too light to carry white text (3.8:1),
+     so the light fill is the darker green the score chips were measured
+     against: #047857 + white is 4.83:1. */
+  --cta: #047857;
+  --cta-ink: #FFFFFF;
   --danger: #DC2626;
   --danger-soft: #FEF2F2;
   --danger-line: #FECACA;
@@ -183,6 +191,11 @@ html.dark {
   --success-soft: #0E2A20;
   --success-line: #1C4D3A;
   --success-ink: #6EE7B7;
+
+  /* Dark mode lifts the fill so the button reads against the page and
+     flips the ink: #34D399 + #04261C is 8.5:1. */
+  --cta: #34D399;
+  --cta-ink: #04261C;
   --danger: #F87171;
   --danger-soft: #2E1618;
   --danger-line: #4A2225;

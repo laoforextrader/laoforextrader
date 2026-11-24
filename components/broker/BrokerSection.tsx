@@ -19,6 +19,7 @@ import {
   spreadLabel,
   laoDepositState,
   LAO_DEPOSIT_SHORT,
+  LAO_DEPOSIT_OK,
   registerHref,
   gradeColor,
   gradeInk,
@@ -59,7 +60,7 @@ export function BrokerSection({ brokers }: Props) {
               { label: "ຝາກຂັ້ນຕ່ຳ", value: minDepositLabel(b) },
               { label: "Spread ຈາກ", value: spreadLabel(b) },
               { label: "Leverage", value: b.maxLeverage ?? null },
-              { label: "ທະນາຄານລາວ", value: LAO_DEPOSIT_SHORT[lao], strong: lao === "full" },
+              { label: "ທະນາຄານລາວ", value: LAO_DEPOSIT_SHORT[lao], strong: LAO_DEPOSIT_OK[lao] },
             ]
 
             return (

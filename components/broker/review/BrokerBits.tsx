@@ -185,6 +185,13 @@ const BTN_BASE =
 /** Minimum 48px tall everywhere: it is the thumb target on a phone. */
 export const btnSolid = `${BTN_BASE} min-h-[48px] bg-bk-ink px-6 py-3 text-bk-page hover:bg-black dark:hover:bg-white`
 
+/**
+ * The sign-up button, and only that. Green separates the one control that is
+ * an offer from the black buttons that are navigation, and it is a token pair
+ * rather than a literal so dark mode can lift the fill and flip the ink.
+ */
+export const btnCta = `${BTN_BASE} min-h-[48px] bg-cta px-6 py-3 text-cta-ink hover:opacity-90`
+
 export const btnOutline = `${BTN_BASE} min-h-[48px] border-2 border-bk-ink bg-bk-surface px-6 py-3 text-bk-ink hover:bg-bk-sunken`
 
 export const btnQuiet = `${BTN_BASE} min-h-[44px] border border-bk-line bg-bk-surface px-4 py-2.5 text-bk-ink hover:bg-bk-sunken`
