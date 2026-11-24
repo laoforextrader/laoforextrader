@@ -18,6 +18,8 @@ export const BROKER_COUNTRIES = [
   { title: "ນິວຊີແລນ (New Zealand)", value: "nz" },
   { title: "ການາດາ (Canada)", value: "ca" },
   { title: "ສິງກະໂປ (Singapore)", value: "sg" },
+  { title: "ອິນໂດເນເຊຍ (Indonesia)", value: "id" },
+  { title: "ໂຄໂມໂຣສ (Comoros)", value: "km" },
   { title: "ຮ່ອງກົງ (Hong Kong)", value: "hk" },
   { title: "ສະຫະລັດອາຣັບເອມິເຣດ (UAE)", value: "ae" },
   { title: "ບາຮາມາສ (Bahamas)", value: "bs" },
@@ -107,8 +109,6 @@ export const brokerSchema = {
       description: "ເຊັ່ນ: ບັນຊີ Standard · ບັນຊີ Raw" },
     { name: "commission",  title: "ຄ່າຄອມມິດຊັ່ນ", type: "string",
       description: "ເຊັ່ນ: ບໍ່ມີ (Standard) · $3.5 ຕໍ່ lot ຕໍ່ຂ້າງ" },
-    { name: "withdrawalSpeed", title: "ຄວາມໄວໃນການຖອນ", type: "string",
-      description: "ເຊັ່ນ: ທັນທີ 24/7 · ພາຍໃນ 1 ວັນລັດຖະການ" },
     { name: "swapFree",    title: "ມີບັນຊີ Swap-free", type: "boolean", initialValue: false },
 
     { name: "depositMethods", title: "ຊ່ອງທາງຝາກ-ຖອນ", type: "array",
@@ -116,7 +116,6 @@ export const brokerSchema = {
         fields: [
           { name: "name",     title: "ຊ່ອງທາງ",   type: "string" },
           { name: "currency", title: "ສະກຸນເງິນ", type: "string" },
-          { name: "time",     title: "ເວລາຖອນ",   type: "string" },
           { name: "fee",      title: "ຄ່າທຳນຽມ",  type: "string" },
         ],
         preview: { select: { title: "name", subtitle: "currency" } },

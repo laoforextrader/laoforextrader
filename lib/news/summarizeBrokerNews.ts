@@ -21,7 +21,7 @@
 
 import Anthropic from "@anthropic-ai/sdk"
 import { callClaude, sanitizeLao } from "./summarize"
-import type { BrokerNewsItem } from "./brokerSources"
+import { brokerNewsTier, type BrokerNewsItem } from "./brokerSources"
 
 export interface BrokerNewsSummaryItem {
   id: string
@@ -47,12 +47,18 @@ function slugOf(title: string, i: number): string {
   return base ? `${base}-${i}` : `item-${i}`
 }
 
-function buildPrompt(items: BrokerNewsItem[]): string {
+// Marks a candidate as being about a broker this site lists, or about one
+// this region trades with. The pool arrives already sorted into that order
+// (lib/news/brokerSources.ts), but order alone is a weak signal to a model
+// choosing five items out of twenty — a label it can read is not.
+const TIER_MARK = ["★ ໂບຣກເກີທີ່ເວັບພວກເຮົາແນະນຳ", "◆ ໂບຣກເກີ/ຜູ້ກຳກັບໃນເອເຊຍ", ""]
+
+function buildPrompt(items: BrokerNewsItem[], ourBrokerNames: string[]): string {
   const list = items
-    .map(
-      (n, i) =>
-        `[${i}] ${n.title}\n     ${n.summary.slice(0, 300)}\n     (source: ${n.sourceName})`,
-    )
+    .map((n, i) => {
+      const mark = TIER_MARK[brokerNewsTier(n, ourBrokerNames)]
+      return `[${i}]${mark ? ` ${mark}` : ""} ${n.title}\n     ${n.summary.slice(0, 300)}\n     (source: ${n.sourceName})`
+    })
     .join("\n\n")
 
   return `ທ່ານເປັນບັນນາທິການຂ່າວການເງິນຂອງເວັບໄຊລາວ laoforextrader.com ຜູ້ອ່ານເປັນເທຣດເດີຊາວລາວ.
@@ -71,13 +77,14 @@ ${list}
    ຢ່າເລືອກແຕ່ຂ່າວການລົງໂທດຢ່າງດຽວ — ໜ້າເວັບທີ່ມີແຕ່ຂ່າວຮ້າຍທຸກມື້ ບໍ່ໄດ້ສະທ້ອນວົງການຕາມຄວາມຈິງ.
    ຂ້າມຂ່າວທີ່ບໍ່ກ່ຽວກັບໂບຣກເກີ ຫຼື ຕະຫຼາດທີ່ລາຍຍ່ອຍເຂົ້າເຖິງໄດ້ (ເຊັ່ນ ຜົນປະກອບການທະນາຄານທົ່ວໄປ ຫຼື ການລະດົມທຶນຂອງ fintech ທີ່ບໍ່ແມ່ນໂບຣກເກີ).
    ຖ້າມີຂ່າວທີ່ກ່ຽວຂ້ອງໜ້ອຍກວ່າ 5 ກໍ່ສົ່ງຄືນເທົ່າທີ່ມີ — ຫ້າມແຕ່ງຂ່າວເພີ່ມ ແລະ ຫ້າມຂະຫຍາຍຂ່າວທີ່ບໍ່ກ່ຽວຂ້ອງໃຫ້ກາຍເປັນຂ່າວໂບຣກເກີ.
-2. ຖ້າສອງລາຍການຂ້າງເທິງເປັນເລື່ອງດຽວກັນ (ສຳນັກຂ່າວສອງແຫ່ງລາຍງານເຫດການດຽວກັນ) ໃຫ້ເລືອກມາພຽງອັນດຽວ ຫ້າມສົ່ງຄືນຊ້ຳ.
-3. "title" — ພາສາລາວ ບໍ່ເກີນ 70 ຕົວອັກສອນ ບອກວ່າເກີດຫຍັງຂຶ້ນ. ຊື່ບໍລິສັດ ຜູ້ກຳກັບດູແລ ແລະ ຕົວເລກ ໃຫ້ຂຽນຕາມຕົ້ນສະບັບ (FCA, CySEC, $4.2M).
-4. "summary" — ພາສາລາວ 2 ຫາ 3 ປະໂຫຍກ ບອກວ່າເກີດຫຍັງ ແລະ ມັນໝາຍຄວາມວ່າແນວໃດຕໍ່ຄົນເທຣດ. ຫ້າມໃສ່ຂໍ້ມູນທີ່ບໍ່ມີໃນຕົ້ນສະບັບ ແລະ ຫ້າມຄາດເດົາຕົວເລກ.
-5. "category" — ເລືອກໜຶ່ງ: ${CATEGORIES.join(" | ")}
-6. "brokers" — ລາຍຊື່ໂບຣກເກີ/ບໍລິສັດທີ່ຖືກກ່າວເຖິງ (ພາສາອັງກິດ) ຖ້າບໍ່ມີໃຫ້ເປັນ []
-7. "index" — ເລກ [n] ຂອງຂ່າວຕົ້ນສະບັບ ເພື່ອໃຫ້ລິ້ງຕົ້ນທາງຖືກຕ້ອງ
-8. ຫ້າມໃຊ້ຕົວອັກສອນຈີນ ຫຼື ໄທ
+2. ລຳດັບຄວາມສຳຄັນ: ຂ່າວທີ່ມີເຄື່ອງໝາຍ ★ (ໂບຣກເກີທີ່ເວັບພວກເຮົາແນະນຳ) ໃຫ້ເລືອກກ່ອນ ແລະ ວາງໄວ້ເທິງສຸດ ຖ້າມັນເຂົ້າເງື່ອນໄຂຂໍ້ 1. ຕໍ່ມາຄື ◆ (ໂບຣກເກີ ຫຼື ຜູ້ກຳກັບດູແລໃນເອເຊຍ) ແລ້ວຈຶ່ງເປັນຂ່າວທີ່ບໍ່ມີເຄື່ອງໝາຍ. ແຕ່ເຄື່ອງໝາຍບໍ່ແທນຄວາມກ່ຽວຂ້ອງ — ຂ່າວ ★ ທີ່ບໍ່ມີຜົນຕໍ່ຜູ້ເທຣດກໍ່ຍັງຕ້ອງຂ້າມ ແລະ ຫ້າມເລືອກຂ່າວທີ່ບໍ່ກ່ຽວຂ້ອງພຽງເພາະມີເຄື່ອງໝາຍ.
+3. ຖ້າສອງລາຍການຂ້າງເທິງເປັນເລື່ອງດຽວກັນ (ສຳນັກຂ່າວສອງແຫ່ງລາຍງານເຫດການດຽວກັນ) ໃຫ້ເລືອກມາພຽງອັນດຽວ ຫ້າມສົ່ງຄືນຊ້ຳ.
+4. "title" — ພາສາລາວ ບໍ່ເກີນ 70 ຕົວອັກສອນ ບອກວ່າເກີດຫຍັງຂຶ້ນ. ຊື່ບໍລິສັດ ຜູ້ກຳກັບດູແລ ແລະ ຕົວເລກ ໃຫ້ຂຽນຕາມຕົ້ນສະບັບ (FCA, CySEC, $4.2M).
+5. "summary" — ພາສາລາວ 2 ຫາ 3 ປະໂຫຍກ ບອກວ່າເກີດຫຍັງ ແລະ ມັນໝາຍຄວາມວ່າແນວໃດຕໍ່ຄົນເທຣດ. ຫ້າມໃສ່ຂໍ້ມູນທີ່ບໍ່ມີໃນຕົ້ນສະບັບ ແລະ ຫ້າມຄາດເດົາຕົວເລກ.
+6. "category" — ເລືອກໜຶ່ງ: ${CATEGORIES.join(" | ")}
+7. "brokers" — ລາຍຊື່ໂບຣກເກີ/ບໍລິສັດທີ່ຖືກກ່າວເຖິງ (ພາສາອັງກິດ) ຖ້າບໍ່ມີໃຫ້ເປັນ []
+8. "index" — ເລກ [n] ຂອງຂ່າວຕົ້ນສະບັບ ເພື່ອໃຫ້ລິ້ງຕົ້ນທາງຖືກຕ້ອງ
+9. ຫ້າມໃຊ້ຕົວອັກສອນຈີນ ຫຼື ໄທ
 
 ຕອບເປັນ JSON ຢ່າງດຽວ ຮູບແບບນີ້:
 {"items":[{"index":0,"title":"...","summary":"...","category":"regulation","brokers":["Webull"]}]}`
@@ -85,6 +92,7 @@ ${list}
 
 export async function summarizeBrokerNews(
   news: BrokerNewsItem[],
+  ourBrokerNames: string[] = [],
 ): Promise<BrokerNewsSummaryItem[]> {
   if (news.length === 0) return []
 
@@ -94,7 +102,7 @@ export async function summarizeBrokerNews(
   // maxRetries 1, not the SDK default of 2: a retry of a ~40s call still has
   // to fit under the route wall alongside the first attempt.
   const client = new Anthropic({ apiKey, maxRetries: 1 })
-  const parsed = await callClaude(client, buildPrompt(news), 1400)
+  const parsed = await callClaude(client, buildPrompt(news, ourBrokerNames), 1400)
 
   const rows: any[] = Array.isArray(parsed?.items) ? parsed.items : []
 

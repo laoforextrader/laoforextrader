@@ -83,10 +83,29 @@ deciding who to hand money to.
   goes unread. The original is one clearly-marked link away on that page, which
   also carries the AI-summary disclaimer.
 - **Every news page ends with one onward step** (`components/news/NewsNextStep.tsx`),
-  on `/broker/news/*` and `/news/hot/*` alike: a three-broker shortlist, the EA
-  copy-trade pitch, or a single top-broker card, chosen by a hash of the item id.
-  Stable per story and spread across the catalogue — deliberately not random,
-  because a block that changes on refresh reads as an ad slot.
+  on `/broker/news/*` and `/news/hot/*` alike. If the story names a broker we
+  list, that broker's own card is the onward step — review button first, "open
+  an account" second, because half these stories are a regulator fining
+  somebody. Otherwise one of three generic blocks: a three-broker shortlist,
+  the EA copy-trade pitch, or a single top-broker card, chosen by a hash of the
+  item id. Stable per story and spread across the catalogue — deliberately not
+  random, because a block that changes on refresh reads as an ad slot.
+- **`lib/brokerMentions.ts` is the one place that decides which broker a story
+  is about**, for both that card and the wire ordering below. It errs toward
+  silence: word-bounded matching only, and an alias is added only when it is
+  unambiguous in a finance headline (bare "Vantage" is out — "a vantage point
+  on rates" matched it). When a slug has an alias list, that list is
+  authoritative and the slug no longer contributes a name of its own.
+- **The wire is read closest-to-home first.** `fetchBrokerNews(limit, ourNames)`
+  sorts the candidate pool by tier before date: 0 = names a broker we list ·
+  1 = names an Asia-facing broker or regulator · 2 = the rest. `ourNames`
+  comes from the broker docs in Sanity, so adding a broker in Studio moves its
+  news up with no deploy. The summariser gets the same tiers as ★/◆ marks in
+  its prompt, because order alone is a weak signal to a model choosing five of
+  twenty — and the prompt still says a marked story that does not matter to a
+  trader must be skipped. A story older than 10 days drops to tier 2 whatever
+  it names, so a stalled feed cannot pin last month's news to the top.
+  `?debug=true` prints the tiers without spending a Claude call.
 - **The count varies and that is the design.** It returns what the day's wire
   actually holds — 3 of 20 candidates on the first live run — and the prompt
   forbids padding. A thin day is a thin section.
@@ -244,7 +263,15 @@ the number is the regression baseline, not a target.
 
 Schemas in `sanity/schemas/index.ts`:
 - `article`, `author`, `comment`, `like` — blog + engagement (likes/comments are NextAuth-gated, written via `lib/sanityWrite.ts`)
-- `broker` — `/broker/[slug]` pages
+- `broker` — `/broker/[slug]` pages. **Deposit/withdrawal timing is deliberately
+  not published** — how long a transfer takes depends on when the customer sends
+  it, so any figure here is wrong half the time. `withdrawalSpeed` and the
+  `time` field on `depositMethods[]` were removed from the schema, the queries,
+  the review page and the compare table on 2026-11-24; don't put them back.
+  A licence number goes in only when it is traceable to a named entity — WikiFX
+  is an acceptable source when the broker's own site hides its footer behind a
+  JS wall, but the page must then say the data came from WikiFX rather than
+  from the regulator's register.
 - `quiz` — interactive quizzes (`/quiz/[slug]`)
 - `eaStats` — one doc per EA id (`sgride`, `megihedge`, `abs`); patched only by `/api/ea/stats`. The doc must be **created in Studio first** — the webhook 404s on an unknown `eaId` (it never auto-creates).
 - `broadcastSchedule` — drives pipeline 2

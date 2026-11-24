@@ -61,7 +61,6 @@ export default function BrokerReview({
     { label: "Leverage ສູງສຸດ", value: broker.maxLeverage ?? null },
     { label: "Spread ເລີ່ມຕົ້ນ", value: spreadLabel(broker) },
     { label: "ຄ່າຄອມມິດຊັ່ນ", value: broker.commission ?? null },
-    { label: "ເວລາຖອນເງິນ", value: broker.withdrawalSpeed ?? null },
     { label: "Platform", value: broker.platforms ?? null },
     { label: "ບັນຊີ Swap-free", value: broker.swapFree ? "ມີ" : null },
     { label: "ປີກໍ່ຕັ້ງ", value: broker.founded ? String(broker.founded) : null },
@@ -468,13 +467,6 @@ export default function BrokerReview({
                     )}
                   </div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-bk-muted">
-                    <span>ເວລາຖອນ</span>
-                    {m.time ? (
-                      <span className="font-semibold text-bk-ink">{m.time}</span>
-                    ) : (
-                      <NotRecorded />
-                    )}
-                    <span aria-hidden="true">·</span>
                     <span>ຄ່າທຳນຽມ</span>
                     {m.fee ? (
                       <span className="font-semibold text-bk-ink">{m.fee}</span>

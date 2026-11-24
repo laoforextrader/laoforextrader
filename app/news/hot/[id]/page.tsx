@@ -149,7 +149,10 @@ export default async function HotNewsPage({ params }: Props) {
 
         {/* Somewhere to go that is not back out to the source. Same block,
             same rotation, as the broker-news pages. */}
-        <NewsNextStep seed={item.id} />
+        <NewsNextStep
+          seed={item.id}
+          mentions={[item.sourceTitle, item.title, item.summary, item.detail]}
+        />
 
         {/* Quick links */}
         <div className="flex justify-center gap-3 mt-6 flex-wrap">

@@ -131,12 +131,6 @@ function buildRows(a: Broker, b: Broker): Row[] {
       win: pick(a.spreadFrom ?? null, b.spreadFrom ?? null, "low"),
     },
     {
-      label: "ຄວາມໄວໃນການຖອນ",
-      a: a.withdrawalSpeed ?? null,
-      b: b.withdrawalSpeed ?? null,
-      win: null,
-    },
-    {
       label: "ຝາກຜ່ານທະນາຄານລາວ",
       a: LAO_DEPOSIT_LABEL[laoA],
       b: LAO_DEPOSIT_LABEL[laoB],
@@ -474,7 +468,7 @@ function CtaCard({ broker }: { broker: Broker }) {
       </div>
       <div className="mb-5 flex items-center justify-center gap-2 text-sm text-bk-muted">
         <Flag src={null} alt="" />
-        {lao === "full" ? "ຝາກເງິນກີບໄດ້" : broker.withdrawalSpeed || "ສະໝັກຟຣີ"}
+        {lao === "full" ? "ຝາກເງິນກີບໄດ້" : "ສະໝັກຟຣີ"}
       </div>
       {href && (
         <a

@@ -12,6 +12,7 @@
 // 2026 award" — which is the shape this page needs.
 
 import Parser from "rss-parser"
+import { regionTier } from "@/lib/brokerMentions"
 
 export interface BrokerNewsItem {
   title: string
@@ -58,12 +59,31 @@ function cleanText(s: string | undefined): string {
 }
 
 /**
- * Newest first across both feeds, de-duplicated by headline.
+ * How stale a story may be and still be promoted ahead of a fresher one.
+ *
+ * Both feeds normally carry a few days, so this rarely bites — but a feed
+ * that stops updating would otherwise park a three-week-old Exness story at
+ * the top of the section indefinitely, because tier beats date.
+ */
+const PROMOTE_WINDOW_DAYS = 10
+
+/**
+ * Closest to home first, then newest, de-duplicated by headline.
  *
  * The same story runs on both outlets most days (both covered the Webull
  * fine), and publishing it twice is the fastest way to look automated.
+ *
+ * `ourBrokerNames` is every name the site's own broker docs go by (see
+ * lib/brokerMentions.ts). Pass it and the pool is read in the order a Lao
+ * reader cares about: our brokers, then this region's, then the rest. Leave
+ * it out and the ordering is the plain newest-first it always was, which is
+ * what the `?debug=true` call and any future caller without a Sanity client
+ * get.
  */
-export async function fetchBrokerNews(limit = 20): Promise<BrokerNewsItem[]> {
+export async function fetchBrokerNews(
+  limit = 20,
+  ourBrokerNames: string[] = [],
+): Promise<BrokerNewsItem[]> {
   const parser = new Parser({
     timeout: FEED_TIMEOUT_MS,
     headers: { "User-Agent": "Mozilla/5.0 LaoForexTrader/1.0" },
@@ -88,7 +108,7 @@ export async function fetchBrokerNews(limit = 20): Promise<BrokerNewsItem[]> {
   }
 
   const seen = new Set<string>()
-  return all
+  const kept = all
     .filter((i) => i.title && i.link)
     .filter((i) => isRelevant(i.title, i.summary))
     .filter((i) => {
@@ -99,10 +119,34 @@ export async function fetchBrokerNews(limit = 20): Promise<BrokerNewsItem[]> {
       seen.add(key)
       return true
     })
+
+  // Tier and date, resolved once per item rather than once per comparison.
+  const promoteFloor = Date.now() - PROMOTE_WINDOW_DAYS * 86400_000
+  const rank = new Map<BrokerNewsItem, { tier: number; at: number }>()
+  for (const i of kept) {
+    const at = Date.parse(i.pubDate) || 0
+    rank.set(i, {
+      // A story too old to be promoted drops to the bottom tier and competes
+      // on date alone, so a stalled feed cannot pin last month's news up top.
+      tier: at && at < promoteFloor ? 2 : regionTier(`${i.title} ${i.summary}`, ourBrokerNames),
+      at,
+    })
+  }
+
+  return kept
     .sort((a, b) => {
-      const ta = Date.parse(a.pubDate) || 0
-      const tb = Date.parse(b.pubDate) || 0
-      return tb - ta
+      const ra = rank.get(a)!
+      const rb = rank.get(b)!
+      return ra.tier - rb.tier || rb.at - ra.at
     })
     .slice(0, limit)
+}
+
+/**
+ * Same tiering as the ordering above, for a caller that needs to say WHICH
+ * stories are close to home — the summariser marks them in its prompt so the
+ * model keeps them when it has to choose five out of twenty.
+ */
+export function brokerNewsTier(item: BrokerNewsItem, ourBrokerNames: string[]): number {
+  return regionTier(`${item.title} ${item.summary}`, ourBrokerNames)
 }

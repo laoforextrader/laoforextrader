@@ -174,7 +174,13 @@ export default async function BrokerNewsPage({ params }: Props) {
           )}
         </div>
 
-        <NewsNextStep seed={item.id} />
+        {/* The summariser's own broker list first — it is the most
+            deliberate signal we have — then the original English headline,
+            then the Lao text. See lib/brokerMentions.ts. */}
+        <NewsNextStep
+          seed={item.id}
+          mentions={[(item.brokers ?? []).join(" · "), item.sourceTitle, item.title, item.summary]}
+        />
 
         <div className="mt-8 border-t border-bk-line pt-5">
           <Link

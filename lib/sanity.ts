@@ -134,9 +134,9 @@ export const QUERIES = {
     `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) [0...${limit}] {
     _id, name, slug, rank, rating, ratingBreakdown, verdict,
     minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
-    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    swapFree, laoDeposit, platforms,
     licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
-    depositMethods[]{ name, currency, time, fee },
+    depositMethods[]{ name, currency, fee },
     registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
     bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
     faq[]{ q, a },
@@ -144,12 +144,25 @@ export const QUERIES = {
     logo { asset->{ url }, alt, hotspot, crop },
     badge { text, color, show }
   }`,
+  // Just enough of every broker to (a) decide which one a news story is about
+  // and (b) render the one card that wins. Deliberately leaner than
+  // allBrokers: this runs on every news page, and the licences, FAQ, pros and
+  // cons that the directory needs would be fetched and thrown away.
+  brokerMentionIndex: `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) {
+    _id, name, slug, rank, rating,
+    minDeposit, minDepositUsd, maxLeverage, laoDeposit, verdict,
+    spreadFrom, spreadNote, regulation, regulators,
+    licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
+    depositMethods[]{ name, currency },
+    affiliateUrl, registerUrl, website,
+    logo { asset->{ url }, alt }
+  }`,
   allBrokers: `*[_type == "broker"] | order(coalesce(rank, 999) asc, rating desc) {
     _id, name, slug, rank, rating, ratingBreakdown, verdict,
     minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
-    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    swapFree, laoDeposit, platforms,
     licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
-    depositMethods[]{ name, currency, time, fee },
+    depositMethods[]{ name, currency, fee },
     registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
     bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
     faq[]{ q, a },
@@ -161,9 +174,9 @@ export const QUERIES = {
     *[_type == "broker" && slug.current == "${slug}"] [0] {
     _id, name, slug, rank, rating, ratingBreakdown, verdict,
     minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
-    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    swapFree, laoDeposit, platforms,
     licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
-    depositMethods[]{ name, currency, time, fee },
+    depositMethods[]{ name, currency, fee },
     registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
     bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
     faq[]{ q, a },
@@ -178,9 +191,9 @@ export const QUERIES = {
     *[_type == "broker" && slug.current in ["${a}", "${b}"]] {
     _id, name, slug, rank, rating, ratingBreakdown, verdict,
     minDeposit, minDepositUsd, maxLeverage, spreadFrom, spreadNote, commission,
-    withdrawalSpeed, swapFree, laoDeposit, platforms,
+    swapFree, laoDeposit, platforms,
     licenses[]{ regulator, country, licenseNo, entity, isRepresentative },
-    depositMethods[]{ name, currency, time, fee },
+    depositMethods[]{ name, currency, fee },
     registeredIn, registeredCity, founded, phone, email, websiteLabel, website,
     bestFor, notFor, reviewedAt, pros, cons, regulation, regulators, excerpt,
     faq[]{ q, a },

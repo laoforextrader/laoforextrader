@@ -68,7 +68,6 @@ export interface Broker {
   spreadFrom?: number
   spreadNote?: string
   commission?: string
-  withdrawalSpeed?: string
   swapFree?: boolean
   depositMethods?: BrokerDepositMethod[]
   licenses?: BrokerLicense[]
@@ -103,7 +102,6 @@ export interface BrokerLicense {
 export interface BrokerDepositMethod {
   name?: string
   currency?: string
-  time?: string
   fee?: string
 }
 

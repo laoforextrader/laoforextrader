@@ -5,11 +5,30 @@
 // ends with one onward step instead — and it is ONE, not a wall of three:
 // a page offering every exit offers none.
 //
-// Which one appears is picked from a hash of the item id, so it is stable per
-// story (a reader returning to the same page sees the same thing) and spread
-// across the catalogue (consecutive stories in a list do not all show the
-// same block). Deliberately not random: a block that changes on refresh looks
-// like an ad slot.
+// WHICH one is two questions, asked in order.
+//
+// 1. Is this story about a broker we list? A reader who just finished a page
+//    about Exness is as close to choosing a broker as they will ever be, and
+//    handing them a generic shortlist at that moment throws the match away.
+//    So the story's own text decides: `mentions` carries the summariser's
+//    extracted broker names, the original English headline and the Lao
+//    title/summary, in that order of trust, and lib/brokerMentions.ts says
+//    which broker doc — if any — they name. The matcher errs toward silence;
+//    claiming a story is about the wrong broker is worse than showing the
+//    generic block.
+//
+//    The card leads with the review, not with "open an account". Half these
+//    stories are a regulator fining somebody, and a page that answers "X was
+//    just fined" with "open an account at X" is not a review site.
+//
+// 2. Otherwise, one of three generic blocks, picked from a hash of the item
+//    id — stable per story (a reader returning sees the same thing) and
+//    spread across the catalogue (consecutive stories in a list do not all
+//    show the same block). Deliberately not random: a block that changes on
+//    refresh looks like an ad slot.
+//
+// One Sanity read either way: the same lean broker index answers both
+// questions.
 
 import Link from "next/link"
 import Image from "next/image"
@@ -27,6 +46,7 @@ import {
 } from "@/lib/broker"
 import { ArrowIcon, btnSolid, btnOutline } from "@/components/broker/review/BrokerBits"
 import { TrackedBrokerLink } from "@/components/broker/TrackedBrokerLink"
+import { matchBrokers } from "@/lib/brokerMentions"
 
 type Variant = "brokers" | "ea" | "topBroker"
 const VARIANTS: Variant[] = ["brokers", "ea", "topBroker"]
@@ -40,18 +60,36 @@ function hash(s: string): number {
   return Math.abs(h)
 }
 
-export default async function NewsNextStep({ seed }: { seed: string }) {
-  const variant = VARIANTS[hash(seed) % VARIANTS.length]
+interface Props {
+  seed: string
+  /**
+   * Anything the story says about who it is about, most trustworthy first:
+   * the summariser's `brokers[]`, then the original English headline, then
+   * the Lao title and summary. Nulls are fine — the caller passes the fields
+   * it has without checking them.
+   */
+  mentions?: (string | null | undefined)[]
+}
 
-  // The EA block needs no broker data, so it does not pay for the query.
-  if (variant === "ea") return <EaNext />
+export default async function NewsNextStep({ seed, mentions }: Props) {
+  const variant = VARIANTS[hash(seed) % VARIANTS.length]
+  const canMatch = (mentions ?? []).some((m) => m && m.trim())
+
+  // The EA block needs no broker data — but a story that names one of our
+  // brokers does, so the query is skipped only when there is nothing to match.
+  if (variant === "ea" && !canMatch) return <EaNext />
 
   const brokers = await sanityClient
-    .fetch<Broker[]>(QUERIES.featuredBrokers(3), {}, { next: { revalidate: 300 } })
+    .fetch<Broker[]>(QUERIES.brokerMentionIndex, {}, { next: { revalidate: 300 } })
     .catch(() => [])
   if (!brokers?.length) return <EaNext />
 
-  const ranked = sortBrokers(brokers, "rank")
+  const named = canMatch ? matchBrokers(mentions ?? [], brokers)[0] : undefined
+  if (named) return <MentionedBrokerNext broker={named} />
+
+  if (variant === "ea") return <EaNext />
+
+  const ranked = sortBrokers(brokers, "rank").slice(0, 3)
   return variant === "brokers" ? <BrokerListNext brokers={ranked} /> : <TopBrokerNext broker={ranked[0]} />
 }
 
@@ -158,13 +196,71 @@ function EaNext() {
 /* ── 3. one broker ───────────────────────────────────────────────────── */
 
 function TopBrokerNext({ broker }: { broker: Broker }) {
+  return <BrokerCard broker={broker} title="ພ້ອມເລີ່ມແລ້ວບໍ?" sub="ອັນດັບ 1 ຂອງພວກເຮົາໃນຕອນນີ້" />
+}
+
+/* ── 4. the broker this story is about ───────────────────────────────── */
+
+/**
+ * Review first, sign-up second — and the subtitle says what the card is, not
+ * what the reader should do. The story above it may well be a fine or a
+ * licence withdrawal against this very broker; the card has no idea which,
+ * and the one wording that is honest either way is "here is what we recorded
+ * about them".
+ */
+function MentionedBrokerNext({ broker }: { broker: Broker }) {
+  return (
+    <BrokerCard
+      broker={broker}
+      title={`ຂ່າວນີ້ເວົ້າເຖິງ ${broker.name}`}
+      sub={`ນີ້ແມ່ນສິ່ງທີ່ພວກເຮົາບັນທຶກໄວ້ກ່ຽວກັບ ${broker.name} — ຄະແນນ, ການຝາກຖອນ ແລະ ໃບອະນຸຍາດ`}
+      reviewFirst
+    />
+  )
+}
+
+function BrokerCard({
+  broker,
+  title,
+  sub,
+  reviewFirst = false,
+}: {
+  broker: Broker
+  title: string
+  sub: string
+  reviewFirst?: boolean
+}) {
   const slug = broker.slug?.current ?? ""
   const logo = broker.logo?.asset?.url as string | undefined
   const register = registerHref(broker)
   const lao = laoDepositState(broker)
 
+  const open = register ? (
+    <TrackedBrokerLink
+      key="open"
+      href={register}
+      brokerName={broker.name}
+      slug={slug}
+      className={`${reviewFirst ? btnOutline : btnSolid} w-full sm:w-auto`}
+    >
+      ເປີດບັນຊີ
+      {!reviewFirst && <ArrowIcon size={15} />}
+    </TrackedBrokerLink>
+  ) : null
+
+  const review = (
+    <Link
+      key="review"
+      href={`/broker/${slug}`}
+      className={`${reviewFirst ? btnSolid : btnOutline} w-full sm:w-auto`}
+    >
+      ອ່ານລີວິວເຕັມ
+      {reviewFirst && <ArrowIcon size={15} />}
+    </Link>
+  )
+
   return (
-    <Shell title={`ພ້ອມເລີ່ມແລ້ວບໍ?`} sub={`ອັນດັບ 1 ຂອງພວກເຮົາໃນຕອນນີ້`}>
+    <Shell title={title} sub={sub}>
       <div className="flex items-center gap-3">
         {logo && (
           <Image
@@ -201,21 +297,11 @@ function TopBrokerNext({ broker }: { broker: Broker }) {
         )}
       </div>
 
+      {/* DOM order is the visual order on both axes: reversing with
+          flex-row-reverse would have left the mobile column the other way
+          round from the desktop row. */}
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        {register && (
-          <TrackedBrokerLink
-            href={register}
-            brokerName={broker.name}
-            slug={slug}
-            className={`${btnSolid} w-full sm:w-auto`}
-          >
-            ເປີດບັນຊີ
-            <ArrowIcon size={15} />
-          </TrackedBrokerLink>
-        )}
-        <Link href={`/broker/${slug}`} className={`${btnOutline} w-full sm:w-auto`}>
-          ອ່ານລີວິວເຕັມ
-        </Link>
+        {reviewFirst ? [review, open] : [open, review]}
       </div>
     </Shell>
   )

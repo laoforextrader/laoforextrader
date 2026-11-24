@@ -21,7 +21,8 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@sanity/client"
-import { fetchBrokerNews } from "@/lib/news/brokerSources"
+import { fetchBrokerNews, brokerNewsTier } from "@/lib/news/brokerSources"
+import { namesOf } from "@/lib/brokerMentions"
 import { summarizeBrokerNews } from "@/lib/news/summarizeBrokerNews"
 import { todayInVientiane, fetchOgImage } from "@/lib/news/sources"
 import { sendAdminTelegram, escapeHtml } from "@/lib/alertAdmin"
@@ -40,6 +41,26 @@ const sanity = createClient({
   token: process.env.SANITY_API_TOKEN,
   useCdn: false,
 })
+
+/**
+ * Every name the site's own broker docs go by, for the news ordering: a story
+ * about a broker we list comes before one about a broker we do not.
+ *
+ * Read from Sanity rather than listed in code, so adding a broker in Studio
+ * moves its news up without a deploy. A failed read must not cost the day's
+ * news — without the list the ordering is the plain newest-first it was
+ * before, so the empty array is a real fallback and not an error.
+ */
+async function ourBrokerNames(): Promise<string[]> {
+  try {
+    const docs = await sanity.fetch<{ name?: string; slug?: string }[]>(
+      `*[_type == "broker"]{ name, "slug": slug.current }`,
+    )
+    return Array.from(new Set((docs ?? []).flatMap((d) => namesOf(d))))
+  } catch {
+    return []
+  }
+}
 
 async function handle(req: Request) {
   if (!cronAuthorized(req)) {
@@ -69,7 +90,8 @@ async function handle(req: Request) {
     }
 
     const tFetch = Date.now()
-    const news = await fetchBrokerNews()
+    const ours = await ourBrokerNames()
+    const news = await fetchBrokerNews(20, ours)
     timing.fetchMs = Date.now() - tFetch
 
     if (debug) {
@@ -78,7 +100,15 @@ async function handle(req: Request) {
         debug: true,
         date,
         newsCount: news.length,
-        sample: news.slice(0, 5).map((n) => ({ title: n.title, source: n.sourceName })),
+        ourBrokerNames: ours,
+        // tier 0 = about a broker we list · 1 = this region's · 2 = the rest.
+        // The list is already in that order; printing it is how a change to
+        // the aliases gets checked without spending a Claude call.
+        sample: news.slice(0, 10).map((n) => ({
+          tier: brokerNewsTier(n, ours),
+          title: n.title,
+          source: n.sourceName,
+        })),
         timing,
         totalMs: Date.now() - t0,
       })
@@ -111,7 +141,7 @@ async function handle(req: Request) {
 
     // ── Stage 2: the Lao summaries ────────────────────────────────────────
     const tClaude = Date.now()
-    const items = await summarizeBrokerNews(news)
+    const items = await summarizeBrokerNews(news, ours)
     timing.claudeMs = Date.now() - tClaude
 
     if (items.length === 0) {

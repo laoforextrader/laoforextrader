@@ -29,6 +29,8 @@ export const COUNTRY_LAO: Record<string, string> = {
   nz: "ນິວຊີແລນ",
   ca: "ການາດາ",
   sg: "ສິງກະໂປ",
+  id: "ອິນໂດເນເຊຍ",
+  km: "ໂຄໂມໂຣສ",
   hk: "ຮ່ອງກົງ",
   ae: "ສະຫະລັດອາຣັບເອມິເຣດ",
   bs: "ບາຮາມາສ",
