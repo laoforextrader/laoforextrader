@@ -178,15 +178,17 @@ export default function BrokerReview({
         </div>
 
         {register && (
-          <a
-            href={register}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className={`${btnCta} mt-7 w-full sm:w-auto`}
-          >
-            ເປີດບັນຊີ {broker.name}
-            <ArrowIcon size={16} />
-          </a>
+          <div className="mt-7 flex justify-center">
+            <a
+              href={register}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className={`${btnCta} w-full sm:w-auto`}
+            >
+              ເປີດບັນຊີ {broker.name}
+              <ArrowIcon size={16} />
+            </a>
+          </div>
         )}
 
         {/* ── score ─────────────────────────────────────────────────────── */}
@@ -517,15 +519,17 @@ export default function BrokerReview({
               ))}
             </ol>
             {register && (
-              <a
-                href={register}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-                className={`${btnCta} mt-7 w-full sm:w-auto`}
-              >
-                ເປີດບັນຊີ {broker.name} ດຽວນີ້
-                <ArrowIcon size={16} />
-              </a>
+              <div className="mt-7 flex justify-center">
+                <a
+                  href={register}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className={`${btnCta} w-full sm:w-auto`}
+                >
+                  ເປີດບັນຊີ {broker.name} ດຽວນີ້
+                  <ArrowIcon size={16} />
+                </a>
+              </div>
             )}
           </div>
         </section>
